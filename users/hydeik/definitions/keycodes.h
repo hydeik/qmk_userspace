@@ -3,10 +3,10 @@
 #include QMK_KEYBOARD_H
 
 enum custom_keycode_t {
-    CKC_SPACE = QK_USER,
-    CKC_ENTER,
+    CKC_TAB = QK_USER,
+    CKC_SPC,
+    CKC_ENT,
     CKC_ESC,
-    CKC_TAB,
   
     /* home-row mods */
     CKC_A,

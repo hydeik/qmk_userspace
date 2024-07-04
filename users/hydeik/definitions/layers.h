@@ -2,9 +2,10 @@
  
 /* Layer numbers */
 enum layer_t {
-    _QWERTY,
-    _LOWER,
-    _RAISE,
-    _ADJUST,
+    _BASE,
+    _SYM1,
+    _EXT,
+    _FNC,
+    _SYM2,
 };
 
