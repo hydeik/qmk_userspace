@@ -1,4 +1,7 @@
 SRC += hydeik.c
+SRC += features/caps_word_user.c
+SRC += features/layer_lock.c
+SRC += features/sm_td_user.c
 
 LTO_ENABLE = yes
 EXTRAKEY_ENABLE = yes  # Audio control and System control
