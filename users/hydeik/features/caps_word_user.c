@@ -1,3 +1,5 @@
+#include QMK_KEYBOARD_H
+
 /* Callback for the Caps Word features */
 bool caps_word_press_user(uint16_t keycode) {
     switch (keycode) {

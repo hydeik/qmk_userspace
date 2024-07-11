@@ -3,33 +3,44 @@
 #include QMK_KEYBOARD_H
 
 enum custom_keycode_t {
-    CKC_TAB = QK_USER,
-    CKC_SPC,
-    CKC_ENT,
-    CKC_ESC,
-  
+    LLOCK = QK_USER,
+
+    TAB_EXT,
+    SPC_NUM,
+    ENT_SYM,
+    ESC_FUN,
+
     /* home-row mods */
-    CKC_A,
-    CKC_S,
-    CKC_D,
-    CKC_F,
-    CKC_J,
-    CKC_K,
-    CKC_L,
-    CKC_SCLN,
+    HM_A,
+    HM_S,
+    HM_D,
+    HM_F,
+    HM_J,
+    HM_K,
+    HM_L,
+    HM_SCLN,
 
-    CKC_DOWN,
-    CKC_UP,
-    CKC_RGHT, 
-    CKC_BSPC,
+    HM_DOWN,
+    HM_UP,
+    HM_RGHT,
+    HM_BSPC,
 
-    CKC_DQT,
-    CKC_LT,
-    CKC_LPRN,
-    CKC_LCBR,
-    CKC_UNDS,
-    CKC_PLUS,
-    CKC_COLN,
-    /* CKC_SCLN, */
+    HM_DQT,
+    HM_LT,
+    HM_LPRN,
+    HM_LCBR,
+    HM_UNDS,
+    HM_EQL,
+    HM_PLUS,
+    HM_COLN,
+
+    HM_1,
+    HM_2,
+    HM_3,
+    HM_4,
+    HM_7,
+    HM_8,
+    HM_9,
+    HM_0,
 };
 
