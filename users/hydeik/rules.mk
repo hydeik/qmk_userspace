@@ -1,11 +1,13 @@
 SRC += hydeik.c
 SRC += features/caps_word_user.c
 SRC += features/layer_lock.c
+# SRC += features/combo_user.c
+SRC += features/sm_td.c
 SRC += features/sm_td_user.c
 
 LTO_ENABLE = yes
 EXTRAKEY_ENABLE = yes  # Audio control and System control
-TAP_DANCE_ENABLE = yes
+TAP_DANCE_ENABLE = no
 COMBO_ENABLE = yes
 NKRO_ENABLE = yes
 OS_DETECTION_ENABLE = yes
@@ -24,3 +26,5 @@ MAGIC_ENABLE = no
 MUSIC_ENABLE = no
 
 CAPS_WORD_ENABLE = yes
+
+INTROSPECTION_KEYMAP_C = features/combo_user.c

@@ -1,6 +1,5 @@
 #include QMK_KEYBOARD_H
 
-#include "quantum.h"
 #include "hydeik.h"
 
 __attribute__ ((weak))
