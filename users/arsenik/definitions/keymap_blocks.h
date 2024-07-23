@@ -12,21 +12,21 @@
 #define _________________QWERTY_R2_________________       KC_H,    HM_J,    HM_K,    HM_L,    HM_SCLN
 #define _________________QWERTY_R3_________________       KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
 
-#define _______________NAVIGATION_L1_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, CW_TOGG
-#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, LLOCK
+#define _______________NAVIGATION_L1_______________       XXXXXXX, KC_HOME, KC_UP,   KC_END,  KC_PGUP
+#define _______________NAVIGATION_L2_______________       KC_LCTL, HM_LEFT, HM_DOWN, HM_RGHT, KC_PGDN
+#define _______________NAVIGATION_L3_______________       XXXXXXX, XXXXXXX, LSFT(KC_TAB), KC_TAB, LLOCK
 
-#define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
-#define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, HM_BSPC
-#define _______________NAVIGATION_R3_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_DEL
+#define _______________NAVIGATION_R1_______________       KC_SLSH, KC_7,    KC_8,    KC_9,    KC_COLN
+#define _______________NAVIGATION_R2_______________       KC_MINS, HM_4,    HM_5,    HM_6,    HM_0
+#define _______________NAVIGATION_R3_______________       KC_COMM, KC_1,    KC_2,    KC_3,    KC_DOT
 
-#define _________________SYMBOL_L1_________________       KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC
-#define _________________SYMBOL_L2_________________       HM_DQT,  HM_LT,   HM_LCBR, HM_LPRN, KC_LBRC
-#define _________________SYMBOL_L3_________________       KC_QUOT, KC_GT,   KC_RCBR, KC_RPRN, KC_RBRC
+#define _________________SYMBOL_L1_________________       KC_AT,   KC_LT,   KC_GT,   KC_DLR,  KC_PERC
+#define _________________SYMBOL_L2_________________       HM_LCBR, HM_LPRN, HM_RPRN, HM_RCBR, KC_EQL
+#define _________________SYMBOL_L3_________________       KC_TILD, KC_LBRC, KC_RBRC, KC_UNDS, KC_HASH
 
-#define _________________SYMBOL_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_GRV,  KC_TILD
-#define _________________SYMBOL_R2_________________       KC_PIPE, HM_UNDS, HM_EQL,  HM_PLUS, HM_COLN
-#define _________________SYMBOL_R3_________________       KC_BSLS, KC_MINS, KC_COMM, KC_DOT,  KC_QUES
+#define _________________SYMBOL_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_QUOT, KC_GRV
+#define _________________SYMBOL_R2_________________       KC_BSLS, HM_PLUS, HM_MINS, HM_SLSH, HM_DQUO
+#define _________________SYMBOL_R3_________________       KC_PIPE, KC_EXCL, KC_SCLN, KC_DOT,  KC_QUES
 
 #define _________________NUMBER_L1_________________       KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC
 #define _________________NUMBER_L2_________________       HM_1,    HM_2,    HM_3,    HM_4,    KC_5
