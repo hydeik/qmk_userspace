@@ -1,13 +1,12 @@
-SRC += hydeik.c
+SRC += arsenik.c
 
 LTO_ENABLE = yes
 EXTRAKEY_ENABLE = yes  # Audio control and System control
-TAP_DANCE_ENABLE = yes
-COMBO_ENABLE = yes
+TAP_DANCE_ENABLE = no
+COMBO_ENABLE = no
 NKRO_ENABLE = yes
 OS_DETECTION_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
-REPEAT_KEY_ENABLE = yes
 MOUSEKEY_ENABLE = no
 BOOTMAGIC_ENABLE = no
 BACKLIGHT_ENABLE = no
@@ -21,9 +20,7 @@ MAGIC_ENABLE = no
 MUSIC_ENABLE = no
 
 CAPS_WORD_ENABLE ?= yes
-ifeq ($(strip $(CAPS_WORD_ENABLE)), yes)
-	SRC += features/caps_word_user.c
-endif
+REPEAT_KEY_ENABLE ?= yes
 
 ACHORDION_ENABLE ?= yes
 ifeq ($(strip $(ACHORDION_ENABLE)), yes)

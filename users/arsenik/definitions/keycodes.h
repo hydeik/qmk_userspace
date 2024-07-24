@@ -5,50 +5,20 @@
 
 enum custom_keycode_t {
     LLOCK = QK_USER,
-
-    TAB_EXT,
-    SPC_NUM,
-    ENT_SYM,
-    ESC_FUN,
-
-    /* home-row mods */
-    HM_A,
-    HM_S,
-    HM_D,
-    HM_F,
-    HM_J,
-    HM_K,
-    HM_L,
-    HM_SCLN,
-
-    HM_DOWN,
-    HM_UP,
-    HM_RGHT,
-    HM_BSPC,
-
-    HM_DQT,
-    HM_LT,
-    HM_LPRN,
-    HM_LCBR,
-    HM_UNDS,
-    HM_EQL,
-    HM_PLUS,
-    HM_COLN,
-
-    HM_1,
-    HM_2,
-    HM_3,
-    HM_4,
-    HM_7,
-    HM_8,
-    HM_9,
-    HM_0,
+    UPDIR,
+    /* Macros invoked through the Magic key. */
+    M_DOCSTR,
+    M_EQEQ,
+    M_INCLUDE,
+    M_MKGRVS,
+    M_UPDIR,
+    M_NOOP,
 };
 
 /* mod-tap keys */
 #define EXT_SPC  LT(_EXT, KC_SPC)
 #define SYM_ENT  LT(_SYM, KC_ENT)
-#define FNU_BSPC LT(_FUN, KC_BSPC)
+#define FUN_BSPC LT(_FUN, KC_BSPC)
 
 /* mod-tap keys (home row) */
 #define HM_A     LCTL_T(KC_A)
@@ -58,7 +28,7 @@ enum custom_keycode_t {
 #define HM_J     RSFT_T(KC_J)
 #define HM_K     RGUI_T(KC_K)
 #define HM_L     RALT_T(KC_L)
-#define HM_SC    RCTL_T(KC_SCLN)
+#define HM_SCLN  RCTL_T(KC_SCLN)
 
 #define HM_LEFT  LALT_T(KC_LEFT)
 #define HM_DOWN  LGUI_T(KC_DOWN)

@@ -13,5 +13,3 @@ void keyboard_post_init_keymap(void);
 #include "definitions/keycodes.h"
 #include "definitions/keymap_blocks.h"
 
-#include "features/layer_lock.h"
-#include "features/sm_td.h"

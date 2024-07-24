@@ -26,22 +26,14 @@
 
 #define _________________SYMBOL_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_QUOT, KC_GRV
 #define _________________SYMBOL_R2_________________       KC_BSLS, HM_PLUS, HM_MINS, HM_SLSH, HM_DQUO
-#define _________________SYMBOL_R3_________________       KC_PIPE, KC_EXCL, KC_SCLN, KC_DOT,  KC_QUES
-
-#define _________________NUMBER_L1_________________       KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC
-#define _________________NUMBER_L2_________________       HM_1,    HM_2,    HM_3,    HM_4,    KC_5
-#define _________________NUMBER_L3_________________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, LLOCK
-
-#define _________________NUMBER_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_PLUS, KC_COLN
-#define _________________NUMBER_R2_________________       KC_6,    HM_7,    HM_8,    HM_9,    HM_0
-#define _________________NUMBER_R3_________________       KC_UNDS, KC_MINS, KC_COMM, KC_DOT,  KC_SLSH
+#define _________________SYMBOL_R3_________________       KC_PIPE, KC_EXLM, KC_SCLN, KC_DOT,  KC_QUES
 
 #define ________________FUNCTION_L1________________       KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5
 #define ________________FUNCTION_L2________________       KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10
 #define ________________FUNCTION_L3________________       KC_F11,  KC_F12,  KC_MCTL, KC_LPAD, KC_PSCR
 
 #define ________________FUNCTION_R1________________       KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU
-#define ________________FUNCTION_R2________________       XXXXXXX, KC_RSFT, KC_RGUI, KC_RALT, KC_RCTL
+#define ________________FUNCTION_R2________________       CW_TOGG, KC_RSFT, KC_RGUI, KC_RALT, KC_RCTL
 #define ________________FUNCTION_R3________________       LLOCK,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT
 
 /* clang-format on */
