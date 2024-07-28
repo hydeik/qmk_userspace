@@ -7,15 +7,22 @@
 #undef LOCKING_SUPPORT_ENABLE
 #undef LOCKING_RESYNC_ENABLE
 
+/****************************************************************************
+ * Tap & Hold
+ ****************************************************************************/
+/*
+ * Unfortunately, some applications drop or misorder fast key events. This is a
+ * partial fix to slow down the rate at which macros are sent.
+ */
+#define TAP_CODE_DELAY 5
 /* Configure Tap & Hold */
 #define TAPPING_TERM 175
 #define TAPPING_TERM_PER_KEY
-#define QUICK_TAP_TERM 175
 #define QUICK_TAP_TERM_PER_KEY
 #define TAPPING_TOGGLE 1
 
 /* Configure One Shot Key */
-#define ONESHOT_TIMEOUT 1000
+#define ONESHOT_TIMEOUT 2000
 
 /* Configure Leader key */
 #define LEADER_TIMEOUT 500
@@ -91,3 +98,31 @@
 #undef ENABLE_RGB_MATRIX_SOLID_SPLASH
 #undef ENABLE_RGB_MATRIX_SOLID_MULTISPLASH
 
+/****************************************************************************
+ * Achordion
+ ****************************************************************************/
+#ifdef ACHORDION_ENABLE
+#define ACHORDION_STREAK
+#endif  /* ACHORDION_ENABLE */
+
+/****************************************************************************
+ * Caps Word
+ ****************************************************************************/
+#ifdef CAPS_WORD_ENABLE
+/*
+ * Use Left Ctrl + Right Ctrl to activate the Command feature.
+ * Holding Shift while Caps Word is active inverts the shift state.
+ */
+#define IS_COMMAND() (get_mods() == MOD_MASK_CTRL)
+#define CAPS_WORD_INVERT_ON_SHIFT
+/* When idle, turn off Caps Word after 5 seconds. */
+#define CAPS_WORD_IDLE_TIMEOUT 5000
+#endif  /* CAPS_WORD_ENABLE */
+
+/****************************************************************************
+ * Layer Lock
+ ****************************************************************************/
+#ifdef LAYER_LOCK_ENABLE
+/* When idle, turn off Layer Lock after 60 seconds. */
+#define LAYER_LOCK_IDLE_TIMEOUT 60000
+#endif  /* LAYER_LOCK_ENABLE */
