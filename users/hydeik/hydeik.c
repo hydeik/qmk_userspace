@@ -268,12 +268,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif  /* LAYER_LOCK_ENABLE */
 
     switch(keycode) {
-        CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
-        CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
+        CASE_MT_NON_BASIC_KEYCODE(HM_COLN1, KC_COLN);
         CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
+        CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
+        CASE_MT_NON_BASIC_KEYCODE(HM_COLN2, KC_COLN);
     }
 
     if (record->event.pressed) {

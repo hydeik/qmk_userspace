@@ -34,7 +34,7 @@ enum custom_keycode_t {
 #define NUM_ENT  LT(_NUM, KC_ENT)
 #define FUN_BSPC LT(_FUN, KC_BSPC)
 
-/* mod-tap keys (home row) */
+/* for home-row mods (BASE layer) */
 #define HM_A     LCTL_T(KC_A)
 #define HM_S     LALT_T(KC_S)
 #define HM_D     LGUI_T(KC_D)
@@ -44,27 +44,30 @@ enum custom_keycode_t {
 #define HM_L     RALT_T(KC_L)
 #define HM_SCLN  RCTL_T(KC_SCLN)
 
-#define HM_DOWN  RSFT_T(KC_LEFT)
-#define HM_UP    RGUI_T(KC_DOWN)
+/* for home-row mods (EXT layer) */
+#define HM_DOWN  RSFT_T(KC_DOWN)
+#define HM_UP    RGUI_T(KC_UP)
 #define HM_RGHT  RALT_T(KC_RGHT)
-#define HM_BSPC  RCTL_T(KC_BSPC)
 
-/* KC_KP_0, KC_KP_1 are used for placeholders */
-#define HM_0     LCTL_T(KC_0)
-#define HM_1     LALT_T(KC_1)
-#define HM_2     LGUI_T(KC_2)
-#define HM_3     LSFT_T(KC_3)
-#define HM_QUOT  RSFT_T(KC_QUOT)
-#define HM_UNDS  RGUI_T(KC_KP_0)
-#define HM_EQL   RALT_T(KC_EQL)
-#define HM_COLN  RCTL_T(KC_KP_0)
+/* for home-row mods (SYM layer) */
+#define HM_ASTR   LCTL_T(KC_KP_0)
+#define HM_LPRN   LALT_T(KC_KP_0)
+#define HM_RPRN   LGUI_T(KC_KP_0)
+#define HM_COLN1  LSFT_T(KC_KP_0)
+#define HM_DQUO   RSFT_T(KC_KP_1)
+#define HM_LBRC   RGUI_T(KC_LBRC)
+#define HM_RBRC   RALT_T(KC_RBRC)
 
-#define HM_ASTR  LCTL_T(KC_KP_1)
-#define HM_LPRN  LALT_T(KC_KP_1)
-#define HM_RPRN  LGUI_T(KC_KP_1)
-#define HM_DQUO  RSFT_T(KC_KP_1)
-#define HM_LBRC  RGUI_T(KC_LBRC)
-#define HM_RBRC  RALT_T(KC_RBRC)
+/* for home-row mods (NUM layer) */
+#define HM_0      LCTL_T(KC_0)
+#define HM_1      LALT_T(KC_1)
+#define HM_2      LGUI_T(KC_2)
+#define HM_3      LSFT_T(KC_3)
+#define HM_QUOT   RSFT_T(KC_QUOT)
+#define HM_UNDS   RGUI_T(KC_KP_2)
+#define HM_EQL    RALT_T(KC_EQL)
+#define HM_COLN2  RCTL_T(KC_KP_2)
+
 
 
 /****************************************************************************
@@ -86,11 +89,11 @@ enum custom_keycode_t {
 #define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, LLOCK
 
 #define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
-#define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, HM_BSPC
-#define _______________NAVIGATION_R3_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_DEL
+#define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, KC_RCTL
+#define _______________NAVIGATION_R3_______________       XXXXXXX, QK_REP,  QK_AREP, XXXXXXX, XXXXXXX
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
-#define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN, XXXXXXX
+#define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, XXXXXXX
 #define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, LLOCK
 
 #define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
@@ -102,7 +105,7 @@ enum custom_keycode_t {
 #define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT
 
 #define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
-#define _________________NUMBER_R2_________________       XXXXXXX, HM_QUOT, HM_UNDS, HM_EQL,  HM_COLN
+#define _________________NUMBER_R2_________________       XXXXXXX, HM_QUOT, HM_UNDS, HM_EQL,  HM_COLN2
 #define _________________NUMBER_R3_________________       LLOCK,   KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX
 
 #define ________________FUNCTION_L1________________       KC_LPAD, KC_F4,   KC_F5,   KC_F6,   KC_F10
