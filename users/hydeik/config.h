@@ -11,15 +11,18 @@
  * Tap & Hold
  ****************************************************************************/
 /*
- * Unfortunately, some applications drop or misorder fast key events. This is a
- * partial fix to slow down the rate at which macros are sent.
+ * Unfortunately, some applications drop or misorder fast key events.
+ * This is a partial fix to slow down the rate at which macros are sent.
  */
 #define TAP_CODE_DELAY 5
 /* Configure Tap & Hold */
-#define TAPPING_TERM 175
+#define TAPPING_TERM 200
+#define TAPPING_TOGGLE 1
+
+#ifdef ACHORDION_ENABLE
 #define TAPPING_TERM_PER_KEY
 #define QUICK_TAP_TERM_PER_KEY
-#define TAPPING_TOGGLE 1
+#endif  /* ACHORDION_ENABLE */
 
 /* Configure One Shot Key */
 #define ONESHOT_TIMEOUT 2000
@@ -32,7 +35,6 @@
 #define COMBO_TERM 30
 #define EXTRA_SHORT_COMBOS
 #define COMBO_STRICT_TIMER
-#define COMBO_HOLD_TERM 175
 #define COMBO_MUST_TAP_PER_COMBO
 #define COMBO_SHOULD_TRIGGER
 
@@ -104,6 +106,13 @@
 #ifdef ACHORDION_ENABLE
 #define ACHORDION_STREAK
 #endif  /* ACHORDION_ENABLE */
+
+/****************************************************************************
+ * sm_td
+ ****************************************************************************/
+#ifdef SMTD_ENABLE
+#define SMTD_STREAK
+#endif  /* SMTD_ENABLE */
 
 /****************************************************************************
  * Caps Word

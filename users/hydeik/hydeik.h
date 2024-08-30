@@ -19,14 +19,56 @@ enum layer_t {
 enum custom_keycode_t {
     LLOCK = QK_USER,
     UPDIR,
-    /* Macros invoked through the Magic key. */
+    /* --- Macros invoked through the Magic key. */
     M_DOCSTR,
     M_EQEQ,
     M_INCLUDE,
     M_MKGRVS,
     M_UPDIR,
     M_NOOP,
+#ifdef SMTD_ENABLE
+    /* --- Macro keycode handled by SMTD */
+    SMTD_KEYCODES_BEGIN,
+    /* mod-tap keys */
+    EXT_TAB,
+    SYM_SPC,
+    NUM_ENT,
+    FUN_BSPC,
+    /* for home-row mods (BASE layer) */
+    HM_A,
+    HM_S,
+    HM_D,
+    HM_F,
+    HM_J,
+    HM_K,
+    HM_L,
+    HM_SCLN,
+    /* for home-row mods (EXT layer) */
+    HM_LEFT,
+    HM_DOWN,
+    HM_RGHT,
+    /* for home-row mods (SYM layer) */
+    HM_ASTR,
+    HM_LPRN,
+    HM_RPRN,
+    HM_COLN1,
+    HM_DQUO,
+    HM_LBRC,
+    HM_RBRC,
+    /* for home-row mods (NUM layer) */
+    HM_0,
+    HM_1,
+    HM_2,
+    HM_3,
+    HM_QUOT,
+    HM_UNDS,
+    HM_EQL,
+    HM_COLN2,
+    SMTD_KEYCODES_END,
+#endif  /* SMTD_ENABLE */
 };
+
+#ifndef SMTD_ENABLE
 
 /* mod-tap keys */
 #define EXT_TAB  LT(_EXT, KC_TAB)
@@ -45,8 +87,8 @@ enum custom_keycode_t {
 #define HM_SCLN  RCTL_T(KC_SCLN)
 
 /* for home-row mods (EXT layer) */
-#define HM_DOWN  RSFT_T(KC_DOWN)
-#define HM_UP    RGUI_T(KC_UP)
+#define HM_LEFT  RSFT_T(KC_LEFT)
+#define HM_DOWN  RGUI_T(KC_DOWN)
 #define HM_RGHT  RALT_T(KC_RGHT)
 
 /* for home-row mods (SYM layer) */
@@ -68,6 +110,7 @@ enum custom_keycode_t {
 #define HM_EQL    RALT_T(KC_EQL)
 #define HM_COLN2  RCTL_T(KC_KP_2)
 
+#endif  /* not def: SMTD_ENABLE */
 
 
 /****************************************************************************
@@ -88,9 +131,9 @@ enum custom_keycode_t {
 #define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, CW_TOGG
 #define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, LLOCK
 
-#define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
-#define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, KC_RCTL
-#define _______________NAVIGATION_R3_______________       XXXXXXX, QK_REP,  QK_AREP, XXXXXXX, XXXXXXX
+#define _______________NAVIGATION_R1_______________       KC_PGUP, KC_PGDN, KC_UP,   KC_END,  XXXXXXX
+#define _______________NAVIGATION_R2_______________       KC_PGDN, HM_LEFT, HM_DOWN, HM_RGHT, KC_RCTL
+#define _______________NAVIGATION_R3_______________       CW_TOGG, QK_REP,  QK_AREP, XXXXXXX, XXXXXXX
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
 #define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, XXXXXXX

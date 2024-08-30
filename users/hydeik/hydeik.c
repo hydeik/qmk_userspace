@@ -9,6 +9,10 @@
 
 #include "hydeik.h"
 
+#ifdef SMTD_ENABLE
+#include "feature/sm_td.h"
+#endif  /* SMTD_ENABLE */
+
 __attribute__ ((weak))
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
     return true;
@@ -37,8 +41,8 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
         case HM_K:
         case HM_L:
         /* Also repeating arrow keys. */
+        case HM_LEFT:
         case HM_DOWN:
-        case HM_UP:
         case HM_RGHT:
             return QUICK_TAP_TERM;  /* Enable key repeating. */
         default:
@@ -90,6 +94,68 @@ uint16_t achordion_streak_timeout(uint16_t tap_hold_keycode) {
 }
 
 #endif  /* ACHORDION_ENABLE */
+
+/*****************************************************************************
+ * sm_td (https://github.com/stasmarkin/sm_td)
+ *****************************************************************************/
+#ifdef SMTD_ENABLE
+
+void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
+    switch(keycode) {
+        SMTD_LT(EXT_TAB, KC_TAB, _EXT, 2)
+        SMTD_LT(SYM_SPC, KC_SPC, _SYM, 2)
+        SMTD_LT(NUM_ENT, KC_ENT, _NUM, 2)
+        SMTD_LT(FUN_BSPC, KC_BSPC, _FUN, 2)
+
+        SMTD_MTE(HM_A, KC_A, KC_LCTL, 2)
+        SMTD_MTE(HM_S, KC_S, KC_LALT, 2)
+        SMTD_MTE(HM_D, KC_D, KC_LGUI, 2)
+        SMTD_MTE(HM_F, KC_F, KC_LSFT, 2)
+        SMTD_MTE(HM_J, KC_J, KC_RSFT, 2)
+        SMTD_MTE(HM_K, KC_K, KC_RGUI, 2)
+        SMTD_MTE(HM_L, KC_L, KC_RALT, 2)
+        SMTD_MTE(HM_SCLN, KC_SCLN, KC_RCTL, 2, false)
+
+        SMTD_MT(HM_LEFT, KC_LEFT, KC_RSFT, 2, false)
+        SMTD_MT(HM_DOWN, KC_DOWN, KC_RGUI, 2, false)
+        SMTD_MT(HM_RGHT, KC_RGHT, KC_RALT, 2, false)
+
+        SMTD_MT(HM_ASTR, KC_ASTR, KC_LCTL, 2, false)
+        SMTD_MT(HM_LPRN, KC_LPRN, KC_LALT, 2, false)
+        SMTD_MT(HM_RPRN, KC_RPRN, KC_LGUI, 2, false)
+        SMTD_MT(HM_COLN1,KC_COLN, KC_LSFT, 2, false)
+        SMTD_MT(HM_DQUO, KC_DQUO, KC_RSFT, 2, false)
+        SMTD_MT(HM_LBRC, KC_LBRC, KC_RGUI, 2, false)
+        SMTD_MT(HM_RBRC, KC_RBRC, KC_RALT, 2, false)
+
+        SMTD_MT(HM_0, KC_0, KC_LCTL, 2, false)
+        SMTD_MT(HM_1, KC_1, KC_LALT, 2, false)
+        SMTD_MT(HM_2, KC_2, KC_LGUI, 2, false)
+        SMTD_MT(HM_3, KC_3, KC_LSFT, 2, false)
+        SMTD_MT(HM_QUOT, KC_QUOT, KC_RSFT, 2, false)
+        SMTD_MT(HM_UNDS, KC_UNDS, KC_RGUI, 2, false)
+        SMTD_MT(HM_EQL, KC_EQL, KC_RALT, 2, false)
+        SMTD_MT(HM_COLN2, KC_COLN, KC_RCTL, 2, false)
+    }
+}
+
+uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
+    switch (keycode) {
+        case HM_A:
+        case HM_S:
+        case HM_D:
+        case HM_F:
+        case HM_J:
+        case HM_K:
+        case HM_L:
+        case HM_SCLN:
+            if (timeout == SMTD_TIMEOUT_TAP) return 300;
+            break;
+    }
+
+    return get_smtd_timeout_default(timeout);
+}
+#endif /* SMTD_ENABLE */
 
 /*****************************************************************************
  * Caps word (https://docs.qmk.fm/features/caps_word)
@@ -263,10 +329,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef ACHORDION_ENABLE
     if (!process_achordion(keycode, record)) { return false; }
 #endif  /* ACHORDION_ENABLE */
+#ifdef SMTD_ENABLE
+    if (!process_smtd(keycode, record)) { return false; }
+#endif  /* SMTD_ENABLE */
 #ifdef LAYER_LOCK_ENABLE
     if (!process_layer_lock(keycode, record, LLOCK)) { return false; }
 #endif  /* LAYER_LOCK_ENABLE */
 
+#ifndef SMTD_ENABLE
     switch(keycode) {
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
@@ -276,6 +346,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
         CASE_MT_NON_BASIC_KEYCODE(HM_COLN2, KC_COLN);
     }
+#endif  /* not def: SMTD_ENABLE */
 
     if (record->event.pressed) {
         switch (keycode) {
