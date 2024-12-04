@@ -1,0 +1,31 @@
+SRC += vial.c
+
+VIA_ENABLE = yes
+VIAL_ENABLE = yes
+
+LTO_ENABLE = yes
+EXTRAKEY_ENABLE = yes  # Audio control and System control
+TAP_DANCE_ENABLE = yes
+COMBO_ENABLE = no
+NKRO_ENABLE = yes
+OS_DETECTION_ENABLE = yes
+MOUSEKEY_ENABLE = no
+BOOTMAGIC_ENABLE = no
+BACKLIGHT_ENABLE = no
+SWAP_HANDS_ENABLE = no
+KEY_LOCK_ENABLE = no
+KEY_OVERRIDE_ENABLE = yes
+CONSOLE_ENABLED = no
+COMMAND_ENABLE = no
+SPACE_CADET_ENABLE = no
+GRAVE_EMC_ENABLE = no
+MAGIC_ENABLE = no
+MUSIC_ENABLE = no
+
+CAPS_WORD_ENABLE ?= yes
+REPEAT_KEY_ENABLE ?= yes
+
+LAYER_LOCK_ENABLE ?= yes
+ifeq ($(strip $(LAYER_LOCK_ENABLE)), yes)
+	SRC += features/layer_lock.c
+endif
