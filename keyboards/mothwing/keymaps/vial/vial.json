@@ -93,12 +93,12 @@
         {
             "name": "OSShft",
             "title": "Oneshot Shift Mod",
-            "shortName": "OSM_SHFT"
+            "shortName": "OSM_SFT"
         },
         {
             "name": "OSCtrl",
             "title": "Oneshot Ctrl Mod",
-            "shortName": "OSM_CTRL"
+            "shortName": "OSM_CTL"
         },
         {
             "name": "OSAlt",
