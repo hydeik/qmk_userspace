@@ -56,15 +56,15 @@ enum custom_keycode_t {
 
 #define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  CW_TOGG
 #define _______________NAVIGATION_R2_______________       KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC
-#define _______________NAVIGATION_R3_______________       XXXXXXX, LSFT(KC_TAB), KC_TAB, XXXXXXX, KC_DEL
+#define _______________NAVIGATION_R3_______________       XXXXXXX, KC_TAB, LSFT(KC_TAB), XXXXXXX, KC_DEL
 
 #define _________________SYMBOL_L1_________________       KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC
 #define _________________SYMBOL_L2_________________       KC_GRV,  KC_LT,   KC_LPRN, KC_LCBR, KC_LBRC
 #define _________________SYMBOL_L3_________________       KC_TILD, KC_GT,   KC_RPRN, KC_RCBR, KC_RBRC
 
-#define _________________SYMBOL_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_BSLS, KC_QUES
-#define _________________SYMBOL_R2_________________       KC_PIPE, KC_QUOT, KC_MINS, KC_EQL,  KC_COLN
-#define _________________SYMBOL_R3_________________       LLOCK,   KC_DQUO, KC_UNDS, KC_PLUS, KC_SLSH
+#define _________________SYMBOL_R1_________________       KC_CIRC, KC_AMPR, KC_ASTR, KC_QUES, KC_SCLN
+#define _________________SYMBOL_R2_________________       KC_BSLS, KC_QUOT, KC_MINS, KC_EQL,  KC_COLN
+#define _________________SYMBOL_R3_________________       KC_PIPE, KC_DQUO, KC_UNDS, KC_PLUS, KC_SLSH
 
 #define ________________FUNCTION_L1________________       KC_1,    KC_2,    KC_3,    KC_4,    KC_5
 #define ________________FUNCTION_L2________________       OSM_CTL, OSM_ALT, OSM_GUI, OSM_SFT, KC_F11

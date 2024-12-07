@@ -1,4 +1,5 @@
 SRC += vial.c
+SRC += features/custom_oneshot.c
 
 VIA_ENABLE = yes
 VIAL_ENABLE = yes
@@ -25,7 +26,3 @@ MUSIC_ENABLE = no
 CAPS_WORD_ENABLE ?= yes
 REPEAT_KEY_ENABLE ?= yes
 
-LAYER_LOCK_ENABLE ?= yes
-ifeq ($(strip $(LAYER_LOCK_ENABLE)), yes)
-	SRC += features/layer_lock.c
-endif
