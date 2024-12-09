@@ -3,9 +3,6 @@
 #ifdef ACHORDION_ENABLE
 #include "features/achordion.h"
 #endif  /* ACHORDION_ENABLE */
-#ifdef LAYER_LOCK_ENABLE
-#include "features/layer_lock.h"
-#endif  /* LAYER_LOCK_ENABLE */
 
 #include "hydeik.h"
 
@@ -41,9 +38,10 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
         case HM_K:
         case HM_L:
         /* Also repeating arrow keys. */
-        case HM_LEFT:
         case HM_DOWN:
+        case HM_UP:
         case HM_RGHT:
+        case HM_BSPC:
             return QUICK_TAP_TERM;  /* Enable key repeating. */
         default:
             return 0;  /* Otherwise, force hold and disable key repeating. */
@@ -105,7 +103,7 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         SMTD_LT(EXT_TAB, KC_TAB, _EXT, 2)
         SMTD_LT(SYM_SPC, KC_SPC, _SYM, 2)
         SMTD_LT(NUM_ENT, KC_ENT, _NUM, 2)
-        SMTD_LT(FUN_BSPC, KC_BSPC, _FUN, 2)
+        SMTD_MT(SFT_BSPC, KC_BSPC, KC_LSFT, 2, false)
 
         SMTD_MTE(HM_A, KC_A, KC_LCTL, 2)
         SMTD_MTE(HM_S, KC_S, KC_LALT, 2)
@@ -116,9 +114,10 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         SMTD_MTE(HM_L, KC_L, KC_RALT, 2)
         SMTD_MTE(HM_SCLN, KC_SCLN, KC_RCTL, 2, false)
 
-        SMTD_MT(HM_LEFT, KC_LEFT, KC_RSFT, 2, false)
-        SMTD_MT(HM_DOWN, KC_DOWN, KC_RGUI, 2, false)
+        SMTD_MT(HM_DOWN, KC_DOWN, KC_RSFT, 2, false)
+        SMTD_MT(HM_UP, KC_UP, KC_RGUI, 2, false)
         SMTD_MT(HM_RGHT, KC_RGHT, KC_RALT, 2, false)
+        SMTD_MT(HM_BSPC, KC_BSPC, KC_RCTL, 2, false)
 
         SMTD_MT(HM_ASTR, KC_ASTR, KC_LCTL, 2, false)
         SMTD_MT(HM_LPRN, KC_LPRN, KC_LALT, 2, false)
@@ -325,6 +324,11 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
         }                                             \
         break
 
+layer_state_t layer_state_set_user(layer_state_t state) {
+    state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
+    return state;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef ACHORDION_ENABLE
     if (!process_achordion(keycode, record)) { return false; }
@@ -332,9 +336,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef SMTD_ENABLE
     if (!process_smtd(keycode, record)) { return false; }
 #endif  /* SMTD_ENABLE */
-#ifdef LAYER_LOCK_ENABLE
-    if (!process_layer_lock(keycode, record, LLOCK)) { return false; }
-#endif  /* LAYER_LOCK_ENABLE */
 
 #ifndef SMTD_ENABLE
     switch(keycode) {
@@ -387,9 +388,6 @@ void matrix_scan_user(void) {
 #ifdef ACHORDION_ENABLE
     achordion_task();
 #endif  /* ACHORDION_ENABLE */
-#if defined(LAYER_LOCK_ENABLE) && defined(LAYER_LOCK_IDLE_TIMEOUT)
-    layer_lock_task();
-#endif  /* LAYER_LOCK_ENABLE */
     matrix_scan_keymap();
 }
 

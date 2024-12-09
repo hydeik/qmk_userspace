@@ -33,7 +33,7 @@ enum custom_keycode_t {
     EXT_TAB,
     SYM_SPC,
     NUM_ENT,
-    FUN_BSPC,
+    SFT_BSPC,
     /* for home-row mods (BASE layer) */
     HM_A,
     HM_S,
@@ -44,8 +44,8 @@ enum custom_keycode_t {
     HM_L,
     HM_SCLN,
     /* for home-row mods (EXT layer) */
-    HM_LEFT,
     HM_DOWN,
+    HM_UP,
     HM_RGHT,
     /* for home-row mods (SYM layer) */
     HM_ASTR,
@@ -74,7 +74,7 @@ enum custom_keycode_t {
 #define EXT_TAB  LT(_EXT, KC_TAB)
 #define SYM_SPC  LT(_SYM, KC_SPC)
 #define NUM_ENT  LT(_NUM, KC_ENT)
-#define FUN_BSPC LT(_FUN, KC_BSPC)
+#define SFT_BSPC LSFT_T(KC_BSPC)
 
 /* for home-row mods (BASE layer) */
 #define HM_A     LCTL_T(KC_A)
@@ -87,9 +87,10 @@ enum custom_keycode_t {
 #define HM_SCLN  RCTL_T(KC_SCLN)
 
 /* for home-row mods (EXT layer) */
-#define HM_LEFT  RSFT_T(KC_LEFT)
-#define HM_DOWN  RGUI_T(KC_DOWN)
+#define HM_DOWN  RSFT_T(KC_LEFT)
+#define HM_UP    RGUI_T(KC_DOWN)
 #define HM_RGHT  RALT_T(KC_RGHT)
+#define HM_BSPC  RCTL_T(KC_BSPC)
 
 /* for home-row mods (SYM layer) */
 #define HM_ASTR   LCTL_T(KC_KP_0)
@@ -128,12 +129,12 @@ enum custom_keycode_t {
 #define _________________QWERTY_R3_________________       KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
 
 #define _______________NAVIGATION_L1_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, CW_TOGG
-#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, LLOCK
+#define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, XXXXXXX
+#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, QK_LLCK
 
-#define _______________NAVIGATION_R1_______________       KC_PGUP, KC_PGDN, KC_UP,   KC_END,  XXXXXXX
-#define _______________NAVIGATION_R2_______________       KC_PGDN, HM_LEFT, HM_DOWN, HM_RGHT, KC_RCTL
-#define _______________NAVIGATION_R3_______________       CW_TOGG, QK_REP,  QK_AREP, XXXXXXX, XXXXXXX
+#define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
+#define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, HM_BSPC
+#define _______________NAVIGATION_R3_______________       CW_TOGG, QK_REP,  QK_AREP, XXXXXXX, KC_DEL
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
 #define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, XXXXXXX
@@ -149,7 +150,7 @@ enum custom_keycode_t {
 
 #define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
 #define _________________NUMBER_R2_________________       XXXXXXX, HM_QUOT, HM_UNDS, HM_EQL,  HM_COLN2
-#define _________________NUMBER_R3_________________       LLOCK,   KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX
+#define _________________NUMBER_R3_________________       QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX
 
 #define ________________FUNCTION_L1________________       KC_LPAD, KC_F4,   KC_F5,   KC_F6,   KC_F10
 #define ________________FUNCTION_L2________________       KC_PSCR, KC_F1,   KC_F2,   KC_F3,   KC_F11
@@ -157,7 +158,7 @@ enum custom_keycode_t {
 
 #define ________________FUNCTION_R1________________       KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU
 #define ________________FUNCTION_R2________________       XXXXXXX, OSM(MOD_RSFT), OSM(MOD_RGUI), OSM(MOD_RALT), OSM(MOD_RCTL)
-#define ________________FUNCTION_R3________________       LLOCK,   KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT
+#define ________________FUNCTION_R3________________       QK_LLCK, KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT
 
 /* clang-format on */
 

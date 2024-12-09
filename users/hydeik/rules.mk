@@ -19,6 +19,7 @@ MAGIC_ENABLE = no
 MUSIC_ENABLE = no
 
 CAPS_WORD_ENABLE ?= yes
+LAYER_LOCK_ENABLE ?= yes
 REPEAT_KEY_ENABLE ?= yes
 
 ACHORDION_ENABLE ?= no
@@ -34,7 +35,3 @@ ifeq ($(strip $(SMTD_ENABLE)), yes)
 	DEFERRED_EXEC_ENABLE = yes
 endif
 
-LAYER_LOCK_ENABLE ?= yes
-ifeq ($(strip $(LAYER_LOCK_ENABLE)), yes)
-	SRC += features/layer_lock.c
-endif
