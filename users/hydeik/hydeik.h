@@ -47,6 +47,7 @@ enum custom_keycode_t {
     HM_DOWN,
     HM_UP,
     HM_RGHT,
+    HM_BSPC,
     /* for home-row mods (SYM layer) */
     HM_ASTR,
     HM_LPRN,
@@ -87,8 +88,8 @@ enum custom_keycode_t {
 #define HM_SCLN  RCTL_T(KC_SCLN)
 
 /* for home-row mods (EXT layer) */
-#define HM_DOWN  RSFT_T(KC_LEFT)
-#define HM_UP    RGUI_T(KC_DOWN)
+#define HM_DOWN  RSFT_T(KC_DOWN)
+#define HM_UP    RGUI_T(KC_UP)
 #define HM_RGHT  RALT_T(KC_RGHT)
 #define HM_BSPC  RCTL_T(KC_BSPC)
 
