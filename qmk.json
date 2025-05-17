@@ -1,4 +1,17 @@
 {
-    "userspace_version": "1.0",
-    "build_targets": []
+    "userspace_version": "1.1",
+    "build_targets": [
+        [
+            "crkbd/rev4_1/mini",
+            "hydeik_vial"
+        ],
+        [
+            "mothwing",
+            "hydeik"
+        ],
+        [
+            "mothwing",
+            "hydeik_vial"
+        ]
+    ]
 }
