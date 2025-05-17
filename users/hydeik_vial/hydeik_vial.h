@@ -17,9 +17,8 @@ enum layer_t {
  * Custom keycodes
  ****************************************************************************/
 enum custom_keycode_t {
-    LLOCK = QK_KB_0,
     /* Custom oneshot mod layer. */
-    OSL_MOD,
+    OSL_MOD = QK_KB_0,
     /* Custom oneshot mods implementation. */
     OSM_SFT,
     OSM_CTL,

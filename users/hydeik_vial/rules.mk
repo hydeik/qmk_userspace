@@ -1,8 +1,10 @@
-SRC += vial.c
+SRC += hydeik_vial.c
 SRC += features/custom_oneshot.c
 
 VIA_ENABLE = yes
 VIAL_ENABLE = yes
+VIALRGB_ENABLE = yes
+ENCODER_MAP_ENABLE = yes
 
 LTO_ENABLE = yes
 EXTRAKEY_ENABLE = yes  # Audio control and System control
@@ -24,5 +26,6 @@ MAGIC_ENABLE = no
 MUSIC_ENABLE = no
 
 CAPS_WORD_ENABLE ?= yes
+LAYER_LOCK_ENABLE ?= yes
 REPEAT_KEY_ENABLE ?= yes
 

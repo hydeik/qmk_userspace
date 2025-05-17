@@ -1,6 +1,6 @@
 #include QMK_KEYBOARD_H
 
-#include "vial.h"
+#include "hydeik_vial.h"
 #include "features/custom_oneshot.h"
 
 __attribute__ ((weak))
