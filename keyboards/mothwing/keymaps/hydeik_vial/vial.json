@@ -81,11 +81,6 @@
     },
     "customKeycodes": [
         {
-            "name": "LLock",
-            "title": "Layer Lock",
-            "shortName": "LLOCK"
-        },
-        {
             "name": "MOD",
             "title": "Oneshot Mod Layer",
             "shortName": "OSL_MOD"

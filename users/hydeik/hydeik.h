@@ -17,8 +17,7 @@ enum layer_t {
  * Custom keycodes
  ****************************************************************************/
 enum custom_keycode_t {
-    LLOCK = QK_USER,
-    UPDIR,
+    UPDIR = QK_USER,
     /* --- Macros invoked through the Magic key. */
     M_DOCSTR,
     M_EQEQ,
@@ -139,7 +138,7 @@ enum custom_keycode_t {
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
 #define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, XXXXXXX
-#define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, LLOCK
+#define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK
 
 #define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
 #define _________________SYMBOL_R2_________________       XXXXXXX, HM_DQUO, HM_LBRC, HM_RBRC, HM_SCLN

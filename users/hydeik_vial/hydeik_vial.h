@@ -51,7 +51,7 @@ enum custom_keycode_t {
 
 #define _______________NAVIGATION_L1_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 #define _______________NAVIGATION_L2_______________       OSM_CTL, OSM_ALT, OSM_GUI, OSM_SFT, XXXXXXX
-#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, QK_AREP, QK_REP,  LLOCK
+#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, QK_AREP, QK_REP,  QK_LLCK
 
 #define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  CW_TOGG
 #define _______________NAVIGATION_R2_______________       KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC
