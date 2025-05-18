@@ -184,8 +184,8 @@ bool is_oneshot_mod_key(uint16_t keycode) {
 
 bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
-        case MO(_EXT): /* layer 1 */
-        case MO(_FUN): /* layer 4 */
+        case MO(EXT_LAYER): /* layer 1 */
+        case MO(FN_LAYER): /* layer 4 */
             return true;
         default:
             return false;
@@ -252,7 +252,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         record
     );
 
-
     update_oneshot_layer(
         &osl_mod_state,
         &osm_shift_state,
@@ -260,7 +259,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osm_alt_state,
         &osm_gui_state,
         OSL_MOD,
-        _MOD,
+        MOD_LAYER,
         keycode,
         record
     );

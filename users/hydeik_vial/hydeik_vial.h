@@ -6,11 +6,11 @@
  * Layer numbers
  ****************************************************************************/
 enum layer_t {
-    _BASE,
-    _EXT,
-    _SYM,
-    _FUN,
-    _MOD,
+    BASE_LAYER,
+    EXT_LAYER,
+    SYMBOL_LAYER,
+    FN_LAYER,
+    MOD_LAYER,
 };
 
 /****************************************************************************
@@ -50,7 +50,7 @@ enum custom_keycode_t {
 #define _________________QWERTY_R3_________________       KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
 
 #define _______________NAVIGATION_L1_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________       OSM_CTL, OSM_ALT, OSM_GUI, OSM_SFT, XXXXXXX
+#define _______________NAVIGATION_L2_______________       OSM_CTL, OSM_ALT, OSM_GUI, OSM_SFT, CW_TOGG
 #define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, QK_AREP, QK_REP,  QK_LLCK
 
 #define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  CW_TOGG
@@ -73,6 +73,9 @@ enum custom_keycode_t {
 #define ________________FUNCTION_R2________________       KC_F12,  OSM_SFT, OSM_GUI, OSM_ALT, OSM_CTL
 #define ________________FUNCTION_R3________________       KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10
 
+#define _________________MODS_LEFT_________________       OSM_CTL, OSM_ALT, OSM_GUI, OSM_SFT, _______
+#define _________________MODS_RIGHT________________       _______, OSM_SFT, OSM_GUI, OSM_ALT, OSM_CTL
+#define ___________________TRANS___________________       _______, _______, _______, _______, _______
 /* clang-format on */
 
 /****************************************************************************
