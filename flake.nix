@@ -24,6 +24,7 @@
         {
           devshells.default = {
             devshell.packages = with pkgs; [
+              clang-tools
               qmk
             ];
           };
