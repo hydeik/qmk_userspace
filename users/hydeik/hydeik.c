@@ -1,9 +1,5 @@
 #include QMK_KEYBOARD_H
 
-#ifdef ACHORDION_ENABLE
-#include "features/achordion.h"
-#endif  /* ACHORDION_ENABLE */
-
 #include "hydeik.h"
 
 #ifdef SMTD_ENABLE
@@ -19,10 +15,23 @@ __attribute__ ((weak))
 void matrix_scan_keymap(void) {}
 
 /*****************************************************************************
- * Achordion (https://getreuer.info/posts/keyboards/achordion)
+ * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
  *****************************************************************************/
-#ifdef ACHORDION_ENABLE
 
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
+    switch (keycode) {
+        case HM_S:
+        case HM_K:
+            return TAPPING_TERM - 40;
+        case HM_F:
+        case HM_J:
+            return TAPPING_TERM - 25;
+        default:
+            return TAPPING_TERM;
+    }
+}
+
+#ifndef SMTD_ENABLE
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
     /*
      * If you quickly hold a tap-hold key after tapping it, the tap action is
@@ -48,8 +57,24 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
     }
 }
 
-bool achordion_chord(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
-                     uint16_t other_keycode, keyrecord_t* other_record) {
+uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
+                           uint16_t prev_keycode) {
+    if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
+        switch (keycode) {
+            case HM_F:
+            case HM_J:
+              return FLOW_TAP_TERM - 25;
+
+            default:
+              return FLOW_TAP_TERM;
+        }
+    }
+    return 0;
+}
+
+#ifdef CHORDAL_HOLD
+bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
+                      uint16_t other_keycode, keyrecord_t* other_record) {
     /*
      * Exceptionally consider the following chords as holds, even though they
      * are on the same hand in Magic Sturdy.
@@ -62,36 +87,11 @@ bool achordion_chord(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
             }
             break;
     }
-    /*
-     * Also allow same-hand holds when the other key is in the rows below the
-     * alphas. I need the `% (MATRIX_ROWS / 2)` because my keyboard is split.
-     */
-    if (other_record->event.key.row % (MATRIX_ROWS / 2) >= 4) {
-        return true;
-    }
-
-    /* Otherwise, follow the opposite hands rule. */
-    return achordion_opposite_hands(tap_hold_record, other_record);
+    return get_chordal_hold_default(tap_hold_record, other_record);
 }
+#endif  /* CHORDAL_HOLD */
 
-uint16_t achordion_timeout(uint16_t tap_hold_keycode) {
-    return 800;  /* Use a timeout of 800 ms. */
-}
-
-uint16_t achordion_streak_timeout(uint16_t tap_hold_keycode) {
-    if (IS_QK_LAYER_TAP(tap_hold_keycode)) {
-        return 0;  /* Disable streak detection on layer-tap keys. */
-    }
-    /* Otherwise, tap_hold_keycode is a mod-tap key. */
-    uint8_t mod = mod_config(QK_MOD_TAP_GET_MODS(tap_hold_keycode));
-    if ((mod & MOD_LSFT) != 0) {
-        return 0;  /* Disable for Shift mod-tap keys. */
-    } else {
-        return 100;
-    }
-}
-
-#endif  /* ACHORDION_ENABLE */
+#endif /* SMTD_ENABLE */
 
 /*****************************************************************************
  * sm_td (https://github.com/stasmarkin/sm_td)
@@ -330,9 +330,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-#ifdef ACHORDION_ENABLE
-    if (!process_achordion(keycode, record)) { return false; }
-#endif  /* ACHORDION_ENABLE */
 #ifdef SMTD_ENABLE
     if (!process_smtd(keycode, record)) { return false; }
 #endif  /* SMTD_ENABLE */
@@ -385,9 +382,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
  * Custom matrix scanning code
  */
 void matrix_scan_user(void) {
-#ifdef ACHORDION_ENABLE
-    achordion_task();
-#endif  /* ACHORDION_ENABLE */
     matrix_scan_keymap();
 }
 
