@@ -56,7 +56,7 @@ enum custom_keycode_t {
     HM_LBRC,
     HM_RBRC,
     /* for home-row mods (NUM layer) */
-    HM_0,
+    HM_DOT,
     HM_1,
     HM_2,
     HM_3,
@@ -102,7 +102,7 @@ enum custom_keycode_t {
 #define HM_RBRC   RALT_T(KC_RBRC)
 
 /* for home-row mods (NUM layer) */
-#define HM_0      LCTL_T(KC_0)
+#define HM_DOT    LCTL_T(KC_DOT)
 #define HM_1      LALT_T(KC_1)
 #define HM_2      LGUI_T(KC_2)
 #define HM_3      LSFT_T(KC_3)
@@ -128,16 +128,16 @@ enum custom_keycode_t {
 #define _________________QWERTY_R2_________________       KC_H,    HM_J,    HM_K,    HM_L,    HM_SCLN
 #define _________________QWERTY_R3_________________       KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
 
-#define _______________NAVIGATION_L1_______________       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, XXXXXXX
-#define _______________NAVIGATION_L3_______________       KC_ESC,  XXXXXXX, LSFT(KC_TAB), KC_TAB, QK_LLCK
+#define _______________NAVIGATION_L1_______________       KC_ESC,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
+#define _______________NAVIGATION_L2_______________       KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, CW_TOGG
+#define _______________NAVIGATION_L3_______________       XXXXXXX, XXXXXXX, LSFT(KC_TAB), KC_TAB, QK_LLCK
 
 #define _______________NAVIGATION_R1_______________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
 #define _______________NAVIGATION_R2_______________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, HM_BSPC
-#define _______________NAVIGATION_R3_______________       CW_TOGG, QK_REP,  QK_AREP, XXXXXXX, KC_DEL
+#define _______________NAVIGATION_R3_______________       XXXXXXX, KC_ENT,  QK_REP,  QK_AREP, KC_DEL
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
-#define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, XXXXXXX
+#define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN1, CW_TOGG
 #define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK
 
 #define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
@@ -145,8 +145,8 @@ enum custom_keycode_t {
 #define _________________SYMBOL_R3_________________       XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX
 
 #define _________________NUMBER_L1_________________       XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX
-#define _________________NUMBER_L2_________________       HM_0,    HM_1,    HM_2,    HM_3,    XXXXXXX
-#define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT
+#define _________________NUMBER_L2_________________       HM_DOT,  HM_1,    HM_2,    HM_3,    XXXXXXX
+#define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    XXXXXXX
 
 #define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
 #define _________________NUMBER_R2_________________       XXXXXXX, HM_QUOT, HM_UNDS, HM_EQL,  HM_COLN2

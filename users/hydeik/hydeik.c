@@ -127,7 +127,7 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         SMTD_MT(HM_LBRC, KC_LBRC, KC_RGUI, 2, false)
         SMTD_MT(HM_RBRC, KC_RBRC, KC_RALT, 2, false)
 
-        SMTD_MT(HM_0, KC_0, KC_LCTL, 2, false)
+        SMTD_MT(HM_DOT, KC_DOT, KC_LCTL, 2, false)
         SMTD_MT(HM_1, KC_1, KC_LALT, 2, false)
         SMTD_MT(HM_2, KC_2, KC_LGUI, 2, false)
         SMTD_MT(HM_3, KC_3, KC_LSFT, 2, false)
