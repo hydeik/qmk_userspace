@@ -20,7 +20,7 @@ void matrix_scan_keymap(void) {}
 
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
-        case HM_S:
+        case HM_D:
         case HM_K:
             return TAPPING_TERM - 40;
         case HM_F:
@@ -59,10 +59,13 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
 
 uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
                            uint16_t prev_keycode) {
+
     if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
         switch (keycode) {
+            case HM_D:
             case HM_F:
             case HM_J:
+            case HM_K:
               return FLOW_TAP_TERM - 25;
 
             default:
@@ -81,7 +84,10 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
      */
     switch (tap_hold_keycode) {
         case HM_A:
-            if (other_keycode == HM_F || other_keycode == KC_G ||
+            if (other_keycode == HM_D ||
+                other_keycode == HM_F ||
+                other_keycode == KC_G ||
+                other_keycode == KC_V ||
                 other_keycode == KC_B) {
                 return true;
             }
