@@ -1,11 +1,6 @@
 SRC += hydeik_vial.c
 SRC += features/custom_oneshot.c
 
-VIA_ENABLE = yes
-VIAL_ENABLE = yes
-VIALRGB_ENABLE = yes
-ENCODER_MAP_ENABLE = yes
-
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes
 REPEAT_KEY_ENABLE = yes

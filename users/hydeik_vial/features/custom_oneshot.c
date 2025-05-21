@@ -75,7 +75,8 @@ void update_oneshot_layer(
     oneshot_layer_state *layer_state,
     oneshot_mod_state *shift_state,
     oneshot_mod_state *ctrl_state,
-    oneshot_mod_state *alt_state,
+    oneshot_mod_state *lalt_state,
+    oneshot_mod_state *ralt_state,
     oneshot_mod_state *gui_state,
     uint16_t trigger,
     uint16_t layer,
@@ -106,9 +107,13 @@ void update_oneshot_layer(
                             *ctrl_state = osm_up_unqueued;
                             unregister_code(KC_LCTL);
                         }
-                        if (*alt_state == osm_up_queued_with_layer) {
-                            *alt_state = osm_up_unqueued;
+                        if (*lalt_state == osm_up_queued_with_layer) {
+                            *lalt_state = osm_up_unqueued;
                             unregister_code(KC_LALT);
+                        }
+                        if (*ralt_state == osm_up_queued_with_layer) {
+                            *ralt_state = osm_up_unqueued;
+                            unregister_code(KC_RALT);
                         }
                         if (*gui_state == osm_up_queued_with_layer) {
                             *gui_state = osm_up_unqueued;

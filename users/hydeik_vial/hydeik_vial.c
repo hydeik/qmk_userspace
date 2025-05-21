@@ -172,10 +172,11 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
  *****************************************************************************/
 bool is_oneshot_mod_key(uint16_t keycode) {
     switch (keycode) {
-        case OSM_SFT:
-        case OSM_CTL:
-        case OSM_ALT:
-        case OSM_GUI:
+        case OS_SHFT:
+        case OS_CTRL:
+        case OS_LALT:
+        case OS_RALT:
+        case OS_GUI:
             return true;
         default:
             return false;
@@ -184,8 +185,8 @@ bool is_oneshot_mod_key(uint16_t keycode) {
 
 bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
-        case MO(EXT_LAYER): /* layer 1 */
-        case MO(FN_LAYER): /* layer 4 */
+        case MO(_NAV): /* layer 1 */
+        case MO(_FUN): /* layer 4 */
             return true;
         default:
             return false;
@@ -194,11 +195,12 @@ bool is_oneshot_cancel_key(uint16_t keycode) {
 
 bool is_oneshot_ignored_key(uint16_t keycode) {
     switch (keycode) {
-        case OSL_MOD:
-        case OSM_SFT:
-        case OSM_CTL:
-        case OSM_ALT:
-        case OSM_GUI:
+        case OS_MOD:
+        case OS_SHFT:
+        case OS_CTRL:
+        case OS_LALT:
+        case OS_RALT:
+        case OS_GUI:
             return true;
         default:
             return false;
@@ -207,7 +209,8 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
 
 oneshot_mod_state osm_shift_state = osm_up_unqueued;
 oneshot_mod_state osm_ctrl_state = osm_up_unqueued;
-oneshot_mod_state osm_alt_state = osm_up_unqueued;
+oneshot_mod_state osm_lalt_state = osm_up_unqueued;
+oneshot_mod_state osm_ralt_state = osm_up_unqueued;
 oneshot_mod_state osm_gui_state = osm_up_unqueued;
 oneshot_layer_state osl_mod_state = osl_up_unqueued;
 
@@ -220,7 +223,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osl_mod_state,
         &osm_shift_state,
         KC_LSFT,
-        OSM_SFT,
+        OS_SHFT,
         keycode,
         record
     );
@@ -229,16 +232,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osl_mod_state,
         &osm_ctrl_state,
         KC_LCTL,
-        OSM_CTL,
+        OS_CTRL,
         keycode,
         record
     );
 
     update_oneshot_mod(
         &osl_mod_state,
-        &osm_alt_state,
+        &osm_lalt_state,
         KC_LALT,
-        OSM_ALT,
+        OS_LALT,
+        keycode,
+        record
+    );
+
+    update_oneshot_mod(
+        &osl_mod_state,
+        &osm_ralt_state,
+        KC_RALT,
+        OS_RALT,
         keycode,
         record
     );
@@ -247,7 +259,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osl_mod_state,
         &osm_gui_state,
         KC_LGUI,
-        OSM_GUI,
+        OS_GUI,
         keycode,
         record
     );
@@ -256,10 +268,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osl_mod_state,
         &osm_shift_state,
         &osm_ctrl_state,
-        &osm_alt_state,
+        &osm_lalt_state,
+        &osm_ralt_state,
         &osm_gui_state,
-        OSL_MOD,
-        MOD_LAYER,
+        OS_MOD,
+        _MOD,
         keycode,
         record
     );
