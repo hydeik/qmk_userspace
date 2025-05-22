@@ -83,27 +83,32 @@
         {
             "name": "MOD",
             "title": "Oneshot Mod Layer",
-            "shortName": "OSL_MOD"
+            "shortName": "OS_MOD"
         },
         {
             "name": "OSShft",
             "title": "Oneshot Shift Mod",
-            "shortName": "OSM_SFT"
+            "shortName": "OS_SHFT"
         },
         {
             "name": "OSCtrl",
             "title": "Oneshot Ctrl Mod",
-            "shortName": "OSM_CTL"
+            "shortName": "OS_CTRL"
         },
         {
-            "name": "OSAlt",
-            "title": "Oneshot Alt Mod",
-            "shortName": "OSM_ALT"
+            "name": "OSLAlt",
+            "title": "Oneshot LAlt Mod",
+            "shortName": "OS_LALT"
         },
         {
-            "name": "OSGui",
-            "title": "Oneshot Gui Mod",
-            "shortName": "OSM_GUI"
+            "name": "OSRAlt",
+            "title": "Oneshot LAlt Mod",
+            "shortName": "OS_LALT"
+        },
+        {
+            "name": "OSGUI",
+            "title": "Oneshot GUI Mod",
+            "shortName": "OS_GUI"
         }
     ]
 }
