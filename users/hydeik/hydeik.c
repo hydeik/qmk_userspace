@@ -46,11 +46,6 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
         case HM_J:
         case HM_K:
         case HM_L:
-        /* Also repeating arrow keys. */
-        case HM_DOWN:
-        case HM_UP:
-        case HM_RGHT:
-        case HM_BSPC:
             return QUICK_TAP_TERM;  /* Enable key repeating. */
         default:
             return 0;  /* Otherwise, force hold and disable key repeating. */
@@ -106,7 +101,7 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
 
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch(keycode) {
-        SMTD_LT(EXT_TAB, KC_TAB, _EXT, 2)
+        SMTD_LT(NAV_TAB, KC_TAB, _NAV, 2)
         SMTD_LT(SYM_SPC, KC_SPC, _SYM, 2)
         SMTD_LT(NUM_ENT, KC_ENT, _NUM, 2)
         SMTD_MT(SFT_BSPC, KC_BSPC, KC_LSFT, 2, false)
@@ -120,23 +115,18 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         SMTD_MTE(HM_L, KC_L, KC_RALT, 2)
         SMTD_MTE(HM_SCLN, KC_SCLN, KC_RCTL, 2, false)
 
-        SMTD_MT(HM_DOWN, KC_DOWN, KC_RSFT, 2, false)
-        SMTD_MT(HM_UP, KC_UP, KC_RGUI, 2, false)
-        SMTD_MT(HM_RGHT, KC_RGHT, KC_RALT, 2, false)
-        SMTD_MT(HM_BSPC, KC_BSPC, KC_RCTL, 2, false)
-
         SMTD_MT(HM_ASTR, KC_ASTR, KC_LCTL, 2, false)
         SMTD_MT(HM_LPRN, KC_LPRN, KC_LALT, 2, false)
         SMTD_MT(HM_RPRN, KC_RPRN, KC_LGUI, 2, false)
-        SMTD_MT(HM_COLN1,KC_COLN, KC_LSFT, 2, false)
+        SMTD_MT(HM_COLN1, KC_COLN, KC_LSFT, 2, false)
         SMTD_MT(HM_DQUO, KC_DQUO, KC_RSFT, 2, false)
         SMTD_MT(HM_LBRC, KC_LBRC, KC_RGUI, 2, false)
         SMTD_MT(HM_RBRC, KC_RBRC, KC_RALT, 2, false)
 
-        SMTD_MT(HM_DOT, KC_DOT, KC_LCTL, 2, false)
-        SMTD_MT(HM_1, KC_1, KC_LALT, 2, false)
-        SMTD_MT(HM_2, KC_2, KC_LGUI, 2, false)
-        SMTD_MT(HM_3, KC_3, KC_LSFT, 2, false)
+        SMTD_MT(HM_0, KC_0, KC_LCTL, 2, false)
+        SMTD_MT(HM_4, KC_4, KC_LALT, 2, false)
+        SMTD_MT(HM_5, KC_5, KC_LGUI, 2, false)
+        SMTD_MT(HM_6, KC_6, KC_LSFT, 2, false)
         SMTD_MT(HM_QUOT, KC_QUOT, KC_RSFT, 2, false)
         SMTD_MT(HM_UNDS, KC_UNDS, KC_RGUI, 2, false)
         SMTD_MT(HM_EQL, KC_EQL, KC_RALT, 2, false)

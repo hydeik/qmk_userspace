@@ -21,6 +21,7 @@
 
 #ifdef SMTD_ENABLE
 #define SMTD_STREAK
+#define SMTD_TIMEOUT_SEQUENCE 120
 #define SMTD_TIMEOUT_RELEASE 40
 #else  /* not defined SMTD_ENABLE */
 #define TAPPING_TERM_PER_KEY

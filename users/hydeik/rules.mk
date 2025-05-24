@@ -20,7 +20,7 @@ NKRO_ENABLE ?= no
 SPACE_CADET_ENABLE ?= no
 TAP_DANCE_ENABLE ?= no
 
-SMTD_ENABLE ?= no
+SMTD_ENABLE ?= yes
 ifeq ($(strip $(SMTD_ENABLE)), yes)
 	DEFERRED_EXEC_ENABLE = yes
 endif
