@@ -364,8 +364,8 @@
         },
         {
             "name": "OSRAlt",
-            "title": "Oneshot LAlt Mod",
-            "shortName": "OS_LALT"
+            "title": "Oneshot RAlt Mod",
+            "shortName": "OS_RALT"
         },
         {
             "name": "OSGUI",
