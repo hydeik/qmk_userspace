@@ -174,8 +174,7 @@ bool is_oneshot_mod_key(uint16_t keycode) {
     switch (keycode) {
         case OS_SHFT:
         case OS_CTRL:
-        case OS_LALT:
-        case OS_RALT:
+        case OS_ALT:
         case OS_GUI:
             return true;
         default:
@@ -198,8 +197,7 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
         case OS_MOD:
         case OS_SHFT:
         case OS_CTRL:
-        case OS_LALT:
-        case OS_RALT:
+        case OS_ALT:
         case OS_GUI:
             return true;
         default:
@@ -209,8 +207,7 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
 
 oneshot_mod_state osm_shift_state = osm_up_unqueued;
 oneshot_mod_state osm_ctrl_state = osm_up_unqueued;
-oneshot_mod_state osm_lalt_state = osm_up_unqueued;
-oneshot_mod_state osm_ralt_state = osm_up_unqueued;
+oneshot_mod_state osm_alt_state = osm_up_unqueued;
 oneshot_mod_state osm_gui_state = osm_up_unqueued;
 oneshot_layer_state osl_mod_state = osl_up_unqueued;
 
@@ -239,18 +236,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     update_oneshot_mod(
         &osl_mod_state,
-        &osm_lalt_state,
+        &osm_alt_state,
         KC_LALT,
-        OS_LALT,
-        keycode,
-        record
-    );
-
-    update_oneshot_mod(
-        &osl_mod_state,
-        &osm_ralt_state,
-        KC_RALT,
-        OS_RALT,
+        OS_ALT,
         keycode,
         record
     );
@@ -268,8 +256,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         &osl_mod_state,
         &osm_shift_state,
         &osm_ctrl_state,
-        &osm_lalt_state,
-        &osm_ralt_state,
+        &osm_alt_state,
         &osm_gui_state,
         OS_MOD,
         _MOD,

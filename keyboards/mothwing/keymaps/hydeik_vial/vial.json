@@ -96,14 +96,9 @@
             "shortName": "OS_CTRL"
         },
         {
-            "name": "OSLAlt",
-            "title": "Oneshot LAlt Mod",
-            "shortName": "OS_LALT"
-        },
-        {
-            "name": "OSRAlt",
-            "title": "Oneshot RAlt Mod",
-            "shortName": "OS_RALT"
+            "name": "OSAlt",
+            "title": "Oneshot Alt Mod",
+            "shortName": "OS_ALT"
         },
         {
             "name": "OSGUI",

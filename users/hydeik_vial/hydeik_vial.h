@@ -23,8 +23,7 @@ enum custom_keycode_t {
     /* Custom oneshot mods implementation. */
     OS_SHFT,
     OS_CTRL,
-    OS_LALT,
-    OS_RALT,
+    OS_ALT,
     OS_GUI,
 
     UPDIR,
@@ -137,7 +136,7 @@ enum custom_keycode_t {
 #define ________________FUNCTION_L3________________   _______, KC_F9,   KC_F8,   KC_F7,   KC_F12
 
 #define ________________FUNCTION_R1________________   KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU
-#define ________________FUNCTION_R2________________   XXXXXXX, OS_SHFT, OS_GUI,  OS_LALT, OS_CTRL
+#define ________________FUNCTION_R2________________   XXXXXXX, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL
 #define ________________FUNCTION_R3________________   QK_LLCK, KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT
 
 #define ____FUNCTION_THUMB_L____                      _______, _______, _______
@@ -158,7 +157,7 @@ enum custom_keycode_t {
  */
 
 #define _______________NAVIGATION_L1_______________   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________   OS_CTRL, OS_LALT, OS_GUI,  OS_SHFT, XXXXXXX
+#define _______________NAVIGATION_L2_______________   OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT, XXXXXXX
 #define _______________NAVIGATION_L3_______________   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK
 
 #define _______________NAVIGATION_R1_______________   KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
@@ -182,11 +181,11 @@ enum custom_keycode_t {
  */
 
 #define ______________ONESHOT_MOD_L1_______________   _______, _______, _______, _______, _______
-#define ______________ONESHOT_MOD_L2_______________   OS_CTRL, OS_LALT, OS_GUI,  OS_SHFT, OS_RALT
+#define ______________ONESHOT_MOD_L2_______________   OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT, _______
 #define ______________ONESHOT_MOD_L3_______________   _______, _______, _______, _______, _______
 
 #define ______________ONESHOT_MOD_R1_______________   _______, _______, _______, _______, _______
-#define ______________ONESHOT_MOD_R2_______________   _______, OS_SHFT, OS_GUI,  OS_LALT, OS_CTRL
+#define ______________ONESHOT_MOD_R2_______________   _______, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL
 #define ______________ONESHOT_MOD_R3_______________   _______, _______, _______, _______, _______
 
 #define __ONESHOT_MOD_THUMB_L___                      _______, _______, _______
