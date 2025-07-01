@@ -2,6 +2,7 @@
 
 #include "hydeik_vial.h"
 #include "features/custom_oneshot.h"
+#include "features/swapper.h"
 
 __attribute__ ((weak))
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
@@ -10,6 +11,11 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
 
 __attribute__ ((weak))
 void matrix_scan_keymap(void) {}
+
+__attribute__ ((weak))
+layer_state_t layer_state_set_keymap(layer_state_t state) {
+    return state;
+}
 
 /*****************************************************************************
  * Caps word (https://docs.qmk.fm/features/caps_word)
@@ -205,6 +211,8 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
     }
 }
 
+bool sw_win_active = false;
+
 oneshot_mod_state osm_shift_state = osm_up_unqueued;
 oneshot_mod_state osm_ctrl_state = osm_up_unqueued;
 oneshot_mod_state osm_alt_state = osm_up_unqueued;
@@ -216,6 +224,11 @@ oneshot_layer_state osl_mod_state = osl_up_unqueued;
  */
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    update_swapper(
+        &sw_win_active, KC_LGUI, KC_TAB, SW_WIN,
+        keycode, record
+    );
+
     update_oneshot_mod(
         &osl_mod_state,
         &osm_shift_state,
@@ -292,6 +305,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     return process_record_keymap(keycode, record);
+}
+
+/*
+ * Layers manipulation
+ */
+layer_state_t layer_state_set_user(layer_state_t state) {
+    state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
+    return layer_state_set_keymap(state);
 }
 
 /*

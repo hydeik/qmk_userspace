@@ -26,6 +26,9 @@ enum custom_keycode_t {
     OS_ALT,
     OS_GUI,
 
+    /* Swapper */
+    SW_WIN, /* cmd-tab */
+
     UPDIR,
     /* --- Macros invoked through the Magic key. */
     M_DOCSTR,
@@ -48,9 +51,9 @@ enum custom_keycode_t {
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  * | Q      | W      | E      | R      | T      |   | Y      | U      | I      | O      | P      |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | A      | S      | D      | F      | G      |   | H      | J      | K      | L      | ;      |
+ * | A      | S      | D      | F      | G      |   | H      | J      | K      | L      | SFT*   |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | Z      | X      | C      | V      | B      |   | N      | M      | ,      | .      | /      |
+ * | Z      | X      | C      | V      | B      |   | N      | M      | ,      | .      | -NAV-  |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  *                   | -MOD-  | -SYM-  | SPC    |   | ENT    | -NUM-  | -MOD-  |
  *                   +--------+--------+--------+   +--------+--------+--------+
@@ -61,8 +64,8 @@ enum custom_keycode_t {
 #define _________________QWERTY_L3_________________   KC_Z,    KC_X,    KC_C,    KC_V,    KC_B
 
 #define _________________QWERTY_R1_________________   KC_Y,    KC_U,    KC_I,    KC_O,    KC_P
-#define _________________QWERTY_R2_________________   KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN
-#define _________________QWERTY_R3_________________   KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
+#define _________________QWERTY_R2_________________   KC_H,    KC_J,    KC_K,    KC_L,    OS_SHFT
+#define _________________QWERTY_R3_________________   KC_N,    KC_M,    KC_COMM, KC_DOT,  TO(_NAV)
 
 #define _____QWERTY_THUMB_L_____                      OS_MOD, MO(_SYM), KC_SPC
 #define _____QWERTY_THUMB_R_____                      KC_ENT, MO(_NUM), OS_MOD
@@ -73,21 +76,21 @@ enum custom_keycode_t {
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  * |        | \      | %      | $      |        |   |        | ^      | {      | }      |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | *      | (      | )      | :      | CWORD  |   | BSPC   | "      | [      | ]      | ;      |
+ * | *      | (      | )      | :      | TAB    |   | BSPC   | "      | [      | ]      | ;      |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | -FUN-  | `      | @      | &      |        |   | TAB    | #      | <      | >      | DEL    |
+ * |        | `      | @      | &      | LLCK   |   |        | #      | <      | >      |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  *                   | -MOD-  | _SYM_  | SPC    |   | ESC    | -NUM-  | -MOD-  |
  *                   +--------+--------+--------+   +--------+--------+--------+
  */
 
 #define _________________SYMBOL_L1_________________   XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
-#define _________________SYMBOL_L2_________________   KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, CW_TOGG
-#define _________________SYMBOL_L3_________________   MO(_FUN), KC_GRV, KC_AT,   KC_AMPR, XXXXXXX
+#define _________________SYMBOL_L2_________________   KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB
+#define _________________SYMBOL_L3_________________   MO(_FUN), KC_GRV, KC_AT,   KC_AMPR, QK_LLCK
 
 #define _________________SYMBOL_R1_________________   XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
 #define _________________SYMBOL_R2_________________   KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN
-#define _________________SYMBOL_R3_________________   KC_TAB,  KC_HASH, KC_LT,   KC_GT,   KC_DEL
+#define _________________SYMBOL_R3_________________   XXXXXXX, KC_HASH, KC_LT,   KC_GT,   KC_DEL
 
 #define _____SYMBOL_THUMB_L_____                      _______, _______, _______
 #define _____SYMBOL_THUMB_R_____                      KC_ESC,  _______, _______
@@ -96,23 +99,23 @@ enum custom_keycode_t {
  * Number layer
  *
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * |        | 7      | 8      | 9      |        |   |        | |      | -      | /      |        |
+ * |        | 4      | 5      | 6      |        |   |        | |      | -      | /      |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | 0      | 4      | 5      | 6      | .      |   | BSPC   | '      | _      | =      | -NAV-  |
+ * | 0      | 1      | 2      | 3      | TAB    |   | BSPC   | '      | _      | =      | DEL    |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | ~      | 1      | 2      | 3      |        |   | TAB    | +      | ?      | !      | DEL    |
+ * | ~      | 7      | 8      | 9      | .      |   | LLCK   | +      | ?      | !      |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- *                   | -MOD-  | -SYM-  | SPC    |   | ENT    | _NUM_  | -MOD-  |
+ *                   | -MOD-  | -FUN-  | SPC    |   | ENT    | _NUM_  | -MOD-  |
  *                   +--------+--------+--------+   +--------+--------+--------+
  */
 
 #define _________________NUMBER_L1_________________   XXXXXXX, KC_7,    KC_8,    KC_9,    XXXXXXX
-#define _________________NUMBER_L2_________________   KC_0,    KC_4,    KC_5,    KC_6,    KC_DOT
-#define _________________NUMBER_L3_________________   KC_TILD, KC_1,    KC_2,    KC_3,    XXXXXXX
+#define _________________NUMBER_L2_________________   KC_0,    KC_4,    KC_5,    KC_6,    KC_TAB
+#define _________________NUMBER_L3_________________   KC_TILD, KC_1,    KC_2,    KC_3,    KC_DOT
 
 #define _________________NUMBER_R1_________________   XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
-#define _________________NUMBER_R2_________________   KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  MO(_NAV)
-#define _________________NUMBER_R3_________________   QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, KC_DEL
+#define _________________NUMBER_R2_________________   KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_DEL
+#define _________________NUMBER_R3_________________   QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, _______
 
 #define _____NUMBER_THUMB_L_____                      _______, _______, _______
 #define _____NUMBER_THUMB_R_____                      _______, _______, _______
@@ -125,9 +128,9 @@ enum custom_keycode_t {
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  * |        | F3     | F2     | F1     | F11    |   |        | SFT*   | GUI*   | ALT*   | CTL*   |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | _FUN_  | F9     | F8     | F7     | F12    |   | LLCK   | MSTP   | MPRV   | MPLY   | MNXT   |
+ * |        | F9     | F8     | F7     | F12    |   | LLCK   | MSTP   | MPRV   | MPLY   | MNXT   |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- *                   | -MOD-  | _SYM_  | SPC    |   | ENT    | -NUM-  | -MOD-  |
+ *                   | -MOD-  | _FUN_  | SPC    |   | ENT    | _FUN_  | -MOD-  |
  *                   +--------+--------+--------+   +--------+--------+--------+
  */
 
@@ -148,23 +151,23 @@ enum custom_keycode_t {
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
  * |        |        |        |        |        |   | PGUP   | HOME   | UP     | END    |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * | CTL*   | ALT*   | GUI*   | SFT*   |        |   | PGDN   | LEFT   | DOWN   | RIGHT  | _NAV_  |
+ * | CTL*   | ALT*   | GUI*   | SFT*   | TAB    |   | BSPC   | LEFT   | DOWN   | RIGHT  | DEL    |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- * |        |        |        |        | LLCK   |   | TAB    | S+TAB  |        |        |        |
+ * | UNDO   | CUT    | COPY   | PASTE  |        |   | PGDN   |        |        |        |        |
  * +--------+--------+--------+--------+--------+   +--------+--------+--------+--------+--------+
- *                   | -MOD-  | -SYM-  | SPC    |   | ENT    | _NUM_  | -MOD-  |
+ *                   | -MOD-  | -BASE- | SPC    |   | ENT    | -NUM-  | -MOD-  |
  *                   +--------+--------+--------+   +--------+--------+--------+
  */
 
 #define _______________NAVIGATION_L1_______________   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 #define _______________NAVIGATION_L2_______________   OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT, XXXXXXX
-#define _______________NAVIGATION_L3_______________   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK
+#define _______________NAVIGATION_L3_______________   KC_UNDO, KC_CUT,  KC_COPY, KC_PSTE, XXXXXXX
 
-#define _______________NAVIGATION_R1_______________   KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
-#define _______________NAVIGATION_R2_______________   KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, _______
-#define _______________NAVIGATION_R3_______________   KC_TAB, LSFT(KC_TAB), XXXXXXX, XXXXXXX, XXXXXXX
+#define _______________NAVIGATION_R1_______________   KC_PGUP, KC_HOME, KC_UP,   KC_END,  XXXXXXX
+#define _______________NAVIGATION_R2_______________   KC_BSPC, KC_LEFT, KC_DOWN, KC_RGHT, KC_DEL
+#define _______________NAVIGATION_R3_______________   KC_PGDN, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 
-#define ___NAVIGATION_THUMB_L___                      _______, _______, _______
+#define ___NAVIGATION_THUMB_L___                      _______, TO(_BASE), _______
 #define ___NAVIGATION_THUMB_R___                      _______, _______, _______
 /*
  * One-shot mod layer
@@ -200,5 +203,5 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record);
 // void matrix_init_keymap(void);
 void matrix_scan_keymap(void);
 void keyboard_post_init_keymap(void);
-// layer_state_t layer_state_set_keymap(layer_state_t state);
+layer_state_t layer_state_set_keymap(layer_state_t state);
 

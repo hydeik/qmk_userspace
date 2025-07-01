@@ -1,5 +1,6 @@
 SRC += hydeik_vial.c
 SRC += features/custom_oneshot.c
+SRC += features/swapper.c
 
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes
