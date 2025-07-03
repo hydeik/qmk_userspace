@@ -58,9 +58,9 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Q       | W       | E       | R       | T       |   | Y       | U       | I       | O       | P       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | A       | S       | D       | F       | G       |   | H       | J       | K       | L       | SFT*   |
+ * | A       | S       | D       | F       | G       |   | H       | J       | K       | L       | SFT*    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | -NAV-  |
+ * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | -MOD-  | SPC/SYM |   | ENT/NUM | -MOD-   |
  *                               +---------+---------+   +---------+---------+
@@ -85,19 +85,19 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | *       | (       | )       | :       | TAB     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | -FUN-   | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
+ * | -FUN-   | `       | @       | &       | LLCK    |   |         | #       | <       | >       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | -MOD-   | _SYM_   |   | ESC     | -MOD-   |
  *                               +---------+---------+   +---------+---------+
  */
 
-#define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
+#define _________________SYMBOL_L1_________________       _______, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
 #define _________________SYMBOL_L2_________________       KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB
-#define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK
+#define _________________SYMBOL_L3_________________       TO(_FUN),KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK
 
 #define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
-#define _________________SYMBOL_R2_________________       XXXXXXX, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN
-#define _________________SYMBOL_R3_________________       XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX
+#define _________________SYMBOL_R2_________________       KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN
+#define _________________SYMBOL_R3_________________       XXXXXXX, KC_HASH, KC_LT,   KC_GT,   TO(_NAV)
 
 #define ___SYMBOL_L4___                                   _______, _______
 #define ___SYMBOL_R4___                                   KC_ESC,  _______
@@ -110,20 +110,20 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | 0       | 1       | 2       | 3       | TAB     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       |         |
+ * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | -MOD-   | SPC     |   | _NUM_   |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 
-#define _________________NUMBER_L1_________________       XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX
-#define _________________NUMBER_L2_________________       KC_0,    KC_1,    KC_2,    KC_3,    KC_DOT
-#define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    XXXXXXX
+#define _________________NUMBER_L1_________________       _______, KC_4,    KC_5,    KC_6,    _______
+#define _________________NUMBER_L2_________________       KC_0,    KC_1,    KC_2,    KC_3,    KC_TAB
+#define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT
 
-#define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
-#define _________________NUMBER_R2_________________       XXXXXXX, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR
-#define _________________NUMBER_R3_________________       QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX
+#define _________________NUMBER_R1_________________       _______, KC_PIPE, KC_MINS, KC_SLSH, _______
+#define _________________NUMBER_R2_________________       KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR
+#define _________________NUMBER_R3_________________       QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, TO(_NAV)
 
 #define ___NUMBER_L4___                                   _______, KC_SPC
 #define ___NUMBER_R4___                                   _______, _______
@@ -157,26 +157,26 @@ enum custom_keycode_t {
  * Navigation layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         |         |   | HOME    | UP      | END     | PGUP    |        |
+ * |         |         |         |         |         |   | HOME    | UP      | END     | PGUP    | DEL    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | SFT     | GUI     | ALT     | CTL     |         |   | LEFT    | DOWN    | UP      | RGHT    |        |
+ * | SFT     | GUI     | ALT     | CTL     |         |   | LEFT    | DOWN    | UP      | RGHT    | BSPC   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         | LLCK    |   |         | TAB     | REP     | AREP    |        |
+ * | -FUN-   |         |         |         |         |   |         | TAB     | REP     | AREP    |        |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | TAB     | -BASE-  |   | ESC     |         |
+ *                               |         | -BASE-  |   | -BASE-  |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define _______________NAVIGATION_L1_______________      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 #define _______________NAVIGATION_L2_______________      OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, XXXXXXX
-#define _______________NAVIGATION_L3_______________      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK
+#define _______________NAVIGATION_L3_______________      TO(_FUN),XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
 
-#define _______________NAVIGATION_R1_______________      XXXXXXX, KC_HOME, KC_UP,   KC_END,  KC_PGUP
-#define _______________NAVIGATION_R2_______________      XXXXXXX, KC_LEFT, KC_DOWN, KC_RGHT, KC_PGDN
-#define _______________NAVIGATION_R3_______________      XXXXXXX, KC_TAB,  QK_REP,  QK_AREP, TO(_FUN)
+#define _______________NAVIGATION_R1_______________      KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_DEL
+#define _______________NAVIGATION_R2_______________      KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC
+#define _______________NAVIGATION_R3_______________      XXXXXXX, KC_ENT,  QK_REP,  QK_AREP, TO(_FUN)
 
-#define _NAVIGATION_L4_                                  _______, KC_SPC
-#define _NAVIGATION_R4_                                  KC_ESC,  KC_DEL
+#define _NAVIGATION_L4_                                  _______, TO(_BASE)
+#define _NAVIGATION_R4_                                  TO(_BASE), _______
 
 /*
  * One-shot mod layer
