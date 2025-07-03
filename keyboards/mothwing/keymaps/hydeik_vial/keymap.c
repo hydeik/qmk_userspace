@@ -44,29 +44,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _________________NUMBER_L1_________________, _________________NUMBER_R1_________________,
         _________________NUMBER_L2_________________, _________________NUMBER_R2_________________,
         _________________NUMBER_L3_________________, _________________NUMBER_R3_________________,
-                           _____NUMBER_THUMB_L_____, _____NUMBER_THUMB_R_____
+                                    ___NUMBER_L4___, ___NUMBER_R4___,
     ),
 
     [_FUN] = LAYOUT_base_wrapper(
         ________________FUNCTION_L1________________, ________________FUNCTION_R1________________,
         ________________FUNCTION_L2________________, ________________FUNCTION_R2________________,
         ________________FUNCTION_L3________________, ________________FUNCTION_R3________________,
-                           ____FUNCTION_THUMB_L____, ____FUNCTION_THUMB_R____
+                                    __FUNCTION_L4__, __FUNCTION_R4__
     ),
 
     [_NAV] = LAYOUT_base_wrapper(
         _______________NAVIGATION_L1_______________, _______________NAVIGATION_R1_______________,
         _______________NAVIGATION_L2_______________, _______________NAVIGATION_R2_______________,
         _______________NAVIGATION_L3_______________, _______________NAVIGATION_R3_______________,
-                           ___NAVIGATION_THUMB_L___, ___NAVIGATION_THUMB_R___
+                                    _NAVIGATION_L4_, _NAVIGATION_R4_
     ),
 
     [_MOD] = LAYOUT_base_wrapper(
-        ______________ONESHOT_MOD_L1_______________, ______________ONESHOT_MOD_R1_______________,
-        ______________ONESHOT_MOD_L2_______________, ______________ONESHOT_MOD_R2_______________,
-        ______________ONESHOT_MOD_L3_______________, ______________ONESHOT_MOD_R3_______________,
-                           __ONESHOT_MOD_THUMB_L___, __ONESHOT_MOD_THUMB_R___
-    ),
+        ________________MODIFIER_L1________________, ________________MODIFIER_R1________________
+        ________________MODIFIER_L2________________, ________________MODIFIER_R2________________
+        ________________MODIFIER_L3________________, ________________MODIFIER_R3________________
+                                    __MODIFIER_L4__, __MODIFIER_R4__
+    ) ,
 };
 
 /* clang-format on */

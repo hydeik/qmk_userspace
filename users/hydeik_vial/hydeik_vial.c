@@ -190,8 +190,12 @@ bool is_oneshot_mod_key(uint16_t keycode) {
 
 bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
-        case MO(_NAV): /* layer 1 */
-        case MO(_FUN): /* layer 4 */
+        case MO(_FUN):
+        case MO(_NAV):
+        case TO(_BASE):
+        case TO(_FUN):
+        case TO(_NAV):
+        case OS_CNCL:
             return true;
         default:
             return false;
@@ -311,7 +315,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
  * Layers manipulation
  */
 layer_state_t layer_state_set_user(layer_state_t state) {
-    state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
+    // state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
     return layer_state_set_keymap(state);
 }
 
