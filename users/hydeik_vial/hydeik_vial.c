@@ -192,10 +192,6 @@ bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
         case MO(_FUN):
         case MO(_NAV):
-        case TO(_BASE):
-        case TO(_FUN):
-        case TO(_NAV):
-        case OS_CNCL:
             return true;
         default:
             return false;
