@@ -101,50 +101,112 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
 
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch(keycode) {
-        SMTD_LT(NAV_TAB, KC_TAB, _NAV, 2)
-        SMTD_LT(SYM_SPC, KC_SPC, _SYM, 2)
-        SMTD_LT(NUM_ENT, KC_ENT, _NUM, 2)
-        SMTD_MT(SFT_BSPC, KC_BSPC, KC_LSFT, 2, false)
+        case CKC_SPC: {
+            switch (action) {
+                case SMTD_ACTION_TOUCH:
+                    break;
+                case SMTD_ACTION_TAP:
+                    if (is_caps_word_on()) {
+                        switch (tap_count) {
+                            case 0:
+                                tap_code16(KC_UNDS);
+                                return;
+                            default:
+                                caps_word_off();
+                                tap_code16(KC_BSPC);
+                                tap_code16(KC_SPC);
+                                return;
+                        }
+                    }
+                    tap_code16(KC_SPC);
+                    break;
+                case SMTD_ACTION_HOLD:
+                    if (tap_count < 2) {
+                        LAYER_PUSH(_NAV);
+                    } else {
+                        SMTD_REGISTER_16(true, KC_SPC);
+                    }
+                    break;
+                case SMTD_ACTION_RELEASE:
+                    if (tap_count < 2) {
+                        LAYER_RESTORE();
+                    } else {
+                        SMTD_REGISTER_16(true, KC_SPC);
+                    }
+                    break;
+            }
+            break;
+        }
 
-        SMTD_MTE(HM_A, KC_A, KC_LCTL, 2)
-        SMTD_MTE(HM_S, KC_S, KC_LALT, 2)
-        SMTD_MTE(HM_D, KC_D, KC_LGUI, 2)
-        SMTD_MTE(HM_F, KC_F, KC_LSFT, 2)
-        SMTD_MTE(HM_J, KC_J, KC_RSFT, 2)
-        SMTD_MTE(HM_K, KC_K, KC_RGUI, 2)
-        SMTD_MTE(HM_L, KC_L, KC_RALT, 2)
-        SMTD_MTE(HM_SCLN, KC_SCLN, KC_RCTL, 2, false)
+        SMTD_LT(CKC_TAB, KC_TAB, _NAV, 2)
+        SMTD_MT(CKC_ENT, KC_ENT, KC_LSFT, 2, false)
+        SMTD_LT(CKC_ESC, KC_ESC, _NUM, 2)
 
-        SMTD_MT(HM_ASTR, KC_ASTR, KC_LCTL, 2, false)
-        SMTD_MT(HM_LPRN, KC_LPRN, KC_LALT, 2, false)
-        SMTD_MT(HM_RPRN, KC_RPRN, KC_LGUI, 2, false)
-        SMTD_MT(HM_COLN1, KC_COLN, KC_LSFT, 2, false)
-        SMTD_MT(HM_DQUO, KC_DQUO, KC_RSFT, 2, false)
-        SMTD_MT(HM_LBRC, KC_LBRC, KC_RGUI, 2, false)
-        SMTD_MT(HM_RBRC, KC_RBRC, KC_RALT, 2, false)
+        SMTD_MTE(CKC_A, KC_A, KC_LCTL, 2)
+        SMTD_MTE(CKC_S, KC_S, KC_LALT, 2)
+        SMTD_MTE(CKC_D, KC_D, KC_LGUI, 2)
+        SMTD_MTE(CKC_F, KC_F, KC_LSFT, 2)
+        SMTD_MTE(CKC_J, KC_J, KC_RSFT, 2)
+        SMTD_MTE(CKC_K, KC_K, KC_RGUI, 2)
+        SMTD_MTE(CKC_L, KC_L, KC_RALT, 2)
+        SMTD_MTE(CKC_SCLN, KC_SCLN, KC_RCTL, 2, false)
 
-        SMTD_MT(HM_0, KC_0, KC_LCTL, 2, false)
-        SMTD_MT(HM_4, KC_4, KC_LALT, 2, false)
-        SMTD_MT(HM_5, KC_5, KC_LGUI, 2, false)
-        SMTD_MT(HM_6, KC_6, KC_LSFT, 2, false)
-        SMTD_MT(HM_QUOT, KC_QUOT, KC_RSFT, 2, false)
-        SMTD_MT(HM_UNDS, KC_UNDS, KC_RGUI, 2, false)
-        SMTD_MT(HM_EQL, KC_EQL, KC_RALT, 2, false)
-        SMTD_MT(HM_COLN2, KC_COLN, KC_RCTL, 2, false)
+        SMTD_MT(CKC_ASTR, KC_ASTR, KC_LCTL, 2, false)
+        SMTD_MT(CKC_LPRN, KC_LPRN, KC_LALT, 2, false)
+        SMTD_MT(CKC_RPRN, KC_RPRN, KC_LGUI, 2, false)
+        SMTD_MT(CKC_COLN, KC_COLN, KC_LSFT, 2, false)
+        SMTD_MT(CKC_DQUO, KC_DQUO, KC_RSFT, 2, false)
+        SMTD_MT(CKC_LBRC, KC_LBRC, KC_RGUI, 2, false)
+        SMTD_MT(CKC_RBRC, KC_RBRC, KC_RALT, 2, false)
+
+        SMTD_MT(CKC_DOT, KC_DOT, KC_LCTL, 2, false)
+        SMTD_MT(CKC_1, KC_1, KC_LALT, 2, false)
+        SMTD_MT(CKC_2, KC_2, KC_LGUI, 2, false)
+        SMTD_MT(CKC_3, KC_3, KC_LSFT, 2, false)
+        SMTD_MT(CKC_QUOT, KC_QUOT, KC_RSFT, 2, false)
+        SMTD_MT(CKC_UNDS, KC_UNDS, KC_RGUI, 2, false)
+        SMTD_MT(CKC_EQL, KC_EQL, KC_RALT, 2, false)
     }
 }
 
 uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
     switch (keycode) {
-        case HM_A:
-        case HM_S:
-        case HM_D:
-        case HM_F:
-        case HM_J:
-        case HM_K:
-        case HM_L:
-        case HM_SCLN:
+        /* Index fingers */
+        case CKC_F:
+        case CKC_J:
             if (timeout == SMTD_TIMEOUT_TAP) return 300;
+            if (timeout == SMTD_TIMEOUT_RELEASE) return 30;
+            break;
+
+        /* Middle fingers */
+        case CKC_D:
+        case CKC_K:
+            if (timeout == SMTD_TIMEOUT_TAP) return 300;
+            if (timeout == SMTD_TIMEOUT_RELEASE) return 20;
+            break;
+
+        /* Ring fingers */
+        case CKC_S:
+        case CKC_L:
+            if (timeout == SMTD_TIMEOUT_TAP) return 300;
+            if (timeout == SMTD_TIMEOUT_RELEASE) return 20;
+            break;
+
+        /* Pinkies */
+        case CKC_A:
+        case CKC_SCLN:
+            if (timeout == SMTD_TIMEOUT_TAP) return 300;
+            if (timeout == SMTD_TIMEOUT_SEQUENCE) return 250;
+            if (timeout == SMTD_TIMEOUT_RELEASE) return 20;
+            break;
+
+        /* Thumbs */
+        case CKC_TAB:
+        case CKC_SPC:
+        case CKC_ENT:
+        case CKC_ESC:
+            if (timeout == SMTD_TIMEOUT_SEQUENCE) return 200;
+            if (timeout == SMTD_TIMEOUT_RELEASE) return 70;
             break;
     }
 
@@ -220,14 +282,14 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
 uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
     if (mods & MOD_MASK_CTRL) {
         switch (keycode) {
-            case HM_A:                    /* Ctrl+A -> Ctrl+C */
+            case CKC_A:                    /* Ctrl+A -> Ctrl+C */
                 return C(KC_C);
             case KC_C:                    /* Ctrl+C -> Ctrl+V */
                 return C(KC_V);
         }
     } else if (mods & MOD_MASK_GUI) {
         switch (keycode) {
-            case HM_A:                    /* Cmd+A -> Cmd+C */
+            case CKC_A:                    /* Cmd+A -> Cmd+C */
                 return G(KC_C);
             case KC_C:                    /* Cmd+C -> Cmd+V */
                 return G(KC_V);
@@ -341,32 +403,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         CASE_MT_NON_BASIC_KEYCODE(HM_COLN2, KC_COLN);
     }
 #endif  /* not def: SMTD_ENABLE */
-
-    if (record->event.pressed) {
-        switch (keycode) {
-            case UPDIR:
-                SEND_STRING_DELAY("../", TAP_CODE_DELAY);
-                return false;
-#ifdef REPEAT_KEY_ENABLE
-            // Macros invoked through the MAGIC key.
-            case M_UPDIR:
-                MAGIC_STRING(/*.*/"./", UPDIR);
-                break;
-            case M_INCLUDE:
-                SEND_STRING_DELAY(/*#*/"include ", TAP_CODE_DELAY);
-                break;
-            case M_EQEQ:
-                SEND_STRING_DELAY(/*=*/"==", TAP_CODE_DELAY);
-                break;
-            case M_DOCSTR:
-                SEND_STRING_DELAY(/*"*/"\"\"\"\"\""
-                        SS_TAP(X_LEFT) SS_TAP(X_LEFT) SS_TAP(X_LEFT), TAP_CODE_DELAY);
-                break;
-            case M_MKGRVS:
-                SEND_STRING_DELAY(/*`*/"``\n\n```" SS_TAP(X_UP), TAP_CODE_DELAY);
-                break;
-#endif  /* REPEAT_KEY_ENABLE */
-        }
     }
 
     return process_record_keymap(keycode, record);
