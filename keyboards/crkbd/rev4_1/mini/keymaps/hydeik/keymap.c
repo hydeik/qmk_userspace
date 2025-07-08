@@ -68,7 +68,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         ________________FUNCTION_L1________________, ________________FUNCTION_R1________________,
         ________________FUNCTION_L2________________, ________________FUNCTION_R2________________,
         ________________FUNCTION_L3________________, ________________FUNCTION_R3________________,
-                                    __FUNCTION_L4__, _______, QK_BOOT
+                                    __FUNCTION_L4__, __FUNCTION_R4__
     ),
 
     [_NAV] = LAYOUT_hydeik(

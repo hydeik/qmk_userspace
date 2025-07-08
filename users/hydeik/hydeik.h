@@ -153,7 +153,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | _FUN_   | F9      | F8      | F7      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | _FUN_   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | BOOT    | _FUN_   |   | _FUN_   | BOOT    |
+ *                               | _FUN_   | BOOT    |   | BOOT    | _FUN_   |
  *                               +---------+---------+   +---------+---------+
  */
 
@@ -165,8 +165,8 @@ enum custom_keycode_t {
 #define ________________FUNCTION_R2________________       XXXXXXX,  OS_RSFT,  OS_RGUI,  OS_RALT,  OS_RCTL
 #define ________________FUNCTION_R3________________       QK_LLCK,  KC_MPRV,  KC_MPLY,  KC_MNXT,  _______
 
-#define __FUNCTION_L4__                                   QK_BOOT,  _______
-#define __FUNCTION_R4__                                   _______,  QK_BOOT
+#define __FUNCTION_L4__                                   _______,  QK_BOOT
+#define __FUNCTION_R4__                                   QK_BOOT,  _______
 
 /*
  * Navigation layer

@@ -59,7 +59,7 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
             break;
         }
 
-        SMTD_LT(CKC_TAB, KC_TAB, _NAV, 2)
+        SMTD_LT(CKC_TAB, KC_TAB, _SYM, 2)
         SMTD_MT(CKC_ENT, KC_ENT, KC_LSFT, 2, false)
         SMTD_LT(CKC_ESC, KC_ESC, _NUM, 2)
 
