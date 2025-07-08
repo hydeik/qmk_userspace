@@ -2,9 +2,7 @@
 
 #include "hydeik.h"
 
-#ifdef SMTD_ENABLE
-#include "feature/sm_td.h"
-#endif  /* SMTD_ENABLE */
+#include "features/sm_td.h"
 
 __attribute__ ((weak))
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
@@ -12,93 +10,16 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
 }
 
 __attribute__ ((weak))
+layer_state_t layer_state_set_keymap(layer_state_t state) {
+    return state;
+}
+
+__attribute__ ((weak))
 void matrix_scan_keymap(void) {}
-
-/*****************************************************************************
- * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
- *****************************************************************************/
-
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
-    switch (keycode) {
-        case HM_D:
-        case HM_K:
-            return TAPPING_TERM - 40;
-        case HM_F:
-        case HM_J:
-            return TAPPING_TERM - 25;
-        default:
-            return TAPPING_TERM;
-    }
-}
-
-#ifndef SMTD_ENABLE
-uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
-    /*
-     * If you quickly hold a tap-hold key after tapping it, the tap action is
-     * repeated. Key repeating is useful e.g. for Vim navigation keys, but can
-     * lead to missed triggers in fast typing. Here, returning 0 means we
-     * instead want to "force hold" and disable key repeating.
-     */
-    switch (keycode) {
-        /* Repeating is useful for Vim/Emacs navigation keys. */
-        case HM_D:
-        case HM_F:
-        case HM_J:
-        case HM_K:
-        case HM_L:
-            return QUICK_TAP_TERM;  /* Enable key repeating. */
-        default:
-            return 0;  /* Otherwise, force hold and disable key repeating. */
-    }
-}
-
-uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
-                           uint16_t prev_keycode) {
-
-    if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
-        switch (keycode) {
-            case HM_D:
-            case HM_F:
-            case HM_J:
-            case HM_K:
-              return FLOW_TAP_TERM - 25;
-
-            default:
-              return FLOW_TAP_TERM;
-        }
-    }
-    return 0;
-}
-
-#ifdef CHORDAL_HOLD
-bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
-                      uint16_t other_keycode, keyrecord_t* other_record) {
-    /*
-     * Exceptionally consider the following chords as holds, even though they
-     * are on the same hand in Magic Sturdy.
-     */
-    switch (tap_hold_keycode) {
-        case HM_A:
-            if (other_keycode == HM_D ||
-                other_keycode == HM_F ||
-                other_keycode == KC_G ||
-                other_keycode == KC_V ||
-                other_keycode == KC_B) {
-                return true;
-            }
-            break;
-    }
-    return get_chordal_hold_default(tap_hold_record, other_record);
-}
-#endif  /* CHORDAL_HOLD */
-
-#endif /* SMTD_ENABLE */
 
 /*****************************************************************************
  * sm_td (https://github.com/stasmarkin/sm_td)
  *****************************************************************************/
-#ifdef SMTD_ENABLE
-
 void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
     switch(keycode) {
         case CKC_SPC: {
@@ -212,7 +133,6 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
 
     return get_smtd_timeout_default(timeout);
 }
-#endif /* SMTD_ENABLE */
 
 /*****************************************************************************
  * Caps word (https://docs.qmk.fm/features/caps_word)
@@ -305,22 +225,6 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
                     return S(KC_N);
                 }
                 return KC_N;
-            case KC_DOT:                    /* . -> ./ */
-                if ((mods & MOD_MASK_SHIFT) == 0) {
-                    return M_UPDIR;
-                }
-                return M_NOOP;
-            case KC_EQL:                    /* = -> == */
-                return M_EQEQ;
-            case KC_HASH:                   /* # -> include */
-                return M_INCLUDE;
-            case KC_QUOT:
-                if ((mods & MOD_MASK_SHIFT) != 0) {
-                    return M_DOCSTR;        /* " -> ""<cursor>""" */
-                }
-                return M_NOOP;
-            case KC_GRV:                    /* ` -> ``<cursor>``` (for Markdown code) */
-                return M_MKGRVS;
             case KC_LABK:                   /* < -> - (for Haskell) */
                 return KC_MINS;
 
@@ -341,74 +245,25 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
     return KC_TRNS;
 }
 
-/*
- * An enhanced version of SEND_STRING: if Caps Word is active, the Shift key is
- * held while sending the string. Additionally, the last key is set such that if
- * the Repeat Key is pressed next, it produces `repeat_keycode`. This helper is
- * used for several macros below in my process_record_user() function.
- */
-#define MAGIC_STRING(str, repeat_keycode) \
-    magic_send_string_P(PSTR(str), (repeat_keycode))
-
-static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-    uint8_t saved_mods = 0;
-    /* If Caps Word is on, save the mods and hold Shift. */
-    if (is_caps_word_on()) {
-        saved_mods = get_mods();
-        register_mods(MOD_BIT(KC_LSFT));
-    }
-
-    send_string_P(str);  /* Send the string. */
-    set_last_keycode(repeat_keycode);
-
-    /* If Caps Word is on, restore the mods. */
-    if (is_caps_word_on()) {
-        set_mods(saved_mods);
-    }
-}
-
 #endif  /* REPEAT_KEY_ENABLE */
 
 /*
  * Custom bahavior of keycodes
  */
-#define CASE_MT_NON_BASIC_KEYCODE(macro_key, tap_key) \
-    case macro_key:                                   \
-        if (record->tap.count) {                      \
-            if (record->event.pressed) {              \
-                tap_code16(tap_key);                  \
-            }                                         \
-            return false;                             \
-        }                                             \
-        break
-
-layer_state_t layer_state_set_user(layer_state_t state) {
-    state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
-    return state;
-}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-#ifdef SMTD_ENABLE
     if (!process_smtd(keycode, record)) { return false; }
-#endif  /* SMTD_ENABLE */
-
-#ifndef SMTD_ENABLE
-    switch(keycode) {
-        CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
-        CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_COLN1, KC_COLN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
-        CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
-        CASE_MT_NON_BASIC_KEYCODE(HM_COLN2, KC_COLN);
-    }
-#endif  /* not def: SMTD_ENABLE */
-    }
-
     return process_record_keymap(keycode, record);
 }
 
-#undef CASE_MT_NON_BASIC_KEYCODE
+/*
+ * Custom bahavior of layers
+ */
+
+layer_state_t layer_state_set_user(layer_state_t state) {
+    state = layer_state_set_keymap(state);
+    return state;
+}
 
 /*
  * Custom matrix scanning code

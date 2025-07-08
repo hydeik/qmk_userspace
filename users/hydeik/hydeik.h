@@ -16,7 +16,6 @@ enum layer_t {
 /****************************************************************************
  * Custom keycodes
  ****************************************************************************/
-#ifdef SMTD_ENABLE
 enum custom_keycode_t {
     /* --- Macro keycode handled by SMTD */
     SMTD_KEYCODES_BEGIN = QK_USER,
@@ -52,44 +51,6 @@ enum custom_keycode_t {
     CKC_EQL,
     SMTD_KEYCODES_END,
 };
-
-#else  /* NOT SMTD_ENABLE */
-
-/* mod-tap keys */
-#define CKC_TAB   LT(_SYM, KC_TAB)
-#define CKC_SPC   LT(_NAV, KC_SPC)
-#define CKC_ENT   LSFT_T(KC_ENT)
-#define CKC_ESC   LT(_NUM, KC_ESC)
-
-/* for home-row mods (BASE layer) */
-#define CKC_A      LCTL_T(KC_A)
-#define CKC_S      LALT_T(KC_S)
-#define CKC_D      LGUI_T(KC_D)
-#define CKC_F      LSFT_T(KC_F)
-#define CKC_J      RSFT_T(KC_J)
-#define CKC_K      RGUI_T(KC_K)
-#define CKC_L      RALT_T(KC_L)
-#define CKC_SCLN   RCTL_T(KC_SCLN)
-
-/* for home-row mods (SYM layer) */
-#define CKC_ASTR   LCTL_T(KC_KP_0)
-#define CKC_LPRN   LALT_T(KC_KP_0)
-#define CKC_RPRN   LGUI_T(KC_KP_0)
-#define CKC_COLN   LSFT_T(KC_KP_0)
-#define CKC_DQUO   RSFT_T(KC_KP_1)
-#define CKC_LBRC   RGUI_T(KC_LBRC)
-#define CKC_RBRC   RALT_T(KC_RBRC)
-
-/* for home-row mods (NUM layer) */
-#define CKC_DOT    LCTL_T(KC_DOT)
-#define CKC_1      LALT_T(KC_1)
-#define CKC_2      LGUI_T(KC_2)
-#define CKC_3      LSFT_T(KC_3)
-#define CKC_QUOT   RSFT_T(KC_QUOT)
-#define CKC_UNDS   RGUI_T(KC_KP_2)
-#define CKC_EQL    RALT_T(KC_EQL)
-
-#endif  /* not def: SMTD_ENABLE */
 
 #define OS_LCTL    OSM(MOD_LCTL)
 #define OS_LALT    OSM(MOD_LALT)
@@ -241,5 +202,5 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record);
 // void matrix_init_keymap(void);
 void matrix_scan_keymap(void);
 void keyboard_post_init_keymap(void);
-// layer_state_t layer_state_set_keymap(layer_state_t state);
+layer_state_t layer_state_set_keymap(layer_state_t state);
 
