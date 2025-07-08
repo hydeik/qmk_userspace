@@ -1,6 +1,8 @@
-# QMK Userspace
+# QMK Userspace (hydeik's personal keymap)
 
-This is a template repository which allows for an external set of QMK keymaps to be defined and compiled. This is useful for users who want to maintain their own keymaps without having to fork the main QMK repository.
+This is my custom mechanical keyboard firmware built upon QMK Firmware. 
+This project makes use of [QMK userspace](https://github.com/qmk/qmk_userspace) feature, enabling code reuse and centralized feature definitions across multiple keymaps or keyboards.
+
 
 ## Howto configure your build targets
 
@@ -57,3 +59,7 @@ This can also be used to control which fork is used, though only upstream `qmk_f
 1. (First time only) `git submodule add https://github.com/qmk/qmk_firmware.git`
 1. (To update) `git submodule update --init --recursive`
 1. Commit your changes to your userspace repository
+
+##License
+This firmware is licensed under the GNU General Public License v2.0.
+
