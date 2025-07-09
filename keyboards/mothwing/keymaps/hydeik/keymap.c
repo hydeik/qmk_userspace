@@ -1,3 +1,5 @@
+#include QMK_KEYBOARD_H
+
 #include "hydeik.h"
 
 /* clang-format off */
