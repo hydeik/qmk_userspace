@@ -27,7 +27,7 @@ Layer structure is declared in `hydeik.h` using macros for readability and maint
 
 ## Dependencies
 - [QMK Firmware](https://qmk.fm/)
-- [SM Tap Dance (sm_td)](https://github.com/stasmarkin/sm_td) - for reliable tap-hold behavior
+- [SM Tap Dance (sm_td)](https://github.com/stasmarkin/sm_td) - for reliable tap-hold behavior (optional)
 
 
 ## Build Firmware
@@ -38,7 +38,6 @@ qmk clone <repository>
 cd <keyboard_folder>
 qmk compile -kb <keyboard_name> -km hydeik
 ```
-
 
 To flash the firmware:
 

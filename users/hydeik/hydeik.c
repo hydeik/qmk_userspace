@@ -17,21 +17,35 @@ void matrix_scan_keymap(void) {}
 /*****************************************************************************
  * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
  *****************************************************************************/
+#ifndef SMTD_ENABLE
 
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
         case HM_D:
         case HM_K:
-            return TAPPING_TERM - 40;
         case HM_F:
         case HM_J:
-            return TAPPING_TERM - 25;
+            return TAPPING_TERM - 50;
         default:
             return TAPPING_TERM;
     }
 }
 
-#ifndef SMTD_ENABLE
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        /* Do not select the hold action when another key is pressed. */
+        case SYM_TAB:
+            return true;
+        case SFT_ENT:
+            return true;
+        case NUM_BSPC:
+            return true;
+        default:
+            /* Do not select the hold action when another key is pressed. */
+            return false;
+    }
+}
+
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
     /*
      * If you quickly hold a tap-hold key after tapping it, the tap action is
@@ -81,6 +95,8 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
         case HM_A:
             if (other_keycode == HM_D ||
                 other_keycode == HM_F ||
+                other_keycode == KC_E ||
+                other_keycode == KC_R ||
                 other_keycode == KC_G ||
                 other_keycode == KC_V ||
                 other_keycode == KC_B) {
@@ -134,7 +150,7 @@ void on_smtd_action(uint16_t keycode, smtd_action action, uint8_t tap_count) {
         }
         SMTD_LT(SYM_TAB, KC_TAB, _SYM, 2)
         SMTD_MT(SFT_ENT, KC_ENT, KC_LSFT, 2, false)
-        SMTD_LT(NUM_ESC, KC_ESC, _NUM, 2)
+        SMTD_LT(NUM_BSPC, KC_BSPC, _NUM, 2)
 
         SMTD_MTE(HM_A, KC_A, KC_LCTL, 2)
         SMTD_MTE(HM_S, KC_S, KC_LALT, 2)
@@ -191,7 +207,6 @@ uint32_t get_smtd_timeout(uint16_t keycode, smtd_timeout timeout) {
             if (timeout == SMTD_TIMEOUT_RELEASE) return 70;
             break;
     }
-
     return get_smtd_timeout_default(timeout);
 }
 #endif /* SMTD_ENABLE */
@@ -379,7 +394,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_COLN1, KC_COLN);
+        CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
         CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
         CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
     }

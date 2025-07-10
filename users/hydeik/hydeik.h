@@ -32,7 +32,7 @@ enum custom_keycode_t {
     SYM_TAB,
     NAV_SPC,
     SFT_ENT,
-    NUM_ESC,
+    NUM_BSPC,
     /* for home-row mods (BASE layer) */
     HM_A,
     HM_S,
@@ -67,9 +67,8 @@ enum custom_keycode_t {
 /* mod-tap keys */
 #define SYM_TAB   LT(_SYM, KC_TAB)
 #define NAV_SPC   LT(_NAV, KC_SPC)
-#define NUM_ENT   LT(_NUM, KC_ENT)
 #define SFT_ENT   LSFT_T(KC_ENT)
-#define NUM_ESC   LT(_NUM, KC_ESC)
+#define NUM_BSPC  LT(_NUM, KC_BSPC)
 
 /* for home-row mods (BASE layer) */
 #define HM_A      LCTL_T(KC_A)
@@ -118,7 +117,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | TAB/SYM | SPC/NAV |   | ENT/SFT | ESC/NUM |
+ *                               | TAB/SYM | SPC/NAV |   | ENT/SFT | BSPC/NUM|
  *                               +---------+---------+   +---------+---------+
  */
 
@@ -131,7 +130,7 @@ enum custom_keycode_t {
 #define _________________QWERTY_R3_________________      KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
 
 #define ___QWERTY_L4___                                  SYM_TAB, NAV_SPC
-#define ___QWERTY_R4___                                  SFT_ENT, NUM_ESC
+#define ___QWERTY_R4___                                  SFT_ENT, NUM_BSPC
 
 /*
  * Symbol layer
@@ -143,7 +142,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | -FUN-   | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _SYM_   | SPC     |   | ENT     | ESC     |
+ *                               | _SYM_   | SPC     |   | ENT     | BSPC    |
  *                               +---------+---------+   +---------+---------+
  */
 
@@ -156,7 +155,7 @@ enum custom_keycode_t {
 #define _________________SYMBOL_R3_________________       XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX
 
 #define ___SYMBOL_L4___                                   _______, KC_SPC
-#define ___SYMBOL_R4___                                   KC_ENT,  KC_ESC
+#define ___SYMBOL_R4___                                   KC_ENT,  KC_BSPC
 
 /*
  * Number layer
@@ -219,7 +218,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | UNDO    | CUT     | COPY    | PASTE   | LLCK    |   |         | ENT     | TAB     | REP     | DEL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | TAB     | _NAV_   |   | ENT     | ESC     |
+ *                               | TAB     | _NAV_   |   | ESC     | DEL    |
  *                               +---------+---------+   +---------+---------+
  */
 
@@ -232,7 +231,7 @@ enum custom_keycode_t {
 #define _______________NAVIGATION_R3_______________      XXXXXXX, KC_ENT,  KC_TAB,  QK_REP,  KC_DEL
 
 #define _NAVIGATION_L4_                                  KC_TAB,  _______
-#define _NAVIGATION_R4_                                  KC_ENT,  KC_ESC
+#define _NAVIGATION_R4_                                  KC_ESC,  KC_DEL
 
 /* clang-format on */
 
