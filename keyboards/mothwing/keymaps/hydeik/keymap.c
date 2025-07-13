@@ -55,11 +55,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                     __FUNCTION_L4__, __FUNCTION_R4__
     ),
 
-    [_NAV] = LAYOUT_hydeik(
-        _______________NAVIGATION_L1_______________, _______________NAVIGATION_R1_______________,
-        _______________NAVIGATION_L2_______________, _______________NAVIGATION_R2_______________,
-        _______________NAVIGATION_L3_______________, _______________NAVIGATION_R3_______________,
-                                    _NAVIGATION_L4_, _NAVIGATION_R4_
+    [_EXT] = LAYOUT_hydeik(
+        _________________EXTRAS_L1_________________, _________________EXTRAS_R1_________________,
+        _________________EXTRAS_L2_________________, _________________EXTRAS_R2_________________,
+        _________________EXTRAS_L3_________________, _________________EXTRAS_R3_________________,
+                                    ___EXTRAS_L4___, ___EXTRAS_R4___
     ),
 };
 

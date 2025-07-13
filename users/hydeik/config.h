@@ -19,17 +19,12 @@
 #define TAPPING_TERM 250
 #define TAPPING_TOGGLE 1
 
-#ifdef SMTD_ENABLE
-#define SMTD_GLOBAL_SEQUENCE_TERM 120
-#define SMTD_GLOBAL_RELEASE_TERM 40
-#else  /* not defined SMTD_ENABLE */
 #define TAPPING_TERM_PER_KEY
 #define FLOW_TAP_TERM 125
 #define CHORDAL_HOLD
 #define PERMISSIVE_HOLD
 #define HOLD_ON_OTHER_KEY_PRESS_PER_KEY
 #define QUICK_TAP_TERM_PER_KEY
-#endif  /* SMTD_ENABLE */
 
 /* Configure One Shot Key */
 #define ONESHOT_TIMEOUT 2000
