@@ -34,7 +34,6 @@ enum keycode_aliases {
     SFT_ENT = LSFT_T(KC_ENT),
     NUM_BSPC = LT(_NUM, KC_BSPC),
     /* for home-row mods (BASE layer) */
-    HM_A = LGUI_T(KC_A),
     HM_S = LALT_T(KC_S),
     HM_D = LCTL_T(KC_D),
     HM_F = LSFT_T(KC_F),
@@ -43,9 +42,7 @@ enum keycode_aliases {
     HM_K = RCTL_T(KC_K),
     HM_L = RALT_T(KC_L),
     HM_M = RGUI_T(KC_M),
-    HM_SCLN = RGUI_T(KC_SCLN),
     /* for home-row mods (SYM layer) */
-    HM_ASTR = LGUI_T(KC_KP_0),
     HM_LPRN = LALT_T(KC_KP_0),
     HM_RPRN = LCTL_T(KC_KP_0),
     HM_COLN = LSFT_T(KC_KP_0),
@@ -55,7 +52,6 @@ enum keycode_aliases {
     HM_RBRC = RALT_T(KC_RBRC),
     HM_HASH = RGUI_T(KC_KP_1),
     /* for home-row mods (NUM layer) */
-    HM_DOT = LSFT_T(KC_DOT),
     HM_1 = LGUI_T(KC_1),
     HM_2 = LALT_T(KC_2),
     HM_3 = LCTL_T(KC_3),
@@ -72,7 +68,6 @@ enum keycode_aliases {
     HM_DOWN = RSFT_T(KC_DOWN),
     HM_UP = RCTL_T(KC_UP),
     HM_RGHT = RALT_T(KC_RGHT),
-    HM_BSPC = RGUI_T(KC_BSPC),
     HM_ENT = RGUI_T(KC_ENT),
 };
 
@@ -88,7 +83,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Q       | W       | E       | R       | T       |   | Y       | U       | I       | O       | P       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | A / GUI | S / ALT | D / CTL | F / SFT | G       |   | H       | J / SFT | K / CTL | L / ALT | ; / GUI |
+ * | A       | S / ALT | D / CTL | F / SFT | G       |   | H       | J / SFT | K / CTL | L / ALT | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Z       | X       | C       | V / GUI | B       |   | N       | M / GUI | ,       | .       | /       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -97,11 +92,11 @@ enum keycode_aliases {
  */
 
 #define _________________QWERTY_L1_________________      KC_Q,    KC_W,    KC_E,    KC_R,    KC_T
-#define _________________QWERTY_L2_________________      HM_A,    HM_S,    HM_D,    HM_F,    KC_G
+#define _________________QWERTY_L2_________________      KC_A,    HM_S,    HM_D,    HM_F,    KC_G
 #define _________________QWERTY_L3_________________      KC_Z,    KC_X,    KC_C,    HM_V,    KC_B
 
 #define _________________QWERTY_R1_________________      KC_Y,    KC_U,    KC_I,    KC_O,    KC_P
-#define _________________QWERTY_R2_________________      KC_H,    HM_J,    HM_K,    HM_L,    HM_SCLN
+#define _________________QWERTY_R2_________________      KC_H,    HM_J,    HM_K,    HM_L,    KC_SCLN
 #define _________________QWERTY_R3_________________      KC_N,    HM_M,    KC_COMM, KC_DOT,  KC_SLSH
 
 #define ___QWERTY_L4___                                  SYM_SPC, FUN_TAB
@@ -113,7 +108,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | \       | %       | $       |         |   |         | ^       | {       | }       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | * / GUI | ( / ALT | ) / CTL | : / SFT | DEL     |   | BSPC    | " / SFT | [ / CTL | ] / ALT | ; / GUI |
+ * | *       | ( / ALT | ) / CTL | : / SFT | DEL     |   | BSPC    | " / SFT | [ / CTL | ] / ALT | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | `       | @       | & / GUI | LLCK    |   |         | # / GUI | <       | >       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -122,11 +117,11 @@ enum keycode_aliases {
  */
 
 #define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
-#define _________________SYMBOL_L2_________________       HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN, KC_DEL
+#define _________________SYMBOL_L2_________________       KC_ASTR, HM_LPRN, HM_RPRN, HM_COLN, KC_DEL
 #define _________________SYMBOL_L3_________________       XXXXXXX, KC_GRV,  KC_AT,   HM_AMPR, QK_LLCK
 
 #define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
-#define _________________SYMBOL_R2_________________       KC_BSPC, HM_DQUO, HM_LBRC, HM_RBRC, HM_SCLN
+#define _________________SYMBOL_R2_________________       KC_BSPC, HM_DQUO, HM_LBRC, HM_RBRC, KC_SCLN
 #define _________________SYMBOL_R3_________________       XXXXXXX, HM_HASH, KC_LT,   KC_GT,   XXXXXXX
 
 #define ___SYMBOL_L4___                                   _______, KC_TAB
@@ -138,7 +133,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | 4       | 5       | 6       |         |   |         | |       | -       | /       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | . / GUI | 1 / ALT | 2 / CTL | 3 / SFT | DEL     |   | BSPC    | ' / SFT | _ / CTL | = / ALT | * / GUI |
+ * | .       | 1 / ALT | 2 / CTL | 3 / SFT | DEL     |   | BSPC    | ' / SFT | _ / CTL | = / ALT | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | ~       | 7       | 8       | 9 / GUI |         |   | LLCK    | + / GUI | ?       | !       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -147,11 +142,11 @@ enum keycode_aliases {
  */
 
 #define _________________NUMBER_L1_________________       XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX
-#define _________________NUMBER_L2_________________       HM_DOT,  HM_1,    HM_2,    HM_3,    KC_DEL
+#define _________________NUMBER_L2_________________       KC_DOT,  HM_1,    HM_2,    HM_3,    KC_DEL
 #define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    HM_9,    XXXXXXX
 
 #define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
-#define _________________NUMBER_R2_________________       KC_BSPC, HM_QUOT, HM_UNDS, HM_EQL,  HM_ASTR
+#define _________________NUMBER_R2_________________       KC_BSPC, HM_QUOT, HM_UNDS, HM_EQL,  KC_ASTR
 #define _________________NUMBER_R3_________________       QK_LLCK, HM_PLUS, KC_QUES, KC_EXLM, XXXXXXX
 
 #define ___NUMBER_L4___                                   KC_0,    KC_SPC
@@ -163,7 +158,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | F6      | F5      | F4      | F10     |   | HOME    | PGDN    | PGUP    | END     |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | GUI     | F3/ALT  | F2/CTL  | F1/SFT  | F11     |   | LEFT    | DOWN/SFT| UP/CTL  | RGHT/ALT| BSPC/GUI|
+ * | GUI     | F3/ALT  | F2/CTL  | F1/SFT  | F11     |   | LEFT    | DOWN/SFT| UP/CTL  | RGHT/ALT| BSPC    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | -EXT-   | F9      | F8      | F7/GUI  | F12     |   |         | ENT/GUI | TAB     | REP     | DEL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -176,7 +171,7 @@ enum keycode_aliases {
 #define ________________FUNCTION_L3________________       MO(_EXT),KC_F9,   KC_F8,   HM_F7,   KC_F12
 
 #define ________________FUNCTION_R1________________       KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX
-#define ________________FUNCTION_R2________________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, HM_BSPC
+#define ________________FUNCTION_R2________________       KC_LEFT, HM_DOWN, HM_UP,   HM_RGHT, KC_BSPC
 #define ________________FUNCTION_R3________________       QK_LLCK, HM_ENT,  KC_TAB,  QK_REP,  KC_DEL
 
 #define __FUNCTION_L4__                                   _______, _______

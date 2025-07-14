@@ -95,9 +95,9 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
      */
     switch (tap_hold_keycode) {
         case HM_D:
-            if (other_keycode == HM_A ||
-                other_keycode == KC_F ||
-                other_keycode == KC_V ||
+            if (other_keycode == KC_A ||
+                other_keycode == HM_F ||
+                other_keycode == HM_V ||
                 other_keycode == KC_B) {
                 return true;
             }
@@ -120,10 +120,8 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
             }
             break;
         case HM_V:
-            if (other_keycode == HM_A ||
+            if (other_keycode == KC_A ||
                 other_keycode == HM_S ||
-                other_keycode == KC_Q ||
-                other_keycode == KC_W ||
                 other_keycode == KC_Z ||
                 other_keycode == KC_X ||
                 other_keycode == KC_C) {
@@ -203,14 +201,14 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
 uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
     if (mods & MOD_MASK_CTRL) {
         switch (keycode) {
-            case HM_A:                    /* Ctrl+A -> Ctrl+C */
+            case KC_A:                    /* Ctrl+A -> Ctrl+C */
                 return C(KC_C);
             case KC_C:                    /* Ctrl+C -> Ctrl+V */
                 return C(KC_V);
         }
     } else if (mods & MOD_MASK_GUI) {
         switch (keycode) {
-            case HM_A:                    /* Cmd+A -> Cmd+C */
+            case KC_A:                    /* Cmd+A -> Cmd+C */
                 return G(KC_C);
             case KC_C:                    /* Cmd+C -> Cmd+V */
                 return G(KC_V);
@@ -231,11 +229,11 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
                     return M_UPDIR;
                 }
                 return M_NOOP;
-            case KC_EQL:                    /* = -> == */
+            case HM_EQL:                    /* = -> == */
                 return M_EQEQ;
-            case KC_HASH:                   /* # -> include */
+            case HM_HASH:                   /* # -> include */
                 return M_INCLUDE;
-            case KC_QUOT:
+            case HM_QUOT:
                 if ((mods & MOD_MASK_SHIFT) != 0) {
                     return M_DOCSTR;        /* " -> ""<cursor>""" */
                 }
@@ -246,7 +244,7 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
                 return KC_MINS;
 
             /* arithmetic operators, such as, +=, -=, *=, %= ... */
-            case KC_PLUS:
+            case HM_PLUS:
             case KC_MINS:
             case KC_ASTR:
             case KC_PERC:
@@ -305,7 +303,6 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
-        CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
