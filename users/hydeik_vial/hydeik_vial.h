@@ -28,17 +28,6 @@ enum custom_keycode_t {
 
     /* Swapper */
     SW_WIN, /* cmd-tab */
-
-    UPDIR,
-#ifdef REPEAT_KEY_ENABLE
-    /* --- Macros invoked through the Magic key. */
-    M_DOCSTR,
-    M_EQEQ,
-    M_INCLUDE,
-    M_MKGRVS,
-    M_UPDIR,
-    M_NOOP,
-#endif /* REPEAT_KEY_ENABLE */
 };
 
 /* tap-hold keys */
