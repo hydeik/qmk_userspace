@@ -64,3 +64,5 @@
 /* When idle, turn off Layer Lock after 60 seconds. */
 #define LAYER_LOCK_IDLE_TIMEOUT 60000
 #endif  /* LAYER_LOCK_ENABLE */
+
+#define HYDEIK_CLIPBOARD_MAC

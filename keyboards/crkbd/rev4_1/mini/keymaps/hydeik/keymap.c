@@ -43,40 +43,12 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT_crkbd_
 );
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [_BASE] = LAYOUT_hydeik(
-        _________________QWERTY_L1_________________, _________________QWERTY_R1_________________,
-        _________________QWERTY_L2_________________, _________________QWERTY_R2_________________,
-        _________________QWERTY_L3_________________, _________________QWERTY_R3_________________,
-                                    ___QWERTY_L4___, ___QWERTY_R4___
-    ),
-
-    [_SYM] = LAYOUT_hydeik(
-        _________________SYMBOL_L1_________________, _________________SYMBOL_R1_________________,
-        _________________SYMBOL_L2_________________, _________________SYMBOL_R2_________________,
-        _________________SYMBOL_L3_________________, _________________SYMBOL_R3_________________,
-                                    ___SYMBOL_L4___, ___SYMBOL_R4___
-    ),
-
-    [_NUM] = LAYOUT_hydeik(
-        _________________NUMBER_L1_________________, _________________NUMBER_R1_________________,
-        _________________NUMBER_L2_________________, _________________NUMBER_R2_________________,
-        _________________NUMBER_L3_________________, _________________NUMBER_R3_________________,
-                                    ___NUMBER_L4___, ___NUMBER_R4___
-    ),
-
-    [_FUN] = LAYOUT_hydeik(
-        ________________FUNCTION_L1________________, ________________FUNCTION_R1________________,
-        ________________FUNCTION_L2________________, ________________FUNCTION_R2________________,
-        ________________FUNCTION_L3________________, ________________FUNCTION_R3________________,
-                                    __FUNCTION_L4__, __FUNCTION_R4__
-    ),
-
-    [_EXT] = LAYOUT_hydeik(
-        _________________EXTRAS_L1_________________, _________________EXTRAS_R1_________________,
-        _________________EXTRAS_L2_________________, _________________EXTRAS_R2_________________,
-        _________________EXTRAS_L3_________________, _________________EXTRAS_R3_________________,
-                                    ___EXTRAS_L4___, ___EXTRAS_R4___
-    ),
+    [_BASE] = LAYOUT_hydeik(BASE_LAYER),
+    [_SYM] = LAYOUT_hydeik(SYM_LAYER),
+    [_NUM] = LAYOUT_hydeik(NUM_LAYER),
+    [_NAV] = LAYOUT_hydeik(NAV_LAYER),
+    [_MOU] = LAYOUT_hydeik(MOUSE_LAYER),
+    [_FUN] = LAYOUT_hydeik(FUN_LAYER),
 };
 
 /* clang-format on */
@@ -88,5 +60,6 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
   [2] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU), ENCODER_CCW_CW(KC_MPRV, KC_MNXT), ENCODER_CCW_CW(RM_VALD, RM_VALU), ENCODER_CCW_CW(KC_RGHT, KC_LEFT), },
   [3] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU), ENCODER_CCW_CW(KC_MPRV, KC_MNXT), ENCODER_CCW_CW(RM_VALD, RM_VALU), ENCODER_CCW_CW(KC_RGHT, KC_LEFT), },
   [4] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU), ENCODER_CCW_CW(KC_MPRV, KC_MNXT), ENCODER_CCW_CW(RM_VALD, RM_VALU), ENCODER_CCW_CW(KC_RGHT, KC_LEFT), },
+  [5] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU), ENCODER_CCW_CW(KC_MPRV, KC_MNXT), ENCODER_CCW_CW(RM_VALD, RM_VALU), ENCODER_CCW_CW(KC_RGHT, KC_LEFT), },
 };
 #endif

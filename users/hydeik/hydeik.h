@@ -111,7 +111,7 @@ enum keycode_aliases {
     KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    \
     HM_A,    HM_S,    HM_D,    HM_F,    KC_G,    KC_H,    HM_J,    HM_K,    HM_L,    HM_SCLN, \
     KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, \
-                               SYM_TAB, NAV_SPC, NUM_BSPC, SFT_ENT
+                               SYM_TAB, NAV_SPC, SFT_ENT, NUM_BSPC
 
 /*
  * symbol layer
@@ -214,78 +214,6 @@ enum keycode_aliases {
     XXXXXXX, KC_F9,   KC_F8,   KC_F7,   KC_F12,  QK_LLCK, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, \
                                _______, _______, _______, _______
 
-
-/****************************************************************************
- * Layout macros
- ****************************************************************************/
-
-#define LAYOUT_hydeik_split_3x5_2( \
-        L01, L02, L03, L04, L05, R01, R02, R03, R04, R05, \
-        L06, L07, L08, L09, L10, R06, R07, R08, R09, R10, \
-        L11, L12, L13, L14, L15, R11, R12, R13, R14, R15, \
-                       L16, L17, R16, R17                 \
-    ) \
-    LAYOUT_split_3x5_2( \
-        L01, L02, L03, L04, L05, R01, R02, R03, R04, R05, \
-        L06, L07, L08, L09, L10, R06, R07, R08, R09, R10, \
-        L11, L12, L13, L14, L15, R11, R12, R13, R14, R15, \
-                       L16, L17, R16, R17                 \
-    )
-
-#define LAYOUT_hydeik_split_3x5_3( \
-        l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, \
-        l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, \
-        l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, \
-                       l16, l17, r16, r17                 \
-    ) \
-    LAYOUT_split_3x5_3( \
-        L01, L02, L03, L04, L05, R01, R02, R03, R04, R05, \
-        L06, L07, L08, L09, L10, R06, R07, R08, R09, R10, \
-        L11, L12, L13, L14, L15, R11, R12, R13, R14, R15, \
-                KC_NO, L16, L17, R16, R17, KC_NO          \
-    )
-
-#define LAYOUT_hydeik_split_3x6_3( \
-        l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, \
-        l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, \
-        l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, \
-                       l16, l17, r16, r17                 \
-    ) \
-    LAYOUT_split_3x6_3( \
-        KC_NO, l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, KC_NO, \
-        KC_NO, l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, KC_NO, \
-        KC_NO, l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, KC_NO, \
-                       KC_NO, l16, l17, r16, r17, KC_NO                 \
-    )
-
-
-#define LAYOUT_wrapper_split_3x6_4(...) LAYOUT(__VA_ARGS__)
-#define LAYOUT_hydeik_split_3x6_4( \
-        l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, \
-        l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, \
-        l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, \
-                       l16, l17, r16, r17                 \
-    ) \
-    LAYOUT_wrapper_split_3x6_4( \
-        KC_NO, l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, KC_NO, \
-        KC_NO, l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, KC_NO, \
-        KC_NO, l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, KC_NO, \
-                KC_NO, l16, l17, KC_NO, KC_NO, r16, r17, KC_NO          \
-    )
-
-#define LAYOUT_hydeik_split_3x6_3_ex2( \
-        l01, l02, l03, l04, l05, r01, r02, r03, r04, r05, \
-        l06, l07, l08, l09, l10, r06, r07, r08, r09, r10, \
-        l11, l12, l13, l14, l15, r11, r12, r13, r14, r15, \
-                       l16, l17, r16, r17                 \
-    ) \
-    LAYOUT_split_3x6_3_ex2( \
-        KC_NO, l01, l02, l03, l04, l05, KC_NO, KC_NO, r01, r02, r03, r04, r05, KC_NO, \
-        KC_NO, l06, l07, l08, l09, l10, KC_NO, KC_NO, r06, r07, r08, r09, r10, KC_NO, \
-        KC_NO, l11, l12, l13, l14, l15,               r11, r12, r13, r14, r15, KC_NO, \
-                       KC_NO, l16, l17,               r16, r17, KC_NO                 \
-    )
-
 /* clang-format on */
 
 /****************************************************************************
@@ -296,6 +224,4 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record);
 void matrix_scan_keymap(void);
 void keyboard_post_init_keymap(void);
 layer_state_t layer_state_set_keymap(layer_state_t state);
-
-
 
