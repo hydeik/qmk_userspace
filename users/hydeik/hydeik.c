@@ -33,7 +33,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        // Do select the hold action when another key is pressed.
+        /* Do not select the hold action when another key is pressed. */
         case SYM_TAB:
             return true;
         case NAV_SPC:
@@ -43,6 +43,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
         case NUM_BSPC:
             return true;
         default:
+            /* Do not select the hold action when another key is pressed. */
             return false;
     }
 }
@@ -67,58 +68,71 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
     }
 }
 
-#ifdef FLOW_TAP_TERM
 uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
                            uint16_t prev_keycode) {
-    // Only apply Flow Tap when following a letter key, not a hotkeys.
+    /* Only apply Flow Tap when following a letter key, not a hotkeys. */
     if (get_tap_keycode(prev_keycode) <= KC_Z &&
         (get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) == 0) {
         switch (keycode) {
-            case HM_A:     // LCTL
-            case HM_S:     // LALT
-            case HM_L:     // RALT
-            case HM_SCLN:  // RCTL
+            case HM_S:     /* LALT */
+            case HM_L:     /* RALT */
                 return FLOW_TAP_TERM;
-            // Shorter FLOW_TAP_TERM for strong fingers.
-            case HM_D:     // LGUI
-            case HM_F:     // RGUI
+            /* Shorter FLOW_TAP_TERM for strong fingers. */
+            case HM_D:     /* LCTL */
+            case HM_K:     /* RCTL */
+            case HM_V:     /* LGUI */
+            case HM_M:     /* RGUI */
                 return FLOW_TAP_TERM - 25;
-            // Disable Flow Tap for shift keys.
+            /* Disable Flow Tap for shift keys. */
         }
     }
 
-    return 0;  // Disable Flow Tap otehrwise.
+    return 0; /* Disable Flow Tap otherwise. */
 }
-#endif  /* FLOW_TAP_TERM */
 
 #ifdef CHORDAL_HOLD
 bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
                       uint16_t other_keycode, keyrecord_t* other_record) {
-    // Exceptionally allow some one-handed chords for hotkeys.
+    /*
+     * Exceptionally consider the following chords as holds, even though they
+     * are on the same hand in Magic Sturdy.
+     */
     switch (tap_hold_keycode) {
-        case HM_A:     // Left Ctrl
-            if (other_keycode == KC_E ||
-                other_keycode == KC_R ||
-                other_keycode == HM_D ||
+        case HM_D:
+            if (other_keycode == KC_A ||
                 other_keycode == HM_F ||
-                other_keycode == KC_G ||
-                other_keycode == KC_V ||
+                other_keycode == HM_V ||
                 other_keycode == KC_B) {
                 return true;
             }
             break;
-        case HM_D:     // Left Cmd
-            if (other_keycode == HM_F) {
+        case HM_K:
+            if (other_keycode == HM_J ||
+                other_keycode == HM_L ||
+                other_keycode == KC_Y ||
+                other_keycode == KC_U ||
+                other_keycode == KC_N ||
+                other_keycode == KC_M) {
                 return true;
             }
             break;
-        case HM_SCLN:  // Right Ctrl
-            if (other_keycode == HM_J) {
+        case HM_M:
+            if (other_keycode == HM_K ||
+                other_keycode == HM_L ||
+                other_keycode == KC_P) {
+                return true;
+            }
+            break;
+        case HM_V:
+            if (other_keycode == KC_A ||
+                other_keycode == HM_S ||
+                other_keycode == KC_Z ||
+                other_keycode == KC_X ||
+                other_keycode == KC_C) {
                 return true;
             }
             break;
     }
-    // Otherwise defer to the opposite hands rule.
     return get_chordal_hold_default(tap_hold_record, other_record);
 }
 #endif  /* CHORDAL_HOLD */
@@ -219,11 +233,11 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
                     return M_UPDIR;
                 }
                 return M_NOOP;
-            case HM_EQL:                    /* = -> == */
+            case KC_EQL:                    /* = -> == */
                 return M_EQEQ;
             case KC_HASH:                   /* # -> include */
                 return M_INCLUDE;
-            case HM_QUOT:
+            case KC_QUOT:
                 if ((mods & MOD_MASK_SHIFT) != 0) {
                     return M_DOCSTR;        /* " -> ""<cursor>""" */
                 }
@@ -292,14 +306,18 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
         break
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+/*
     switch(keycode) {
-        CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
+        CASE_MT_NON_BASIC_KEYCODE(HM_AMPR, KC_AMPR);
         CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
         CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
+        CASE_MT_NON_BASIC_KEYCODE(HM_HASH, KC_HASH);
+        CASE_MT_NON_BASIC_KEYCODE(HM_PLUS, KC_PLUS);
     }
+*/
 
     if (record->event.pressed) {
         switch (keycode) {

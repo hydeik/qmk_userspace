@@ -35,30 +35,30 @@ enum keycode_aliases {
     SFT_ENT = LSFT_T(KC_ENT),
     NUM_BSPC = LT(_NUM, KC_BSPC),
     /* for home-row mods (BASE layer) */
-    HM_A = LCTL_T(KC_A),
     HM_S = LALT_T(KC_S),
-    HM_D = LGUI_T(KC_D),
+    HM_D = LCTL_T(KC_D),
     HM_F = LSFT_T(KC_F),
+    HM_V = LGUI_T(KC_V),
     HM_J = RSFT_T(KC_J),
-    HM_K = RGUI_T(KC_K),
+    HM_K = RCTL_T(KC_K),
     HM_L = RALT_T(KC_L),
-    HM_SCLN = RCTL_T(KC_SCLN),
-    /* for home-row mods (SYM layer) */
-    HM_ASTR = LCTL_T(KC_KP_0),
-    HM_LPRN = LALT_T(KC_KP_0),
-    HM_RPRN = LGUI_T(KC_KP_0),
-    HM_COLN = LSFT_T(KC_KP_0),
-    HM_DQUO = RSFT_T(KC_KP_1),
-    HM_LBRC = RGUI_T(KC_LBRC),
-    HM_RBRC = RALT_T(KC_RBRC),
-    /* for home-row mods (NUM layer) */
-    HM_DOT = LCTL_T(KC_DOT),
-    HM_1 = LALT_T(KC_1),
-    HM_2 = LGUI_T(KC_2),
-    HM_3 = LSFT_T(KC_3),
-    HM_QUOT = RSFT_T(KC_QUOT),
-    HM_UNDS = RGUI_T(KC_KP_2),
-    HM_EQL = RALT_T(KC_EQL),
+    HM_M = RGUI_T(KC_M),
+    // /* for home-row mods (SYM layer) */
+    // HM_ASTR = LCTL_T(KC_KP_0),
+    // HM_LPRN = LALT_T(KC_KP_0),
+    // HM_RPRN = LGUI_T(KC_KP_0),
+    // HM_COLN = LSFT_T(KC_KP_0),
+    // HM_DQUO = RSFT_T(KC_KP_1),
+    // HM_LBRC = RGUI_T(KC_LBRC),
+    // HM_RBRC = RALT_T(KC_RBRC),
+    // /* for home-row mods (NUM layer) */
+    // HM_DOT = LCTL_T(KC_DOT),
+    // HM_1 = LALT_T(KC_1),
+    // HM_2 = LGUI_T(KC_2),
+    // HM_3 = LSFT_T(KC_3),
+    // HM_QUOT = RSFT_T(KC_QUOT),
+    // HM_UNDS = RGUI_T(KC_KP_2),
+    // HM_EQL = RALT_T(KC_EQL),
     /* Clipboard */
 #if defined (HYDEIK_CLIPBOARD_FUN)
     M_REDO = KC_AGAIN,
@@ -99,9 +99,9 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Q       | W       | E       | R       | T       |   | Y       | U       | I       | O       | P       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | A / CTL | S / ALT | D / GUI | F / SFT | G       |   | H       | J / SFT | K / GUI | L / ALT | ; / CTL |
+ * | A       | S / ALT | D / CTL | F / SFT | G       |   | H       | J / SFT | K / CTL | L / ALT | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
+ * | Z       | X       | C       | V / GUI | B       |   | N       | M / GUI | ,       | .       | /       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | TAB/SYM | SPC/NAV |   | ENT/SFT | BSPC/NUM|
  *                               +---------+---------+   +---------+---------+
@@ -109,8 +109,8 @@ enum keycode_aliases {
 
 #define BASE_LAYER \
     KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    \
-    HM_A,    HM_S,    HM_D,    HM_F,    KC_G,    KC_H,    HM_J,    HM_K,    HM_L,    HM_SCLN, \
-    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, \
+    KC_A,    HM_S,    HM_D,    HM_F,    KC_G,    KC_H,    HM_J,    HM_K,    HM_L,    KC_SCLN, \
+    KC_Z,    KC_X,    KC_C,    HM_V,    KC_B,    KC_N,    HM_M,    KC_COMM, KC_DOT,  KC_SLSH, \
                                SYM_TAB, NAV_SPC, SFT_ENT, NUM_BSPC
 
 /*
@@ -119,7 +119,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | \       | %       | $       |         |   |         | ^       | {       | }       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | * / CTL | ( / ALT | ) / GUI | : / SFT | DEL     |   | BSPC    | " / SFT | [ / GUI | ] / ALT | ; / CTL |
+ * | *       | (       | )       | :       | DEL     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -129,7 +129,7 @@ enum keycode_aliases {
 
 #define SYM_LAYER \
     XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX, XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX, \
-    HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN, KC_DEL,  KC_BSPC, HM_DQUO, HM_LBRC, HM_RBRC, HM_SCLN, \
+    KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_DEL,  KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN, \
     XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK, XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX, \
                                _______, KC_SPC,  KC_ENT,  KC_ESC
 
@@ -138,20 +138,20 @@ enum keycode_aliases {
  * Number layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | 4       | 5       | 6       |         |   |         | |       | -       | /       |         |
+ * |         | 9       | 8       | 7       |         |   |         | |       | -       | /       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | . / CTL | 1 / ALT | 2 / GUI | 3 / SFT | DEL     |   | BSPC    | ' / SFT | _ / GUI | = / ALT | * / CTL |
+ * | .       | 3       | 2       | 1       | DEL     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       |         |   | LLCK    | +       | ?       | !       |         |
+ * | ~       | 6       | 5       | 4       |         |   | LLCK    | +       | ?       | !       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | 0       | SPC     |   | ENT     | _NUM_   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define NUM_LAYER \
-    XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
-    HM_DOT,  HM_1,    HM_2,    HM_3,    KC_DEL,  KC_BSPC, HM_QUOT, HM_UNDS, HM_EQL,  HM_ASTR, \
-    KC_TILD, KC_7,    KC_8,    KC_9,    XXXXXXX, QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX, \
+    XXXXXXX, KC_9,    KC_8,    KC_7,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
+    KC_DOT,  KC_3,    KC_2,    KC_1,    KC_DEL,  KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR, \
+    KC_TILD, KC_6,    KC_5,    KC_4,    XXXXXXX, QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX, \
                                KC_0,    KC_SPC,  KC_ENT,  _______
 
 /*
@@ -160,9 +160,9 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   | REDO    | PASTE   | COPY    | CUT     | UNDO    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL     | ALT     | GUI     | SFT     | -MOU-   |   | LEFT    | DOWN    | UP      | RGHT    | CWORD   |
+ * |         | ALT*    | CTL*    | SFT*    | -MOU-   |   | LEFT    | DOWN    | UP      | RGHT    | CWORD   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         | LLCK    |   | HOME    | PGDN    | PGUP    | END     | INS     |
+ * |         |         |         | GUI*    | LLCK    |   | HOME    | PGDN    | PGUP    | END     | INS     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         | _NAV_   |   | -FUN-   | ESC     |
  *                               +---------+---------+   +---------+---------+
@@ -170,8 +170,8 @@ enum keycode_aliases {
 
 #define NAV_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  M_REDO,  M_PSTE,  M_COPY,  M_CUT,   M_UNDO,  \
-    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, MO(_MOU), KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, CW_TOGG, \
-    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_INS,  \
+    XXXXXXX, OS_LALT, OS_LCTL, OS_LSFT, MO(_MOU), KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, CW_TOGG, \
+    XXXXXXX, XXXXXXX, XXXXXXX, OS_LGUI, QK_LLCK,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_INS,  \
                                _______, _______,  MO(_FUN), KC_ESC
 
 /*
@@ -180,9 +180,9 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   | REDO    | PASTE   | COPY    | CUT     | UNDO    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL     | ALT     | GUI     | SFT     | _MOU_   |   | MS_LEFT | MS_DOWN | MS_UP   | MS_RGHT | BTN3    |
+ * |         | ALT*    | CTL*    | SFT*    | _MOU_   |   | MS_LEFT | MS_DOWN | MS_UP   | MS_RGHT | BTN3    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         | LLCK    |   | MS_WHLL | MS_WHLD | MS_WHLU | MS_WHLR |         |
+ * |         |         |         | GUI*    | LLCK    |   | MS_WHLL | MS_WHLD | MS_WHLU | MS_WHLR |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         | _NAV_   |   | BTN1    | BTN2    |
  *                               +---------+---------+   +---------+---------+
@@ -190,28 +190,28 @@ enum keycode_aliases {
 
 #define MOUSE_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, M_REDO,  M_PSTE,  M_COPY,  M_CUT,   M_UNDO,  \
-    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
-    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
+    XXXXXXX, OS_LALT, OS_LCTL, OS_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
+    XXXXXXX, XXXXXXX, XXXXXXX, OS_LGUI, QK_LLCK, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
                                _______, _______, MS_BTN1, MS_BTN2
 
 /*
  * Function layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | BOOT    | F6      | F5      | F4      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU    |
+ * | BOOT    | F9      | F8      | F7      | F10     |   | BRIU    | MPRV    | MPLY    | MNXT    | VOLU     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F3      | F2      | F1      | F11     |   |         | SFT     | GUI     | ALT     | CTL     |
+ * |         | F3      | F2      | F1      | F11     |   | BRID    | SFT*    | CTL*    | ALT*    | VOLD    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F9      | F8      | F7      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    |         |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | GUI*    |         |         | MUTE    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         | _FUN_   |   | _FUN_   |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define FUN_LAYER \
-    QK_BOOT, KC_F6,   KC_F5,   KC_F4,   KC_F10,  KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU, \
-    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  XXXXXXX, KC_RSFT, KC_RGUI, KC_RALT, KC_RCTL, \
-    XXXXXXX, KC_F9,   KC_F8,   KC_F7,   KC_F12,  QK_LLCK, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, \
+    QK_BOOT, KC_F9,   KC_F8,   KC_F7,   KC_F10,  KC_BRIU, KC_MPRV, KC_MPLY, KC_MNXT, KC_VOLU, \
+    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  KC_BRID, OS_RSFT, OS_RCTL, OS_RALT, KC_VOLD, \
+    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  QK_LLCK, OS_RGUI, XXXXXXX, XXXXXXX, KC_MUTE, \
                                _______, _______, _______, _______
 
 /* clang-format on */
