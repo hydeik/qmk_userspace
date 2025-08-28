@@ -34,9 +34,9 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         /* Do not select the hold action when another key is pressed. */
-        case SYM_TAB:
+        case SYM_SPC:
             return true;
-        case NAV_SPC:
+        case NAV_TAB:
             return true;
         case SFT_ENT:
             return true;
@@ -156,6 +156,7 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_DEL:
         case KC_MINS:
         case KC_UNDS:
+        case LCTL(KC_H):
             return true;
 
         default:
@@ -306,7 +307,6 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
         break
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-/*
     switch(keycode) {
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
@@ -317,7 +317,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         CASE_MT_NON_BASIC_KEYCODE(HM_HASH, KC_HASH);
         CASE_MT_NON_BASIC_KEYCODE(HM_PLUS, KC_PLUS);
     }
-*/
 
     if (record->event.pressed) {
         switch (keycode) {
