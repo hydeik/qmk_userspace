@@ -9,8 +9,8 @@ enum layer_t {
     _BASE,
     _SYM,
     _NUM,
-    _FUN,
     _NAV,
+    _FUN,
     _MOD,
 };
 
@@ -30,11 +30,6 @@ enum custom_keycode_t {
     SW_WIN, /* cmd-tab */
 };
 
-/* tap-hold keys */
-#define SYM_SPC LT(_SYM, KC_SPC)
-#define NUM_ENT LT(_NUM, KC_ENT)
-#define NAV_TAB LT(_NAV, KC_TAB)
-
 /****************************************************************************
  * Keymap blocks
  ****************************************************************************/
@@ -47,49 +42,39 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | Q       | W       | E       | R       | T       |   | Y       | U       | I       | O       | P       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | A       | S       | D       | F       | G       |   | H       | J       | K       | L       | SFT*    |
+ * | A       | S       | D       | F       | G       |   | H       | J       | K       | L       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
+ * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | TAB/NUM | SPC/SYM |   | ENT/NUM | -MOD-   |
+ *                               | -SYM-   | MOD     |   | SPC     | -NUM-   |
  *                               +---------+---------+   +---------+---------+
  */
 
-#define _________________QWERTY_L1_________________      KC_Q,    KC_W,    KC_E,    KC_R,    KC_T
-#define _________________QWERTY_L2_________________      KC_A,    KC_S,    KC_D,    KC_F,    KC_G
-#define _________________QWERTY_L3_________________      KC_Z,    KC_X,    KC_C,    KC_V,    KC_B
-
-#define _________________QWERTY_R1_________________      KC_Y,    KC_U,    KC_I,    KC_O,    KC_P
-#define _________________QWERTY_R2_________________      KC_H,    KC_J,    KC_K,    KC_L,    OS_SHFT
-#define _________________QWERTY_R3_________________      KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH
-
-#define ___QWERTY_L4___                                  NAV_TAB, SYM_SPC
-#define ___QWERTY_R4___                                  NUM_ENT, OS_MOD
+#define BASE_LAYER \
+    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    \
+    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, \
+    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  TO(_NAV), \
+                              MO(_SYM), OS_MOD,  KC_SPC,  MO(_NUM)
 
 /*
- * Symbol layer
+ * symbol layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | \       | %       | $       |         |   |         | ^       | {       | }       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | *       | (       | )       | :       | TAB     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | -FUN-   | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
+ * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | TAB/NAV | _SYM_   |   | ENT     | -MOD-   |
+ *                               | _SYM_   |         |   | MOD     | ENT     |
  *                               +---------+---------+   +---------+---------+
  */
+#define SYM_LAYER \
+    XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX, XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX, \
+    KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB,  KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN, \
+    XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK, XXXXXXX, KC_HASH, KC_LT,   KC_GT,   _______, \
+                               _______, _______, OS_MOD,  KC_ESC
 
-#define _________________SYMBOL_L1_________________       XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX
-#define _________________SYMBOL_L2_________________       KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB
-#define _________________SYMBOL_L3_________________       MO(_FUN),KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK
-
-#define _________________SYMBOL_R1_________________       XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX
-#define _________________SYMBOL_R2_________________       KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN
-#define _________________SYMBOL_R3_________________       XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX
-
-#define ___SYMBOL_L4___                                   _______, _______
-#define ___SYMBOL_R4___                                   KC_ENT,  _______
 
 /*
  * Number layer
@@ -99,73 +84,59 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | 0       | 1       | 2       | 3       | TAB     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -FUN-   |
+ * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | -MOD-   | SPC     |   | _NUM_   |         |
+ *                               | ESC     |         |   |         | _NUM_   |
  *                               +---------+---------+   +---------+---------+
  */
 
-
-#define _________________NUMBER_L1_________________       XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX
-#define _________________NUMBER_L2_________________       KC_0,    KC_1,    KC_2,    KC_3,    KC_TAB
-#define _________________NUMBER_L3_________________       KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT
-
-#define _________________NUMBER_R1_________________       XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX
-#define _________________NUMBER_R2_________________       KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR
-#define _________________NUMBER_R3_________________       QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, MO(_FUN)
-
-#define ___NUMBER_L4___                                   _______, KC_SPC
-#define ___NUMBER_R4___                                   _______, _______
-
-/*
- * Function layer
- *
- * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU    |
- * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CWord   | F3      | F2      | F1      | F11     |   |         | CTL*    | ALT*    | GUI*    | SFT*    |
- * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | _FUN_   | F9      | F8      | F7      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | _FUN_   |
- * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               |         | _FUN_   |   | _FUN_   | MOD     |
- *                               +---------+---------+   +---------+---------+
- */
-
-#define ________________FUNCTION_L1________________       XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F10
-#define ________________FUNCTION_L2________________       CW_TOGG, KC_F3,   KC_F2,   KC_F1,   KC_F11
-#define ________________FUNCTION_L3________________       _______, KC_F9,   KC_F8,   KC_F7,   KC_F12
-
-#define ________________FUNCTION_R1________________       KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU
-#define ________________FUNCTION_R2________________       XXXXXXX, OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT
-#define ________________FUNCTION_R3________________       KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT, _______
-
-#define __FUNCTION_L4__                                   _______, _______
-#define __FUNCTION_R4__                                   _______, _______
+#define NUM_LAYER \
+    XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
+    KC_0,    KC_1,    KC_2,    KC_3,    KC_TAB,  KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR, \
+    KC_TILD, KC_7,    KC_8,    KC_9,    KC_MOD,  QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, _______, \
+                               KC_ESC,  _______, _______, _______
 
 /*
  * Navigation layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     | DEL     |
+ * | ESC     |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | SFT     | GUI     | ALT     | CTL     |         |   | LEFT    | DOWN    | UP      | RGHT    | BSPC    |
+ * | CTL*    | ALT*    | GUI*    | SFT*    | CWord   |   | LEFT    | DOWN    | UP      | RGHT    | DEL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         | LLCK    |   |         | ENT     | TAB     |         |         |
+ * | UNDO    | CUT     | COPY    | PASTE   |         |   |         |         |         |         | -FUN-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _NAV_   |         |   | ESC     | MOD     |
+ *                               | -BASE-  |         |   |         | ENT     |
  *                               +---------+---------+   +---------+---------+
  */
 
-#define _______________NAVIGATION_L1_______________      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
-#define _______________NAVIGATION_L2_______________      OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, XXXXXXX
-#define _______________NAVIGATION_L3_______________      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK
+#define NAV_LAYER \
+    KC_ESC,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX,  \
+    OS_CTRL, OS_ALT, OS_GUI,   OS_SHFT, CW_TOGG,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_DEL,   \
+    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  TO(_FUN), \
+                             TO(_BASE), _______,  _______, _______
 
-#define _______________NAVIGATION_R1_______________      KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_DEL
-#define _______________NAVIGATION_R2_______________      KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC
-#define _______________NAVIGATION_R3_______________      XXXXXXX, KC_ENT,  KC_TAB,  XXXXXXX, XXXXXXX
 
-#define _NAVIGATION_L4_                                  _______, _______
-#define _NAVIGATION_R4_                                  KC_ESC,  _______
+
+/*
+ * Function layer
+ *
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * | BOOT    | F9      | F8      | F7      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU     |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * |         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * |         | F6      | F5      | F4      | F12     |   | MSTP    | MPRV    | MPLY    | MNXT    |         |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ *                               | -BASE-  |         |   |         |         |
+ *                               +---------+---------+   +---------+---------+
+ */
+
+#define FUN_LAYER \
+    QK_BOOT, KC_F9,   KC_F8,   KC_F7,   KC_F10,  KC_MUTE, KC_VOLD, KC_VOLU, KC_BRIU, KC_BRIU, \
+    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  XXXXXXX, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, \
+    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT, _______, \
+                             TO(_BASE), _______, _______, _______
 
 /*
  * One-shot mod layer
@@ -173,7 +144,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   |         |         |         |         |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | SFT*    | GUI*    | ALT*    | CTL*    |         |   |         | CTL*    | ALT*    | GUI*    | SFT*    |
+ * | CTL*    | ALT*    | GUI*    | SFT*    |         |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   |         |         |         |         |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -181,16 +152,11 @@ enum custom_keycode_t {
  *                               +---------+---------+   +---------+---------+
  */
 
-#define ________________MODIFIER_L1________________      _______, _______, _______, _______, _______
-#define ________________MODIFIER_L2________________      OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, _______
-#define ________________MODIFIER_L3________________      _______, _______, _______, _______, _______
-
-#define ________________MODIFIER_R1________________      _______, _______, _______, _______, _______
-#define ________________MODIFIER_R2________________      _______, OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT
-#define ________________MODIFIER_R3________________      _______, _______, _______, _______, _______
-
-#define __MODIFIER_L4__                                  _______, _______
-#define __MODIFIER_R4__                                  _______, _______
+#define MOD_LAYER \
+    _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______, \
+    OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT, _______,  _______, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, \
+    _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______, \
+                               _______, _______,  _______, _______
 
 /* clang-format on */
 

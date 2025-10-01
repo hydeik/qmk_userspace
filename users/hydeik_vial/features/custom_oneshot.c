@@ -91,7 +91,13 @@ void update_oneshot_layer(
         } else {
             switch (*layer_state) {
                 case osl_down_unused:
-                    *layer_state = osl_up_queued;
+                    // *layer_state = osl_up_queued;
+                    *layer_state = osl_up_unqueued;
+                    layer_off(layer);
+                    if (*shift_state == osm_up_unqueued) {
+                        *shift_state = osm_up_queued;
+                        register_code(KC_LSFT);
+                    }
                     break;
                 case osl_down_used:
                     *layer_state = osl_up_unqueued;

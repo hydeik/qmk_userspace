@@ -192,8 +192,8 @@ enum keycode_aliases {
 
 #define MOUSE_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, M_REDO,  M_PSTE,  M_COPY,  M_CUT,   M_UNDO,  \
-    XXXXXXX, OS_LALT, OS_LCTL, OS_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
-    XXXXXXX, XXXXXXX, XXXXXXX, OS_LGUI, QK_LLCK, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
+    XXXXXXX, KC_LALT, KC_LCTL, KC_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
+    XXXXXXX, XXXXXXX, XXXXXXX, KC_LGUI, QK_LLCK, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
                                _______, _______, MS_BTN1, MS_BTN2
 
 /*
@@ -212,8 +212,8 @@ enum keycode_aliases {
 
 #define FUN_LAYER \
     QK_BOOT, KC_F9,   KC_F8,   KC_F7,   KC_F10,  KC_BRIU, KC_MPRV, KC_MPLY, KC_MNXT, KC_VOLU, \
-    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  KC_BRID, OS_RSFT, OS_RCTL, OS_RALT, KC_VOLD, \
-    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  QK_LLCK, OS_RGUI, XXXXXXX, XXXXXXX, KC_MUTE, \
+    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  KC_BRID, KC_RSFT, KC_RCTL, KC_RALT, KC_VOLD, \
+    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  QK_LLCK, KC_RGUI, XXXXXXX, XXXXXXX, KC_MUTE, \
                                _______, _______, _______, _______
 
 /* clang-format on */

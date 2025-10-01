@@ -102,8 +102,10 @@ bool is_oneshot_mod_key(uint16_t keycode) {
 
 bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
-        case MO(_FUN):
         case MO(_NAV):
+        case MO(_FUN):
+        case TG(_NAV):
+        case TG(_FUN):
             return true;
         default:
             return false;
