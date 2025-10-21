@@ -73,7 +73,7 @@ enum custom_keycode_t {
     XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX, XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX, \
     KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB,  KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN, \
     XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK, XXXXXXX, KC_HASH, KC_LT,   KC_GT,   _______, \
-                               _______, _______, OS_MOD,  KC_ESC
+                               _______, _______, OS_MOD,  KC_ENT
 
 
 /*
@@ -93,7 +93,7 @@ enum custom_keycode_t {
 #define NUM_LAYER \
     XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
     KC_0,    KC_1,    KC_2,    KC_3,    KC_TAB,  KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR, \
-    KC_TILD, KC_7,    KC_8,    KC_9,    KC_MOD,  QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, _______, \
+    KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT,  QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, _______, \
                                KC_ESC,  _______, _______, _______
 
 /*
