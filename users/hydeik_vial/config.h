@@ -107,6 +107,7 @@
 #ifndef CAPS_WORD_INVERT_ON_SHIFT
 #define CAPS_WORD_INVERT_ON_SHIFT
 #endif /* CAPS_WORD_INVERT_ON_SHIFT */
+#define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
 /* When idle, turn off Caps Word after 5 seconds. */
 #define CAPS_WORD_IDLE_TIMEOUT 5000
 #endif  /* CAPS_WORD_ENABLE */
