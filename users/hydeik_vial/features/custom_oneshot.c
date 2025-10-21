@@ -67,7 +67,7 @@ void update_oneshot_mod(
     }
 }
 
-uint16_t pressed_one_shot_mods = 0;
+static uint8_t pressed_one_shot_mods = 0;
 
 #define CUSTOM_ONE_SHOT_MOD_GET_MODS(kc) ((kc)&0x1F)
 
@@ -133,11 +133,12 @@ void update_oneshot_layer(
     } else {
         if (record->event.pressed) {
             if (is_oneshot_mod_key(keycode)) {
-                pressed_one_shot_mods |= CUSTOM_ONE_SHOT_MOD_GET_MODS(keycode);
+                pressed_one_shot_mods |= custom_oneshot_mod_get_mods(keycode);
             }
         } else {
             if (is_oneshot_mod_key(keycode)) {
-                pressed_one_shot_mods &= CUSTOM_ONE_SHOT_MOD_GET_MODS(~(CUSTOM_ONE_SHOT_MOD_GET_MODS(keycode)));
+                uint8_t mod = custom_oneshot_mod_get_mods(keycode);
+                pressed_one_shot_mods &= custom_oneshot_mod_get_mods(~mod);
             }
 
             switch (*layer_state) {

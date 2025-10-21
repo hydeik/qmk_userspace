@@ -104,8 +104,8 @@ bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
         case MO(_NAV):
         case MO(_FUN):
-        case TG(_NAV):
-        case TG(_FUN):
+        case TO(_NAV):
+        case TO(_FUN):
             return true;
         default:
             return false;
@@ -123,6 +123,26 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
         default:
             return false;
     }
+}
+
+uint8_t custom_oneshot_mod_get_mods(uint16_t keycode) {
+    switch (keycode) {
+        case OS_SHFT:
+            return MOD_LSFT;
+            break;
+        case OS_CTRL:
+            return MOD_LCTL;
+            break;
+        case OS_ALT:
+            return MOD_LALT;
+            break;
+        case OS_GUI:
+            return MOD_LGUI;
+            break;
+        default:
+            break;
+    }
+    return 0;
 }
 
 bool sw_win_active = false;

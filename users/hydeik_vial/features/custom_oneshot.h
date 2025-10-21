@@ -96,3 +96,9 @@ bool is_oneshot_cancel_key(uint16_t keycode);
  */
 bool is_oneshot_ignored_key(uint16_t keycode);
 
+/**
+ * To be implemented by the consumer. Layers one shot implementation needs to
+ * know which modifier is sent on each oneshot mod key.
+ */
+uint8_t custom_oneshot_mod_get_mods(uint16_t keycode);
+

@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                    L16, L17, R16, R17                 \
     ) \
     LAYOUT_crkbd_wrapper( \
-    KC_NO, L01, L02, L03, L04, L05, KC_NO, KC_NO, R01, R02, R03, R04, R05, KC_NO, \
+    KC_NO, L01, L02, L03, L04, L05, QK_BOOT, QK_BOOT, R01, R02, R03, R04, R05, KC_NO, \
     KC_NO, L06, L07, L08, L09, L10, KC_NO, KC_NO, R06, R07, R08, R09, R10, KC_NO, \
     KC_NO, L11, L12, L13, L14, L15,               R11, R12, R13, R14, R15, KC_NO, \
                           KC_NO, L16, L17, R16, R17, KC_NO                        \
