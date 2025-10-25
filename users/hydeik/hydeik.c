@@ -34,13 +34,11 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         /* Do not select the hold action when another key is pressed. */
-        case SYM_SPC:
+        case SYM_TAB:
             return true;
-        case NAV_TAB:
+        case NAV_SPC:
             return true;
-        case SFT_ENT:
-            return true;
-        case NUM_BSPC:
+        case NUM_ENT:
             return true;
         default:
             /* Do not select the hold action when another key is pressed. */
@@ -74,14 +72,14 @@ uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
     if (get_tap_keycode(prev_keycode) <= KC_Z &&
         (get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) == 0) {
         switch (keycode) {
+            case HM_A:     /* LCTL */
             case HM_S:     /* LALT */
             case HM_L:     /* RALT */
+            case HM_SCLN:  /* RCTL */
                 return FLOW_TAP_TERM;
             /* Shorter FLOW_TAP_TERM for strong fingers. */
-            case HM_D:     /* LCTL */
-            case HM_K:     /* RCTL */
-            case HM_V:     /* LGUI */
-            case HM_M:     /* RGUI */
+            case HM_D:     /* LGUI */
+            case HM_K:     /* RGUI */
                 return FLOW_TAP_TERM - 25;
             /* Disable Flow Tap for shift keys. */
         }
@@ -98,10 +96,18 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
      * are on the same hand in Magic Sturdy.
      */
     switch (tap_hold_keycode) {
-        case HM_D:
-            if (other_keycode == KC_A ||
+        case HM_A:
+            if (other_keycode == HM_D ||
+                other_keycode == KC_E ||
                 other_keycode == HM_F ||
-                other_keycode == HM_V ||
+                other_keycode == KC_R) {
+                return true;
+            }
+            break;
+        case HM_D:
+            if (other_keycode == HM_A ||
+                other_keycode == HM_F ||
+                other_keycode == KC_V ||
                 other_keycode == KC_B) {
                 return true;
             }
@@ -116,21 +122,7 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
                 return true;
             }
             break;
-        case HM_M:
-            if (other_keycode == HM_K ||
-                other_keycode == HM_L ||
-                other_keycode == KC_P) {
-                return true;
-            }
-            break;
-        case HM_V:
-            if (other_keycode == KC_A ||
-                other_keycode == HM_S ||
-                other_keycode == KC_Z ||
-                other_keycode == KC_X ||
-                other_keycode == KC_C) {
-                return true;
-            }
+        default:
             break;
     }
     return get_chordal_hold_default(tap_hold_record, other_record);
@@ -156,7 +148,6 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_DEL:
         case KC_MINS:
         case KC_UNDS:
-        case LCTL(KC_H):
             return true;
 
         default:
@@ -308,14 +299,12 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch(keycode) {
+        CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
         CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_AMPR, KC_AMPR);
         CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
         CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
-        CASE_MT_NON_BASIC_KEYCODE(HM_HASH, KC_HASH);
-        CASE_MT_NON_BASIC_KEYCODE(HM_PLUS, KC_PLUS);
     }
 
     if (record->event.pressed) {
@@ -354,7 +343,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
  * Custom behavior for layers
  */
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
+    state = update_tri_layer_state(state, _SYM, _NUM, _FUN);
     return layer_state_set_keymap(state);
 }
 
