@@ -127,6 +127,8 @@ bool is_custom_oneshot_ignored_key(uint16_t keycode) {
         case COS_RSFT:
         case COS_RALT:
         case COS_RGUI:
+        case SMT_MOD:
+        case SPC_MOD:
             return true;
         default:
             return false;
@@ -177,7 +179,7 @@ static void custom_oneshot_clear_mods(void) {
     clear_mods();
 }
 
-bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
+bool process_custom_oneshot_mods(uint8_t layer, uint16_t keycode, keyrecord_t *record) {
     if (is_custom_oneshot_mod_key(keycode)) {
         /* Handle custom oneshot mod key */
         uint8_t mod = custom_oneshot_mod_get_mods(keycode);
@@ -195,8 +197,8 @@ bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
             }
 
             if (!pressed_oneshot_mods) {
-                if (IS_LAYER_ON(SMT_MOD_LAYER)) {
-                    layer_off(SMT_MOD_LAYER);
+                if (IS_LAYER_ON(layer)) {
+                    layer_off(layer);
                 }
             }
         }
@@ -215,7 +217,7 @@ bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
                     used_oneshot_mods |= pressed_oneshot_mods;
                 }
                 if (queued_oneshot_mods) {
-                    if (mod_layer_hold_count > 0) {
+                    if (mod_layer_hold_count) {
                         used_oneshot_mods |= queued_oneshot_mods;
                     } else {
                         unregister_mods(queued_oneshot_mods);
@@ -257,14 +259,26 @@ void handel_mod_layer_hold_event(uint8_t layer, keyrecord_t *record) {
  */
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    process_custom_oneshot_mods(keycode, record);
+    process_custom_oneshot_mods(SMT_MOD_LAYER, keycode, record);
 
+#ifdef CAPS_WORD_ENABLE
+    static bool tapped = false;
+    static uint16_t tap_timer = 0;
+#endif /* CAPS_WORD_ENABLE */
     switch (keycode) {
         case SMT_MOD:
             if (record->tap.count == 0) {
                 handel_mod_layer_hold_event(SMT_MOD_LAYER, record);
             } else {
                 if (record->event.pressed) {
+#ifdef CAPS_WORD_ENABLE
+                    if (tapped && !timer_expired(record->event.time, tap_timer)) {
+                        clear_mods();
+                        caps_word_on();
+                    }
+                    tapped = true;
+                    tap_timer = record->event.time + GET_TAPPING_TERM(keycode, record);
+#endif /* CAPS_WORD_ENABLE */
                     register_mods(MOD_BIT_LSHIFT);
                 } else {
                     add_oneshot_mods(MOD_BIT_LSHIFT);
@@ -275,10 +289,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case SPC_MOD:
         case ENT_MOD:
+#ifdef CAPS_WORD_ENABLE
+            if (record->event.pressed) {
+                tapped = false;
+            }
+#endif /* CAPS_WORD_ENABLE */
             if (record->tap.count == 0) {
                 handel_mod_layer_hold_event(SMT_MOD_LAYER, record);
                 return false;
             }
+            break;
+        default:
+#ifdef CAPS_WORD_ENABLE
+            if (record->event.pressed) {
+                tapped = false;
+            }
+#endif /* CAPS_WORD_ENABLE */
             break;
     }
 

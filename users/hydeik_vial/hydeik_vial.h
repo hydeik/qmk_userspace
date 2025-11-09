@@ -39,6 +39,8 @@ enum custom_keycode_t {
 #define SMT_MOD  LT(_MOD, KC_KP_0)
 #define SPC_MOD  LT(_MOD, KC_SPC)
 #define ENT_MOD  LT(_MOD, KC_ENT)
+#define TAB_SYM  LT(_SYM, KC_TAB)
+#define ENT_NUM  LT(_NUM, KC_ENT)
 
 /****************************************************************************
  * Keymap blocks
@@ -64,7 +66,7 @@ enum custom_keycode_t {
     KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,    \
     KC_A,     KC_S,     KC_D,     KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN, \
     KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   TO(_NAV), \
-                                  MO(_SYM), SMT_MOD,  SPC_MOD,  MO(_NUM)
+                                  TAB_SYM,  SMT_MOD,  SPC_MOD,  ENT_NUM
 
 /*
  * symbol layer
@@ -72,7 +74,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | \       | %       | $       |         |   |         | ^       | {       | }       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | *       | (       | )       | :       | TAB     |   | BSPC    | "       | [       | ]       | ;       |
+ * | *       | (       | )       | :       | DEL     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -81,9 +83,9 @@ enum custom_keycode_t {
  */
 #define SYM_LAYER \
     XXXXXXX,  KC_BSLS,  KC_PERC,  KC_DLR,   XXXXXXX,   XXXXXXX,  KC_CIRC,  KC_LCBR,  KC_RCBR,  XXXXXXX, \
-    KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_TAB,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN, \
+    KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_DEL,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN, \
     XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    _______, \
-                                  _______,  _______,   _______,  KC_ENT
+                                  _______,  _______,   _______,  KC_ESC
 
 
 /*
@@ -92,7 +94,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | 4       | 5       | 6       |         |   |         | |       | -       | /       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | 0       | 1       | 2       | 3       | TAB     |   | BSPC    | '       | _       | =       | *       |
+ * | 0       | 1       | 2       | 3       | DEL     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -102,7 +104,7 @@ enum custom_keycode_t {
 
 #define NUM_LAYER \
     XXXXXXX,  KC_4,     KC_5,     KC_6,     XXXXXXX,   XXXXXXX,  KC_PIPE,  KC_MINS,  KC_SLSH,  XXXXXXX, \
-    KC_0,     KC_1,     KC_2,     KC_3,     KC_TAB,    KC_BSPC,  KC_QUOT,  KC_UNDS,  KC_EQL,   KC_ASTR, \
+    KC_0,     KC_1,     KC_2,     KC_3,     KC_DEL,    KC_BSPC,  KC_QUOT,  KC_UNDS,  KC_EQL,   KC_ASTR, \
     KC_TILD,  KC_7,     KC_8,     KC_9,     KC_DOT,    QK_LLCK,  KC_PLUS,  KC_QUES,  KC_EXLM,  _______, \
                                   KC_ESC,   _______,   _______,  _______
 
