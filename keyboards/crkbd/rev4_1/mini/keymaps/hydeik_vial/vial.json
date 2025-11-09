@@ -345,27 +345,47 @@
         {
             "name": "MOD",
             "title": "Oneshot Mod Layer",
-            "shortName": "OS_MOD"
+            "shortName": "COS_MOD"
         },
         {
-            "name": "OSShft",
-            "title": "Oneshot Shift Mod",
-            "shortName": "OS_SHFT"
+            "name": "OSM LSft",
+            "title": "Oneshot Left Shift Mod",
+            "shortName": "COS_LSFT"
         },
         {
-            "name": "OSCtrl",
-            "title": "Oneshot Ctrl Mod",
-            "shortName": "OS_CTRL"
+            "name": "OSM LCtl",
+            "title": "Oneshot Left Ctrl Mod",
+            "shortName": "COS_LCTL"
         },
         {
-            "name": "OSAlt",
-            "title": "Oneshot Alt Mod",
-            "shortName": "OS_ALT"
+            "name": "OSM LAlt",
+            "title": "Oneshot Left Alt Mod",
+            "shortName": "COS_LALT"
         },
         {
-            "name": "OSGUI",
-            "title": "Oneshot GUI Mod",
-            "shortName": "OS_GUI"
+            "name": "OSM LGUI",
+            "title": "Oneshot Left GUI Mod",
+            "shortName": "COS_LGUI"
+        },
+        {
+            "name": "OSM RSft",
+            "title": "Oneshot Right Shift Mod",
+            "shortName": "COS_RSFT"
+        },
+        {
+            "name": "OSM RCtl",
+            "title": "Oneshot Right Ctrl Mod",
+            "shortName": "COS_RCTL"
+        },
+        {
+            "name": "OSM RAlt",
+            "title": "Oneshot Right Alt Mod",
+            "shortName": "COS_LALT"
+        },
+        {
+            "name": "OSM RGUI",
+            "title": "Oneshot Right GUI Mod",
+            "shortName": "COS_RGUI"
         }
     ]
 }

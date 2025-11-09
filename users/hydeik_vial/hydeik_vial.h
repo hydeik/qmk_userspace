@@ -14,21 +14,31 @@ enum layer_t {
     _MOD,
 };
 
+#define SMT_MOD_LAYER  _MOD
+
 /****************************************************************************
  * Custom keycodes
  ****************************************************************************/
 enum custom_keycode_t {
     /* Custom oneshot mod layer. */
-    OS_MOD = QK_KB_0,
+    COS_MOD = QK_KB_0,
     /* Custom oneshot mods implementation. */
-    OS_SHFT,
-    OS_CTRL,
-    OS_ALT,
-    OS_GUI,
+    COS_LCTL,
+    COS_LSFT,
+    COS_LALT,
+    COS_LGUI,
+    COS_RCTL,
+    COS_RSFT,
+    COS_RALT,
+    COS_RGUI,
 
     /* Swapper */
     SW_WIN, /* cmd-tab */
 };
+
+#define SMT_MOD  LT(_MOD, KC_KP_0)
+#define SPC_MOD  LT(_MOD, KC_SPC)
+#define ENT_MOD  LT(_MOD, KC_ENT)
 
 /****************************************************************************
  * Keymap blocks
@@ -51,10 +61,10 @@ enum custom_keycode_t {
  */
 
 #define BASE_LAYER \
-    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    \
-    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, \
-    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  TO(_NAV), \
-                              MO(_SYM), OS_MOD,  KC_SPC,  MO(_NUM)
+    KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,    \
+    KC_A,     KC_S,     KC_D,     KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN, \
+    KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   TO(_NAV), \
+                                  MO(_SYM), SMT_MOD,  SPC_MOD,  MO(_NUM)
 
 /*
  * symbol layer
@@ -70,10 +80,10 @@ enum custom_keycode_t {
  *                               +---------+---------+   +---------+---------+
  */
 #define SYM_LAYER \
-    XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX, XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX, \
-    KC_ASTR, KC_LPRN, KC_RPRN, KC_COLN, KC_TAB,  KC_BSPC, KC_DQUO, KC_LBRC, KC_RBRC, KC_SCLN, \
-    XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK, XXXXXXX, KC_HASH, KC_LT,   KC_GT,   _______, \
-                               _______, _______, OS_MOD,  KC_ENT
+    XXXXXXX,  KC_BSLS,  KC_PERC,  KC_DLR,   XXXXXXX,   XXXXXXX,  KC_CIRC,  KC_LCBR,  KC_RCBR,  XXXXXXX, \
+    KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_TAB,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN, \
+    XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    _______, \
+                                  _______,  _______,   _______,  KC_ENT
 
 
 /*
@@ -91,10 +101,10 @@ enum custom_keycode_t {
  */
 
 #define NUM_LAYER \
-    XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
-    KC_0,    KC_1,    KC_2,    KC_3,    KC_TAB,  KC_BSPC, KC_QUOT, KC_UNDS, KC_EQL,  KC_ASTR, \
-    KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT,  QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, _______, \
-                               KC_ESC,  _______, _______, _______
+    XXXXXXX,  KC_4,     KC_5,     KC_6,     XXXXXXX,   XXXXXXX,  KC_PIPE,  KC_MINS,  KC_SLSH,  XXXXXXX, \
+    KC_0,     KC_1,     KC_2,     KC_3,     KC_TAB,    KC_BSPC,  KC_QUOT,  KC_UNDS,  KC_EQL,   KC_ASTR, \
+    KC_TILD,  KC_7,     KC_8,     KC_9,     KC_DOT,    QK_LLCK,  KC_PLUS,  KC_QUES,  KC_EXLM,  _______, \
+                                  KC_ESC,   _______,   _______,  _______
 
 /*
  * Navigation layer
@@ -111,10 +121,10 @@ enum custom_keycode_t {
  */
 
 #define NAV_LAYER \
-    KC_ESC,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  XXXXXXX,  \
-    OS_CTRL, OS_ALT, OS_GUI,   OS_SHFT, CW_TOGG,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_DEL,   \
-    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  TO(_FUN), \
-                             TO(_BASE), _______,  _______, _______
+    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   KC_HOME,  KC_PGDN,  KC_PGUP,  KC_END,   XXXXXXX,  \
+    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, CW_TOGG,   KC_LEFT,  KC_DOWN,  KC_UP,    KC_RGHT,  KC_DEL,   \
+    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   KC_HOME,  KC_PGDN,  KC_PGUP,  KC_END,   TO(_FUN), \
+                                  TO(_BASE),_______,   _______,  _______
 
 
 
@@ -133,10 +143,10 @@ enum custom_keycode_t {
  */
 
 #define FUN_LAYER \
-    QK_BOOT, KC_F9,   KC_F8,   KC_F7,   KC_F10,  KC_MUTE, KC_VOLD, KC_VOLU, KC_BRIU, KC_BRIU, \
-    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  XXXXXXX, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, \
-    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  KC_MSTP, KC_MPRV, KC_MPLY, KC_MNXT, _______, \
-                             TO(_BASE), _______, _______, _______
+    QK_BOOT,  KC_F9,    KC_F8,    KC_F7,    KC_F10,    KC_MUTE,  KC_VOLD,  KC_VOLU,  KC_BRIU,  KC_BRIU,  \
+    XXXXXXX,  KC_F3,    KC_F2,    KC_F1,    KC_F11,    XXXXXXX,  COS_RSFT, COS_RGUI, COS_RALT, COS_RCTL, \
+    XXXXXXX,  KC_F6,    KC_F5,    KC_F4,    KC_F12,    KC_MSTP,  KC_MPRV,  KC_MPLY,  KC_MNXT,  _______,  \
+                                  TO(_BASE),_______,   _______,  _______
 
 /*
  * One-shot mod layer
@@ -153,10 +163,22 @@ enum custom_keycode_t {
  */
 
 #define MOD_LAYER \
-    _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______, \
-    OS_CTRL, OS_ALT,  OS_GUI,  OS_SHFT, _______,  _______, OS_SHFT, OS_GUI,  OS_ALT,  OS_CTRL, \
-    _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______, \
-                               _______, _______,  _______, _______
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, _______,   _______,  COS_RSFT, COS_RGUI, COS_RALT, COS_RCTL, \
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+                                  _______,  _______,   _______,  _______
+
+#define MOD_LAYER_LEFT \
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+    COS_LCRL, COS_LALT, COS_LGUI, COS_LSFT, _______,   _______,  _______,  _______,  _______,  _______,  \
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+                                  _______,  _______,   _______,  _______
+
+#define MOD_LAYER_RIGHT \
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+    _______,  _______,  _______,  _______,  _______,   _______,  COS_RSFT, COS_RGUI, COS_RALT, COS_RCTL, \
+    _______,  _______,  _______,  _______,  _______,   _______,  _______,  _______,  _______,  _______,  \
+                                  _______,  _______,   _______,  _______
 
 /* clang-format on */
 
