@@ -129,6 +129,7 @@ bool is_custom_oneshot_ignored_key(uint16_t keycode) {
         case COS_RGUI:
         case SMT_MOD:
         case SPC_MOD:
+        case ENT_MOD:
             return true;
         default:
             return false;
@@ -179,6 +180,22 @@ static void custom_oneshot_clear_mods(void) {
     clear_mods();
 }
 
+static void custom_oneshot_on_other_key_release(void) {
+    /* On non-ignored keydown, mark the oneshot mods as used. */
+    if (pressed_oneshot_mods) {
+        used_oneshot_mods |= pressed_oneshot_mods;
+    }
+    if (queued_oneshot_mods) {
+        if (mod_layer_hold_count) {
+            used_oneshot_mods |= queued_oneshot_mods;
+        } else {
+            unregister_mods(queued_oneshot_mods);
+            used_oneshot_mods &= ~queued_oneshot_mods;
+            queued_oneshot_mods = 0;
+        }
+    }
+}
+
 bool process_custom_oneshot_mods(uint8_t layer, uint16_t keycode, keyrecord_t *record) {
     if (is_custom_oneshot_mod_key(keycode)) {
         /* Handle custom oneshot mod key */
@@ -212,19 +229,7 @@ bool process_custom_oneshot_mods(uint8_t layer, uint16_t keycode, keyrecord_t *r
             }
         } else {
             if (!is_custom_oneshot_ignored_key(keycode)) {
-                /* On non-ignored keydown, mark the oneshot mods as used. */
-                if (pressed_oneshot_mods) {
-                    used_oneshot_mods |= pressed_oneshot_mods;
-                }
-                if (queued_oneshot_mods) {
-                    if (mod_layer_hold_count) {
-                        used_oneshot_mods |= queued_oneshot_mods;
-                    } else {
-                        unregister_mods(queued_oneshot_mods);
-                        used_oneshot_mods &= ~queued_oneshot_mods;
-                        queued_oneshot_mods = 0;
-                    }
-                }
+                custom_oneshot_on_other_key_release();
             }
         }
     }
@@ -232,7 +237,7 @@ bool process_custom_oneshot_mods(uint8_t layer, uint16_t keycode, keyrecord_t *r
     return true;
 }
 
-void handel_mod_layer_hold_event(uint8_t layer, keyrecord_t *record) {
+void handle_mod_layer_hold_event(uint8_t layer, keyrecord_t *record) {
     if (record->event.pressed) {
         if (mod_layer_hold_count == 0) {
             custom_oneshot_clear_mods();
@@ -268,7 +273,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case SMT_MOD:
             if (record->tap.count == 0) {
-                handel_mod_layer_hold_event(SMT_MOD_LAYER, record);
+                handle_mod_layer_hold_event(SMT_MOD_LAYER, record);
             } else {
                 if (record->event.pressed) {
 #ifdef CAPS_WORD_ENABLE
@@ -295,8 +300,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
 #endif /* CAPS_WORD_ENABLE */
             if (record->tap.count == 0) {
-                handel_mod_layer_hold_event(SMT_MOD_LAYER, record);
+                handle_mod_layer_hold_event(SMT_MOD_LAYER, record);
                 return false;
+            } else {
+                if (!record->event.pressed) {
+                    custom_oneshot_on_other_key_release();
+                }
             }
             break;
         default:
