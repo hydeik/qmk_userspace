@@ -56,16 +56,16 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | A       | S       | D       | F       | G       |   | H       | J       | K       | L       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | -NAV-   |
+ * | Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | -SYM-   | MOD     |   | SPC     | -NUM-   |
+ *                               | -SYM-   | SMTMOD  |   | SPC/MOD | -NUM-   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define BASE_LAYER \
     KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,    \
     KC_A,     KC_S,     KC_D,     KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN, \
-    KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   TO(_NAV), \
+    KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH, \
                                   TAB_SYM,  SMT_MOD,  SPC_MOD,  ENT_NUM
 
 /*
@@ -84,7 +84,7 @@ enum custom_keycode_t {
 #define SYM_LAYER \
     XXXXXXX,  KC_BSLS,  KC_PERC,  KC_DLR,   XXXXXXX,   XXXXXXX,  KC_CIRC,  KC_LCBR,  KC_RCBR,  XXXXXXX, \
     KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_DEL,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN, \
-    XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    _______, \
+    XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    TO(_NAV), \
                                   _______,  _______,   _______,  KC_ESC
 
 
@@ -105,27 +105,27 @@ enum custom_keycode_t {
 #define NUM_LAYER \
     XXXXXXX,  KC_4,     KC_5,     KC_6,     XXXXXXX,   XXXXXXX,  KC_PIPE,  KC_MINS,  KC_SLSH,  XXXXXXX, \
     KC_0,     KC_1,     KC_2,     KC_3,     KC_DEL,    KC_BSPC,  KC_QUOT,  KC_UNDS,  KC_EQL,   KC_ASTR, \
-    KC_TILD,  KC_7,     KC_8,     KC_9,     KC_DOT,    QK_LLCK,  KC_PLUS,  KC_QUES,  KC_EXLM,  _______, \
+    KC_TILD,  KC_7,     KC_8,     KC_9,     KC_DOT,    QK_LLCK,  KC_PLUS,  KC_QUES,  KC_EXLM,  TO(_NAV), \
                                   KC_ESC,   _______,   _______,  _______
 
 /*
  * Navigation layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ESC     |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     |         |
+ * | ESC     |         |         |         |         |   |         | HOME    | UP      | END     | PGUP    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL*    | ALT*    | GUI*    | SFT*    | CWord   |   | LEFT    | DOWN    | UP      | RGHT    | DEL     |
+ * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | DOWN    | DOWN    | RGHT    | PGDN    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | UNDO    | CUT     | COPY    | PASTE   |         |   |         |         |         |         | -FUN-   |
+ * | UNDO    | CUT     | COPY    | PASTE   |         |   | LLCK    |         |         |         | -FUN-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | -BASE-  |         |   |         | ENT     |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define NAV_LAYER \
-    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   KC_HOME,  KC_PGDN,  KC_PGUP,  KC_END,   XXXXXXX,  \
-    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, CW_TOGG,   KC_LEFT,  KC_DOWN,  KC_UP,    KC_RGHT,  KC_DEL,   \
-    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   KC_HOME,  KC_PGDN,  KC_PGUP,  KC_END,   TO(_FUN), \
+    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_PGUP,  KC_END,   KC_PGUP,  \
+    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
+    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TO(_FUN), \
                                   TO(_BASE),_______,   _______,  _______
 
 
