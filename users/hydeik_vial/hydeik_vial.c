@@ -191,6 +191,19 @@ static void custom_oneshot_layer_hold_event(keyrecord_t *record) {
     }
 }
 
+static void custom_oneshot_on_other_key_release_event(void) {
+    used_mods |= pressed_mods;
+    /* Oneshot mods are the mods other than used_mods. */
+    const uint8_t queued_mods = get_mods() & ~used_mods;
+    if (queued_mods) {
+        if (smart_mod_layer_hold_count) {
+            used_mods |= queued_mods;
+        } else {
+            unregister_mods(queued_mods);
+        }
+    }
+}
+
 static void smart_mod_layer_hold_event_handler(
     keyrecord_t *record
 ) {
@@ -253,12 +266,16 @@ static bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
         }
     } else if (IS_QK_LAYER_TAP(keycode)) {
         const uint8_t layer = QK_LAYER_TAP_GET_LAYER(keycode);
-        if (record->tap.count == 0) {
+        if (record->tap.count == 0) { /* key is held: */
             if (layer == SMART_MOD_TARGET_LAYER) {
                 smart_mod_layer_hold_event_handler(record);
                 return false;
             } else {
                 custom_oneshot_layer_hold_event(record);
+            }
+        } else { /* key is tapped */
+            if (!record->event.pressed) {
+                custom_oneshot_on_other_key_release_event();
             }
         }
     } else {
@@ -270,16 +287,7 @@ static bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
             }
         } else {
             if (!is_custom_oneshot_ignored_key(keycode)) {
-                used_mods |= pressed_mods;
-                /* Oneshot mods are the mods other than used_mods. */
-                const uint8_t queued_mods = get_mods() & ~used_mods;
-                if (queued_mods) {
-                    if (smart_mod_layer_hold_count) {
-                        used_mods |= queued_mods;
-                    } else {
-                        unregister_mods(queued_mods);
-                    }
-                }
+                custom_oneshot_on_other_key_release_event();
             }
         }
 
