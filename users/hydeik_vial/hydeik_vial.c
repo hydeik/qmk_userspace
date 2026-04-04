@@ -1,8 +1,11 @@
+/*
+ * Copyright Hidekazu Ikeno <@hydeik>
+ * SPDX-License-Identifier: GPL-2.0+
+ */
+
 #include QMK_KEYBOARD_H
 
 #include "hydeik_vial.h"
-// #include "features/custom_oneshot.h"
-// #include "features/swapper.h"
 
 __attribute__ ((weak))
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
@@ -127,6 +130,7 @@ bool is_custom_oneshot_ignored_key(uint16_t keycode) {
         case COS_RSFT:
         case COS_RALT:
         case COS_RGUI:
+        case COS_CLR:
         case SMT_MOD:
         case SPC_MOD:
         case ENT_MOD:

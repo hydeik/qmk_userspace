@@ -1,3 +1,8 @@
+/*
+ * Copyright Hidekazu Ikeno <@hydeik>
+ * SPDX-License-Identifier: GPL-2.0+
+ */
+
 #pragma once
 
 #include QMK_KEYBOARD_H
@@ -31,6 +36,7 @@ enum custom_keycode_t {
     COS_RSFT,
     COS_RALT,
     COS_RGUI,
+    COS_CLR,    // clear all mods
 
     /* Swapper */
     SW_WIN, /* cmd-tab */

@@ -348,14 +348,14 @@
             "shortName": "COS_MOD"
         },
         {
-            "name": "OSM LSft",
-            "title": "Oneshot Left Shift Mod",
-            "shortName": "COS_LSFT"
-        },
-        {
             "name": "OSM LCtl",
             "title": "Oneshot Left Ctrl Mod",
             "shortName": "COS_LCTL"
+        },
+        {
+            "name": "OSM LSft",
+            "title": "Oneshot Left Shift Mod",
+            "shortName": "COS_LSFT"
         },
         {
             "name": "OSM LAlt",
@@ -368,14 +368,14 @@
             "shortName": "COS_LGUI"
         },
         {
-            "name": "OSM RSft",
-            "title": "Oneshot Right Shift Mod",
-            "shortName": "COS_RSFT"
-        },
-        {
             "name": "OSM RCtl",
             "title": "Oneshot Right Ctrl Mod",
             "shortName": "COS_RCTL"
+        },
+        {
+            "name": "OSM RSft",
+            "title": "Oneshot Right Shift Mod",
+            "shortName": "COS_RSFT"
         },
         {
             "name": "OSM RAlt",
@@ -386,6 +386,11 @@
             "name": "OSM RGUI",
             "title": "Oneshot Right GUI Mod",
             "shortName": "COS_RGUI"
+        },
+        {
+            "name": "OSM Clear",
+            "title": "Clear Oneshot Mods",
+            "shortName": "COS_CLR"
         }
     ]
 }
