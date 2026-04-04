@@ -19,7 +19,7 @@ enum layer_t {
     _MOD,
 };
 
-#define SMT_MOD_LAYER  _MOD
+#define SMART_MOD_TARGET_LAYER  _MOD
 
 /****************************************************************************
  * Custom keycodes
