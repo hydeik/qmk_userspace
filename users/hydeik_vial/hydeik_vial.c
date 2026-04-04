@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0+
  */
 
-#include QMK_KEYBOARD_H
-
 #include "hydeik_vial.h"
 
 __attribute__ ((weak))
@@ -330,97 +328,6 @@ static bool process_smart_mod_layer_key(
     return true;
 }
 
-// static uint8_t pressed_oneshot_mods = 0;
-// static uint8_t queued_oneshot_mods = 0;
-// static uint8_t used_oneshot_mods = 0;
-// static uint8_t mod_layer_hold_count = 0;
-//
-// static void custom_oneshot_clear_mods(void) {
-//     pressed_oneshot_mods = 0;
-//     queued_oneshot_mods = 0;
-//     used_oneshot_mods = 0;
-//     clear_mods();
-// }
-//
-// static void custom_oneshot_on_other_key_release(void) {
-//     /* On non-ignored keydown, mark the oneshot mods as used. */
-//     if (pressed_oneshot_mods) {
-//         used_oneshot_mods |= pressed_oneshot_mods;
-//     }
-//     if (queued_oneshot_mods) {
-//         if (mod_layer_hold_count) {
-//             used_oneshot_mods |= queued_oneshot_mods;
-//         } else {
-//             unregister_mods(queued_oneshot_mods);
-//             used_oneshot_mods &= ~queued_oneshot_mods;
-//             queued_oneshot_mods = 0;
-//         }
-//     }
-// }
-//
-// bool process_custom_oneshot_mods(uint8_t layer, uint16_t keycode, keyrecord_t *record) {
-//     if (is_custom_oneshot_mod_key(keycode)) {
-//         /* Handle custom oneshot mod key */
-//         uint8_t mod = custom_oneshot_mod_get_mods(keycode);
-//         if (record->event.pressed) {
-//             pressed_oneshot_mods |= mod;
-//             register_mods(mod);
-//         } else {
-//             pressed_oneshot_mods &= ~mod;
-//
-//             if (used_oneshot_mods & mod) {
-//                 used_oneshot_mods &= ~mod;
-//                 unregister_mods(mod);
-//             } else {
-//                 queued_oneshot_mods |= mod;
-//             }
-//
-//             if (!pressed_oneshot_mods) {
-//                 if (IS_LAYER_ON(layer)) {
-//                     layer_off(layer);
-//                 }
-//             }
-//         }
-//     } else {
-//         /* Handle other keys */
-//         if (record->event.pressed) {
-//             if (is_custom_oneshot_cancel_key(keycode)) {
-//                 /* Cancel all oneshot mods on designated cancel keydown. */
-//                 custom_oneshot_clear_mods();
-//                 mod_layer_hold_count = 0;
-//             }
-//         } else {
-//             if (!is_custom_oneshot_ignored_key(keycode)) {
-//                 custom_oneshot_on_other_key_release();
-//             }
-//         }
-//     }
-//
-//     return true;
-// }
-//
-// void handle_mod_layer_hold_event(uint8_t layer, keyrecord_t *record) {
-//     if (record->event.pressed) {
-//         if (mod_layer_hold_count == 0) {
-//             custom_oneshot_clear_mods();
-//             layer_on(layer);
-//         }
-//         ++mod_layer_hold_count;
-//     } else {
-//         --mod_layer_hold_count;
-//         if (mod_layer_hold_count == 0) {
-//             if (!pressed_oneshot_mods) {
-//                 layer_off(layer);
-//                 if (queued_oneshot_mods & used_oneshot_mods) {
-//                     used_oneshot_mods &= ~queued_oneshot_mods;
-//                     unregister_mods(queued_oneshot_mods);
-//                     queued_oneshot_mods = 0;
-//                 }
-//             }
-//         }
-//     }
-// }
-//
 /*
  * Custom bahavior of keycodes
  */
