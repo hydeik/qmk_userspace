@@ -308,20 +308,15 @@ static bool process_smart_mod_layer_key(
         if (record->tap.count > 0) {
             if (record->event.pressed) {
                 clear_custom_oneshot_mods();
-                register_mods(MOD_BIT_LSHIFT);
 #ifdef CAPS_WORD_ENABLE
                 if (tapped && !timer_expired(record->event.time, tap_timer)) {
-                    clear_custom_oneshot_mods();
                     caps_word_on();
                 }
                 tapped = true;
                 tap_timer = record->event.time + GET_TAPPING_TERM(keycode, record);
 #endif /* CAPS_WORD_ENABLE */
             } else {
-                if (used_mods & MOD_BIT_LSHIFT) {
-                    used_mods &= ~MOD_BIT_LSHIFT;
-                    unregister_mods(MOD_BIT_LSHIFT);
-                }
+                register_mods(MOD_BIT_LSHIFT);
             }
         }
         return false;
