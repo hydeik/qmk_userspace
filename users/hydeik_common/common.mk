@@ -4,6 +4,9 @@
 # keymap family can still override a setting afterwards. This file must not
 # branch on the keymap family or the firmware source.
 
+# Common-core sources, named by their full path from the userspace root.
+SRC += users/hydeik_common/common.c
+
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes
 REPEAT_KEY_ENABLE = yes
