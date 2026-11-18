@@ -23,11 +23,23 @@ This project makes use of [QMK userspace](https://github.com/qmk/qmk_userspace) 
 
 ## Howto build with GitHub
 
+No local QMK installation is needed: every push is built by GitHub Actions (`.github/workflows/build_binaries.yaml`).
+
 1. In the GitHub Actions tab, enable workflows
-1. Push your changes above to your forked GitHub repository
-1. Look at the GitHub Actions for a new actions run
+1. Push your changes to GitHub (any branch), or start the workflow manually from the Actions tab
 1. Wait for the actions run to complete
-1. Inspect the Releases tab on your repository for the latest firmware build
+1. Download the firmware:
+    * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded, so a failed build never removes previously published firmware.
+    * From the `firmware-qmk` and `firmware-vial` artifacts of the actions run, for other branches.
+
+Each build target in `qmk.json` is built against exactly one firmware source, chosen by its keymap name:
+
+| Keymap name | Firmware source |
+| --- | --- |
+| ends with `_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` |
+| anything else | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` |
+
+Both sources are used at their latest revision at build time; they are not pinned.
 
 ## Howto build locally
 
@@ -43,22 +55,13 @@ Alternatively, if you configured your build targets above, you can use `qmk user
 
 ## Extra info
 
-If you wish to point GitHub actions to a different repository, a different branch, or even a different keymap name, you can modify `.github/workflows/build_binaries.yml` to suit your needs.
-
-To override the `build` job, you can change the following parameters to use a different QMK repository or branch:
+To build against a different repository or branch, edit the `matrix` of the `build` job in `.github/workflows/build_binaries.yaml`:
 ```
-    with:
-      qmk_repo: qmk/qmk_firmware
-      qmk_ref: master
+          - name: qmk
+            repo: qmk/qmk_firmware
+            ref: master
+            vial: false
 ```
-
-If you wish to manually manage `qmk_firmware` using git within the userspace repository, you can add `qmk_firmware` as a submodule in the userspace directory instead. GitHub Actions will automatically use the submodule at the pinned revision if it exists, otherwise it will use the default latest revision of `qmk_firmware` from the main repository.
-
-This can also be used to control which fork is used, though only upstream `qmk_firmware` will have support for external userspace until other manufacturers update their forks.
-
-1. (First time only) `git submodule add https://github.com/qmk/qmk_firmware.git`
-1. (To update) `git submodule update --init --recursive`
-1. Commit your changes to your userspace repository
 
 ##License
 This firmware is licensed under the GNU General Public License v2.0.
