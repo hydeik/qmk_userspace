@@ -13,26 +13,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Each keymap family declares its firmware source, pinned to a commit, in
+  # firmware_sources.json. The build matrix has one entry per keymap family;
+  # this fails if a build target's keymap has no entry in that file.
+  firmware-sources:
+    name: Read firmware sources
+    runs-on: ubuntu-latest
+
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout userspace
+        uses: actions/checkout@v6
+
+      - name: Build matrix from firmware_sources.json
+        id: matrix
+        run: |
+          python3 .github/scripts/firmware_sources.py matrix >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
   build:
-    name: Build (${{ matrix.name }})
+    name: Build (${{ matrix.family }})
+    needs: firmware-sources
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
 
     strategy:
       fail-fast: false
-      matrix:
-        # Each build target in qmk.json is built against exactly one firmware
-        # source: keymaps whose name ends with `_vial` go to vial-qmk, all
-        # others go to upstream qmk_firmware.
-        include:
-          - name: qmk
-            repo: qmk/qmk_firmware
-            ref: master
-            vial: false
-          - name: vial
-            repo: vial-kb/vial-qmk
-            ref: vial
-            vial: true
+      matrix: ${{ fromJSON(needs.firmware-sources.outputs.matrix) }}
 
     steps:
       - name: Checkout userspace
@@ -55,34 +64,11 @@ jobs:
           qmk config user.qmk_home=$GITHUB_WORKSPACE/qmk_firmware
           qmk config user.overlay_dir=$GITHUB_WORKSPACE
 
+      # A build target's keymap name is its keymap family, matched exactly.
       - name: Select build targets
         env:
-          VIAL: ${{ matrix.vial }}
-        run: |
-          python3 - <<'EOF'
-          import json
-          import os
-
-          want_vial = os.environ["VIAL"] == "true"
-
-          with open("qmk.json") as f:
-              data = json.load(f)
-
-          # Targets are [keyboard, keymap] pairs.
-          data["build_targets"] = [
-              target
-              for target in data["build_targets"]
-              if target[1].endswith("_vial") == want_vial
-          ]
-          if not data["build_targets"]:
-              raise SystemExit("No build targets selected for this firmware source")
-
-          with open("qmk.json", "w") as f:
-              json.dump(data, f, indent=4)
-
-          for keyboard, keymap in data["build_targets"]:
-              print(f"{keyboard}:{keymap}")
-          EOF
+          FAMILY: ${{ matrix.family }}
+        run: python3 .github/scripts/firmware_sources.py select "$FAMILY"
 
       - name: Validate userspace
         run: qmk userspace-doctor
@@ -114,7 +100,7 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
-          name: firmware-${{ matrix.name }}
+          name: firmware-${{ matrix.family }}
           if-no-files-found: error
           path: |
             *.bin

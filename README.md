@@ -30,16 +30,22 @@ No local QMK installation is needed: every push is built by GitHub Actions (`.gi
 1. Wait for the actions run to complete
 1. Download the firmware:
     * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded, so a failed build never removes previously published firmware.
-    * From the `firmware-qmk` and `firmware-vial` artifacts of the actions run, for other branches.
+    * From the `firmware-<keymap family>` artifacts of the actions run (`firmware-hydeik` and `firmware-hydeik_vial`), for other branches.
 
-Each build target in `qmk.json` is built against exactly one firmware source, chosen by its keymap name:
+A build target's keymap name is its keymap family, and each keymap family is built against exactly one firmware source. `firmware_sources.json` declares that firmware source for each keymap family:
 
-| Keymap name | Firmware source |
+| Keymap family | Firmware source |
 | --- | --- |
-| ends with `_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` |
-| anything else | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` |
+| `hydeik` | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` |
+| `hydeik_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` |
 
-Both sources are used at their latest revision at build time; they are not pinned.
+Each entry has three fields:
+
+* `repo`: the firmware repository on GitHub.
+* `branch`: the branch of `repo` that the pin follows. The build does not read it; it records where a newer `ref` is taken from.
+* `ref`: the pin, a full commit SHA. The build checks out exactly this commit, so the same commit of this repository always builds against the same firmware source.
+
+The keymap name of a build target must match a keymap family in `firmware_sources.json` exactly. The workflow fails if any build target in `qmk.json` has a keymap name with no entry there.
 
 ## Howto build locally
 
@@ -55,13 +61,23 @@ Alternatively, if you configured your build targets above, you can use `qmk user
 
 ## Extra info
 
-To build against a different repository or branch, edit the `matrix` of the `build` job in `.github/workflows/build_binaries.yaml`:
+A firmware source only changes when its pin is moved on purpose. To bump a pin:
+
+1. Create a branch.
+1. In `firmware_sources.json`, set the keymap family's `ref` to a newer commit of its `branch`. The commit at the head of the branch is printed by, for example, `git ls-remote https://github.com/qmk/qmk_firmware refs/heads/master`.
+1. Push the branch and wait for the actions run.
+1. Merge to `main` once CI passes. The `latest` release is replaced only by a successful build of `main`, so a bad bump never reaches the published firmware.
+
+To build a keymap family against a different repository or branch, edit `repo`, `branch` and `ref` of its entry in the same way:
 ```
-          - name: qmk
-            repo: qmk/qmk_firmware
-            ref: master
-            vial: false
+    "hydeik": {
+        "repo": "qmk/qmk_firmware",
+        "branch": "master",
+        "ref": "<full commit SHA>"
+    }
 ```
+
+To add a keymap family, add an entry for it to `firmware_sources.json`; the build matrix of `.github/workflows/build_binaries.yaml` is generated from that file by `.github/scripts/firmware_sources.py`.
 
 ##License
 This firmware is licensed under the GNU General Public License v2.0.
