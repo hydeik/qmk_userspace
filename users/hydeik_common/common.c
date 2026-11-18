@@ -4,8 +4,9 @@
  */
 
 /*
- * Common core: the Caps Word and Repeat Key callbacks, which are the same in
- * every keymap family.
+ * Common core: the typing rules that are the same in every keymap family,
+ * namely which keys continue Caps Word (caps_word_press_user) and what the
+ * Repeat Key remembers (remember_last_key_user).
  *
  * common.mk adds this file to the build of each keymap family.
  *
