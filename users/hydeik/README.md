@@ -1,47 +1,37 @@
-# Hydeik's Personal Keymap
+# The `hydeik` keymap family
 
-My personal keymap for 34 keys with 5 layers with home-row mods.
+A 34-key typing design with home-row mods, built against upstream QMK ([`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware)). It is applied to the `crkbd/rev4_1/mini` and `mothwing` keyboards.
 
-![Rendered Keymap](images/rendered_keymap.png)
-
+How the repository is organised, and how to build and flash, is described in the [top-level README](../../README.md).
 
 ## Features
-- Home row modifiers and symbol/number layer tap-hold keys
-- [Caps Word](https://docs.qmk.fm/features/caps_word) for capitalized word input
-- [Layer Lock](https://docs.qmk.fm/features/layer_lock)
-- [Repeat Key](https://docs.qmk.fm/features/repeat_key): context-aware key repetition
 
+- Home-row mods on the BASE, SYM and NUM layers, in the order Ctrl, Alt, GUI, Shift from the little finger inwards.
+- Tap-hold behaviour tuned per key: [Chordal Hold](https://docs.qmk.fm/tap_hold#chordal-hold), [Flow Tap](https://docs.qmk.fm/tap_hold#flow-tap), Permissive Hold, and per-key tapping term, quick tap term and hold-on-other-key-press.
+- [Caps Word](https://docs.qmk.fm/features/caps_word), turned on by pressing both Shift keys or by double-tapping Shift.
+- [Layer Lock](https://docs.qmk.fm/features/layer_lock), on a key in every layer except BASE.
+- [Repeat Key](https://docs.qmk.fm/features/repeat_key) and Alternate Repeat Key, on the NAV layer. The Alternate Repeat Key is context-aware: for example it types `=` after an arithmetic operator, and completes `.` to `../`.
+- One-shot Shift on a thumb key, and one-shot modifiers on the home row of the NAV layer.
 
-## Keymap Layers
+## Layers
 
-There are 5 defined layers:
+There are six layers:
 
-- BASE: QWERTY typing layout with home row mods
-- SYM: Symbols and brackets
-- NUM: Numbers and arithmetic operators
-- FUN: Function keys, volume, brightness, media controls
-- NAV: Arrow keys, navigation, undo/copy/paste, etc.
+| Layer | Contents | Reached by |
+| --- | --- | --- |
+| BASE | QWERTY with home-row mods | Default |
+| SYM | Symbols and brackets | Holding the Tab thumb key |
+| NUM | Numbers and arithmetic operators | Holding the Backspace thumb key |
+| NAV | Arrow keys, navigation, undo/cut/copy/paste, Repeat Key | Holding the Space thumb key |
+| MOU | Mouse movement, wheel and buttons | Holding the key at the `G` position on NAV |
+| FUN | Function keys, volume, brightness, media controls, bootloader | Holding the SYM and NUM thumb keys together |
 
-Layer structure is declared in `hydeik.h` using macros for readability and maintainability.
+The layers are defined in `hydeik.h`. The finger keys of the SYM, NUM and FUN layers come from the common core (`users/hydeik_common/layers.h`), which `hydeik_vial` builds its layers from too; `hydeik.h` supplies the home-row mods and the thumb keys.
 
+## Files
 
-## Dependencies
-- [QMK Firmware](https://qmk.fm/)
-- [SM Tap Dance (sm_td)](https://github.com/stasmarkin/sm_td) - for reliable tap-hold behavior (optional)
-
-
-## Build Firmware
-Ensure your QMK environment is properly set up.
-
-```bash
-qmk clone <repository>
-cd <keyboard_folder>
-qmk compile -kb <keyboard_name> -km hydeik
-```
-
-To flash the firmware:
-
-```bash
-qmk flash -kb <keyboard_name> -km default
-```
-
+| File | Contents |
+| --- | --- |
+| `hydeik.h` | Layer numbers, custom keycodes, mod-tap aliases and the layer definitions. |
+| `hydeik.c` | Tap-hold tuning, the Alternate Repeat Key rules and their macros, and the SYM + NUM → FUN tri-layer. |
+| `config.h`, `rules.mk` | The settings specific to this keymap family. Settings that do not depend on the keymap family are in the common core. |

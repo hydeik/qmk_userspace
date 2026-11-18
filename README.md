@@ -1,65 +1,64 @@
-# QMK Userspace (hydeik's personal keymap)
+# QMK Userspace (hydeik's personal keymaps)
 
-This is my custom mechanical keyboard firmware built upon QMK Firmware. 
-This project makes use of [QMK userspace](https://github.com/qmk/qmk_userspace) feature, enabling code reuse and centralized feature definitions across multiple keymaps or keyboards.
+My keyboard firmware configuration, as a [QMK userspace](https://github.com/qmk/qmk_userspace): the keymaps, their shared behaviour, and the build setup for the keyboards I type on. Every keymap uses 34 keys.
 
+The terms used here (keymap family, common core, layout, firmware source, build target) are defined in [`GLOSSARY.md`](GLOSSARY.md). Why the repository is organised this way is recorded in [`docs/adr/`](docs/adr/).
 
-## Howto configure your build targets
+## Keymap families
 
-1. Run the normal `qmk setup` procedure if you haven't already done so -- see [QMK Docs](https://docs.qmk.fm/#/newbs) for details.
-1. Fork this repository
-1. Clone your fork to your local machine
-1. Enable userspace in QMK config using `qmk config user.overlay_dir="$(realpath qmk_userspace)"`
-1. Add a new keymap for your board using `qmk new-keymap`
-    * This will create a new keymap in the `keyboards` directory, in the same location that would normally be used in the main QMK repository. For example, if you wanted to add a keymap for the Planck, it will be created in `keyboards/planck/keymaps/<your keymap name>`
-    * You can also create a new keymap using `qmk new-keymap -kb <your_keyboard> -km <your_keymap>`
-    * Alternatively, add your keymap manually by placing it in the location specified above.
-    * `layouts/<layout name>/<your keymap name>/keymap.*` is also supported if you prefer the layout system
-1. Add your keymap(s) to the build by running `qmk userspace-add -kb <your_keyboard> -km <your_keymap>`
-    * This will automatically update your `qmk.json` file
-    * Corresponding `qmk userspace-remove -kb <your_keyboard> -km <your_keymap>` will delete it
-    * Listing the build targets can be done with with `qmk userspace-list`
-1. Commit your changes
+A keymap family is a complete typing design that can be applied to more than one keyboard. There are two, and each is built against exactly one firmware source:
 
-## Howto build with GitHub
+| Keymap family | Firmware source | Design | Layers |
+| --- | --- | --- | --- |
+| `hydeik` | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` | Home-row mods with tuned tap-hold behaviour. See [`users/hydeik/README.md`](users/hydeik/README.md). | BASE, SYM, NUM, NAV, MOU, FUN |
+| `hydeik_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` | No home-row mods; custom one-shot mods on a smart mod layer, and Vial's GUI for remapping and tap-hold settings. | BASE, SYM, NUM, NAV, FUN, MOD |
 
-No local QMK installation is needed: every push is built by GitHub Actions (`.github/workflows/build_binaries.yaml`).
+## Repository structure
 
-1. In the GitHub Actions tab, enable workflows
-1. Push your changes to GitHub (any branch), or start the workflow manually from the Actions tab
-1. Wait for the actions run to complete
+| Path | Contents |
+| --- | --- |
+| `users/hydeik/` | The `hydeik` keymap family: its layers, keycodes and behaviour. |
+| `users/hydeik_vial/` | The `hydeik_vial` keymap family. |
+| `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), and one layout adapter per keyboard (`keyboards/`). |
+| `keyboards/<keyboard>/keymaps/<keymap family>/` | One keymap: a keymap family applied to one keyboard. |
+| `qmk.json` | The build targets. |
+| `firmware_sources.json` | The firmware source of each keymap family, pinned to a commit. |
+
+Each keymap family includes the common core by its full path from the repository root. The common core never refers to a keymap family and never branches on the keymap family or the firmware source.
+
+## Build targets
+
+A build target is one keyboard paired with one keymap, and produces one firmware binary. `qmk.json` is the complete list:
+
+| Keyboard | Keymap |
+| --- | --- |
+| `crkbd/rev4_1/mini` | `hydeik` |
+| `crkbd/rev4_1/mini` | `hydeik_vial` |
+| `mothwing` | `hydeik` |
+
+A build target's keymap name is its keymap family. Every keymap directory under `keyboards/` must be a build target; not every keymap family exists on every keyboard.
+
+To add a build target, create `keyboards/<keyboard>/keymaps/<keymap family>/` and add `["<keyboard>", "<keymap family>"]` to `build_targets` in `qmk.json`. If the keyboard is new, also add its layout adapter to `users/hydeik_common/keyboards/`.
+
+## Building with GitHub Actions
+
+This is the official build route. Every push is built by `.github/workflows/build_binaries.yaml`, and no local QMK installation is needed.
+
+1. Push your changes to GitHub (any branch), or start the workflow manually from the Actions tab.
+1. Wait for the actions run to complete.
 1. Download the firmware:
     * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded, so a failed build never removes previously published firmware.
     * From the `firmware-<keymap family>` artifacts of the actions run (`firmware-hydeik` and `firmware-hydeik_vial`), for other branches.
 
-A build target's keymap name is its keymap family, and each keymap family is built against exactly one firmware source. `firmware_sources.json` declares that firmware source for each keymap family:
+The workflow fails if any build target in `qmk.json` has a keymap name with no entry in `firmware_sources.json`.
 
-| Keymap family | Firmware source |
-| --- | --- |
-| `hydeik` | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` |
-| `hydeik_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` |
+## Firmware sources and pins
 
-Each entry has three fields:
+`firmware_sources.json` declares the firmware source of each keymap family. Each entry has three fields:
 
 * `repo`: the firmware repository on GitHub.
 * `branch`: the branch of `repo` that the pin follows. The build does not read it; it records where a newer `ref` is taken from.
-* `ref`: the pin, a full commit SHA. The build checks out exactly this commit, so the same commit of this repository always builds against the same firmware source.
-
-The keymap name of a build target must match a keymap family in `firmware_sources.json` exactly. The workflow fails if any build target in `qmk.json` has a keymap name with no entry there.
-
-## Howto build locally
-
-1. Run the normal `qmk setup` procedure if you haven't already done so -- see [QMK Docs](https://docs.qmk.fm/#/newbs) for details.
-1. Fork this repository
-1. Clone your fork to your local machine
-1. `cd` into this repository's clone directory
-1. Set global userspace path: `qmk config user.overlay_dir="$(realpath .)"` -- you MUST be located in the cloned userspace location for this to work correctly
-    * This will be automatically detected if you've `cd`ed into your userspace repository, but the above makes your userspace available regardless of your shell location.
-1. Compile normally: `qmk compile -kb your_keyboard -km your_keymap` or `make your_keyboard:your_keymap`
-
-Alternatively, if you configured your build targets above, you can use `qmk userspace-compile` to build all of your userspace targets at once.
-
-## Extra info
+* `ref`: the pin, a full commit SHA. Every build checks out exactly this commit, so the same commit of this repository always builds against the same firmware source.
 
 A firmware source only changes when its pin is moved on purpose. To bump a pin:
 
@@ -68,17 +67,33 @@ A firmware source only changes when its pin is moved on purpose. To bump a pin:
 1. Push the branch and wait for the actions run.
 1. Merge to `main` once CI passes. The `latest` release is replaced only by a successful build of `main`, so a bad bump never reaches the published firmware.
 
-To build a keymap family against a different repository or branch, edit `repo`, `branch` and `ref` of its entry in the same way:
-```
-    "hydeik": {
-        "repo": "qmk/qmk_firmware",
-        "branch": "master",
-        "ref": "<full commit SHA>"
-    }
-```
+To build a keymap family against a different repository or branch, edit `repo`, `branch` and `ref` of its entry in the same way.
 
-To add a keymap family, add an entry for it to `firmware_sources.json`; the build matrix of `.github/workflows/build_binaries.yaml` is generated from that file by `.github/scripts/firmware_sources.py`.
+## Building locally with make
 
-##License
+Local builds are a secondary route, for work that needs many flash-and-try rounds. They go through `make` only, which builds against the same pinned firmware sources as CI.
+
+The toolchain is not managed by this repository. Install the QMK CLI and compilers the [official QMK way](https://docs.qmk.fm/newbs_getting_started) for your OS; on macOS, `brew install qmk/qmk/qmk`. `make`, `git` and `python3` are also needed.
+
+1. Fetch the firmware sources:
+
+    ```
+    make firmware
+    ```
+
+    This clones the firmware source of every keymap family into `.firmware/<keymap family>/` and checks out its pinned commit with submodules. Run it again after a pin is bumped. `.firmware/` is git-ignored and takes two firmware checkouts of disk space; delete the directory to remove it.
+
+1. Build a build target, or build and flash it:
+
+    ```
+    make crkbd/rev4_1/mini:hydeik
+    make crkbd/rev4_1/mini:hydeik_vial:flash
+    ```
+
+    The keymap name selects the firmware checkout, and the target is handed to that firmware source's own `make` with `QMK_USERSPACE` set to this repository. The build stops with a message to run `make firmware` if the checkout or one of its submodules is missing or not at its pinned commit.
+
+Building with `qmk compile` or `qmk flash` is not supported: they build against the single firmware checkout the QMK CLI is configured with, which cannot serve two firmware sources, and nothing checks the pin.
+
+## License
+
 This firmware is licensed under the GNU General Public License v2.0.
-

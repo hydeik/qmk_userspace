@@ -9,3 +9,6 @@
 *.hex
 *.bin
 *.uf2
+
+# Firmware sources fetched by `make firmware`
+.firmware/
