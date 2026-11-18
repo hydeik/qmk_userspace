@@ -8,6 +8,10 @@ Personal keyboard firmware configuration: the keymaps, shared behaviour, and bui
 A complete typing design (its layers, modifier scheme, and custom key behaviour) that is applied to several keyboards. There are two: `hydeik` and `hydeik_vial`.
 _Avoid_: Layout, keyboard layout, variant, flavour
 
+**Common core**:
+The definitions and behaviour that are deliberately kept identical in both keymap families, held in one place that each family draws on.
+_Avoid_: Shared code, common, shared, base
+
 **Layout**:
 The physical arrangement of keys on one keyboard, as exposed by that keyboard's `LAYOUT` macro.
 _Avoid_: Using "layout" for a keymap family
