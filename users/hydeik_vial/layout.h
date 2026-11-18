@@ -120,7 +120,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | ESC     |         |         |         |         |   |         | HOME    | UP      | END     | PGUP    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | DOWN    | DOWN    | RGHT    | PGDN    |
+ * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | LEFT    | DOWN    | RGHT    | PGDN    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | UNDO    | CUT     | COPY    | PASTE   |         |   | LLCK    |         |         |         | -FUN-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -129,7 +129,7 @@ enum custom_keycode_t {
  */
 
 #define NAV_LAYER \
-    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_PGUP,  KC_END,   KC_PGUP,  \
+    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  \
     COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
     XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TO(_FUN), \
                                   TO(_BASE),_______,   _______,  _______
