@@ -1,25 +1,10 @@
+include $(QMK_USERSPACE)/users/hydeik_common/common.mk
+
 SRC += hydeik_vial.c
 # SRC += features/custom_oneshot.c
 # SRC += features/swapper.c
 
-EXTRAKEY_ENABLE = yes
-LTO_ENABLE = yes
-REPEAT_KEY_ENABLE = yes
-UNICODE_ENABLE = no
-UCIS_ENABLE = no
-UNICODEMAP_ENABLE = no
-UNICODE_COMMON = no
-
-AUTOCORRECT_ENABLE ?= no
-CAPS_WORD_ENABLE ?= yes
 COMBO_ENABLE ?= yes
-CONSOLE_ENABLE ?= no
 ENCODER_ENABLE ?= no
 ENCODER_MAP_ENABLE ?= no
-GRAVE_ESC_ENABLE ?= no
-LAYER_LOCK_ENABLE ?= yes
-MAGIC_ENABLE ?= no
-MUSIC_ENABLE ?= no
-NKRO_ENABLE ?= no
-SPACE_CADET_ENABLE ?= no
 TAP_DANCE_ENABLE ?= yes
