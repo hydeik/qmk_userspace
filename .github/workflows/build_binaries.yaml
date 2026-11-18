@@ -100,6 +100,17 @@ jobs:
           # Exit with failure if the compilation stage failed
           [ ! -f .failed ] || exit 1
 
+      # Not every firmware source prints compiler output for failed targets,
+      # so dump the per-target failure logs into the job log as well.
+      - name: Show failure logs
+        if: failure()
+        run: |
+          find qmk_firmware/.build -name 'failed.log.*' | sort | while read -r log; do
+              echo "::group::$log"
+              cat "$log"
+              echo "::endgroup::"
+          done
+
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
