@@ -2,6 +2,8 @@
 
 #include QMK_KEYBOARD_H
 
+#include "users/hydeik_common/layers.h"
+
 /****************************************************************************
  * Layer numbers
  ****************************************************************************/
@@ -91,6 +93,13 @@ enum keycode_aliases {
  * Keymap blocks
  ****************************************************************************/
 
+/*
+ * Hooks for the common core's layer grids: home-row keys are the HM_* mod-taps
+ * defined above, and held modifiers are the plain modifier keys.
+ */
+#define HOME_ROW_MOD(name) HM_##name
+#define HELD_MOD(name) KC_##name
+
 /* clang-format off */
 
 /*
@@ -121,17 +130,15 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | * / CTL | ( / ALT | ) / GUI | : / SFT | DEL     |   | BSPC    | " / SFT | [ / GUI | ] / ALT | ; / CTL |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         | +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _SYM_   | TAB     |   | ESC     | -FUN-   |
+ * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ *                               | _SYM_   | SPC     |   | ESC     | -FUN-   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define SYM_LAYER \
-    XXXXXXX, KC_BSLS, KC_PERC, KC_DLR,  XXXXXXX, XXXXXXX, KC_CIRC, KC_LCBR, KC_RCBR, XXXXXXX, \
-    HM_ASTR, HM_LPRN, HM_RPRN, HM_COLN, KC_DEL,  KC_BSPC, HM_DQUO, HM_LBRC, HM_RBRC, HM_SCLN, \
-    XXXXXXX, KC_GRV,  KC_AT,   KC_AMPR, QK_LLCK, XXXXXXX, KC_HASH, KC_LT,   KC_GT,   XXXXXXX, \
+    SYM_GRID(HOME_ROW_MOD, XXXXXXX), \
                                _______, KC_SPC,  KC_ESC,  _______
-
 
 /*
  * Number layer
@@ -148,9 +155,7 @@ enum keycode_aliases {
  */
 
 #define NUM_LAYER \
-    XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, XXXXXXX, KC_PIPE, KC_MINS, KC_SLSH, XXXXXXX, \
-    HM_0,    HM_1,    HM_2,    HM_3,    KC_DEL,  KC_BSPC, HM_QUOT, HM_UNDS, HM_EQL,  HM_ASTR, \
-    KC_TILD, KC_7,    KC_8,    KC_9,    KC_DOT,  QK_LLCK, KC_PLUS, KC_QUES, KC_EXLM, XXXXXXX, \
+    NUM_GRID(HOME_ROW_MOD, XXXXXXX), \
                                _______, KC_SPC,  _______, _______
 
 /*
@@ -199,18 +204,16 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | BOOT    | F9      | F8      | F7      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
+ * |         | F3      | F2      | F1      | F11     |   |         | SFT     | GUI     | ALT     | CTL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPrev   | MPLY    | MNext   |         |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | _FUN_   |         |   |         | _FUN_   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define FUN_LAYER \
-    QK_BOOT, KC_F9,   KC_F8,   KC_F7,   KC_F10,  KC_MUTE, KC_VOLD, KC_VOLU, KC_BRID, KC_BRIU, \
-    XXXXXXX, KC_F3,   KC_F2,   KC_F1,   KC_F11,  XXXXXXX, KC_RSFT, KC_RGUI, KC_RALT, KC_RCTL, \
-    XXXXXXX, KC_F6,   KC_F5,   KC_F4,   KC_F12,  QK_LLCK, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, \
+    FUN_GRID(HELD_MOD, XXXXXXX), \
                                _______, _______, _______, _______
 
 /* clang-format on */

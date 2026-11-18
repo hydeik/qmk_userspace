@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "users/hydeik_common/layers.h"
+
 /****************************************************************************
  * Layer numbers
  ****************************************************************************/
@@ -48,6 +50,13 @@ enum custom_keycode_t {
  * Keymap blocks
  ****************************************************************************/
 
+/*
+ * Hooks for the common core's layer grids: home-row keys are plain keys, and
+ * held modifiers are the custom one-shot mods.
+ */
+#define HOME_ROW_KEY(name) KC_##name
+#define ONESHOT_MOD(name) COS_##name
+
 /* clang-format off */
 
 /*
@@ -80,15 +89,12 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _SYM_   |         |   | MOD     | ENT     |
+ *                               | _SYM_   |         |   | MOD     | ESC     |
  *                               +---------+---------+   +---------+---------+
  */
 #define SYM_LAYER \
-    XXXXXXX,  KC_BSLS,  KC_PERC,  KC_DLR,   XXXXXXX,   XXXXXXX,  KC_CIRC,  KC_LCBR,  KC_RCBR,  XXXXXXX, \
-    KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_DEL,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN, \
-    XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    TO(_NAV), \
+    SYM_GRID(HOME_ROW_KEY, TO(_NAV)), \
                                   _______,  _______,   _______,  KC_ESC
-
 
 /*
  * Number layer
@@ -105,9 +111,7 @@ enum custom_keycode_t {
  */
 
 #define NUM_LAYER \
-    XXXXXXX,  KC_4,     KC_5,     KC_6,     XXXXXXX,   XXXXXXX,  KC_PIPE,  KC_MINS,  KC_SLSH,  XXXXXXX, \
-    KC_0,     KC_1,     KC_2,     KC_3,     KC_DEL,    KC_BSPC,  KC_QUOT,  KC_UNDS,  KC_EQL,   KC_ASTR, \
-    KC_TILD,  KC_7,     KC_8,     KC_9,     KC_DOT,    QK_LLCK,  KC_PLUS,  KC_QUES,  KC_EXLM,  TO(_NAV), \
+    NUM_GRID(HOME_ROW_KEY, TO(_NAV)), \
                                   KC_ESC,   _______,   _______,  _______
 
 /*
@@ -134,20 +138,18 @@ enum custom_keycode_t {
  * Function layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | BOOT    | F9      | F8      | F7      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU     |
+ * | BOOT    | F9      | F8      | F7      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F12     |   | MSTP    | MPRV    | MPLY    | MNXT    |         |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | -BASE-  |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define FUN_LAYER \
-    QK_BOOT,  KC_F9,    KC_F8,    KC_F7,    KC_F10,    KC_MUTE,  KC_VOLD,  KC_VOLU,  KC_BRIU,  KC_BRIU,  \
-    XXXXXXX,  KC_F3,    KC_F2,    KC_F1,    KC_F11,    XXXXXXX,  COS_RSFT, COS_RGUI, COS_RALT, COS_RCTL, \
-    XXXXXXX,  KC_F6,    KC_F5,    KC_F4,    KC_F12,    KC_MSTP,  KC_MPRV,  KC_MPLY,  KC_MNXT,  _______,  \
+    FUN_GRID(ONESHOT_MOD, _______), \
                                   TO(_BASE),_______,   _______,  _______
 
 /*
