@@ -10,22 +10,21 @@
  * Each grid is the 3x10 finger keys of one layer. A keymap family builds its
  * layer from the grid plus its own four thumb keys, for example:
  *
- *     #define HOME_ROW(name) KC_##name
- *     #define SYM_LAYER SYM_GRID(HOME_ROW, XXXXXXX), _______, KC_SPC, KC_ESC, _______
+ *     #define HOME_ROW_KEY(name) KC_##name
+ *     #define SYM_LAYER SYM_GRID(HOME_ROW_KEY, TO(_NAV)), _______, _______, _______, KC_ESC
  *
  * Grid parameters:
  *
  *   H(NAME)  Hook macro for a home-row key that may carry a modifier. The
  *            keymap family turns the bare NAME into its own keycode.
- *   M(NAME)  Hook macro for a held modifier, used the same way.
+ *   M(NAME)  Hook macro for a modifier key, used the same way.
  *   BR       The bottom-right corner key.
  *
- * A hook must paste NAME onto a prefix with `##` directly in its own body.
- * NAME is then never macro-expanded on its own, which is what keeps names
- * such as RSFT (a function-like macro in QMK) usable here. Do not pass NAME
- * on to another macro before pasting, and do not write an already prefixed
- * keycode such as KC_ASTR in a hook: it would be expanded to LSFT(KC_8)
- * before the hook sees it.
+ * A hook must paste NAME onto a prefix with `##` directly in its own body,
+ * so that NAME is never macro-expanded on its own. Do not pass NAME on to
+ * another macro before pasting, and keep the names in the grids bare: an
+ * already prefixed keycode such as KC_ASTR is itself a macro, and would be
+ * expanded to LSFT(KC_8) before a hook could decorate it.
  *
  * This file must not branch on the keymap family or the firmware source.
  */
