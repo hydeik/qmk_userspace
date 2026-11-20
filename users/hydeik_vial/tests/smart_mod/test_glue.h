@@ -4,9 +4,9 @@
  */
 
 /*
- * Test-only glue between QMK and smart_mod: a stand-in for what
- * hydeik_vial.c does in the firmware. It forwards the three hooks and tells
- * smart_mod which keycodes are one-shot mod keys.
+ * Test-only glue between QMK and smart_mod. It forwards the three QMK hooks
+ * to smart_mod and tells it which keycodes are one-shot mod keys, which is
+ * what hydeik_vial.c will do once smart_mod is part of the firmware build.
  */
 
 #pragma once

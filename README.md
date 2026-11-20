@@ -102,7 +102,7 @@ The `hydeik_vial` keymap family has unit tests for its `smart_mod` state machine
 make test
 ```
 
-This needs the firmware checkout of `hydeik_vial` from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a firmware toolchain. Like a build, it stops with a message to run `make firmware` if the checkout is missing or not at its pinned commit. It fails if any test fails.
+This needs the firmware checkout of `hydeik_vial` from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a cross-compiler for the keyboard. The path of this repository must not contain spaces, which the test makefile of the firmware source cannot handle. Like a build, it stops with a message to run `make firmware` if the checkout is missing or not at its pinned commit. It fails if any test fails.
 
 Each directory `users/hydeik_vial/tests/<test>/` with a `test.mk` is one test binary, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial, so with QMK's stock tap-hold behaviour, and their `config.h` mirrors the settings of `users/hydeik_vial/config.h` by hand.
 
