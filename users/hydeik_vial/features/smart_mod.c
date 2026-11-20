@@ -149,6 +149,15 @@ static void expire_pending(void) {
     }
 }
 
+/*
+ * Make `mods` pending one-shot mods at the key-event time `time`. The
+ * timeout of all pending one-shot mods starts anew.
+ */
+static void make_pending(uint8_t mods, uint16_t time) {
+    state.pending |= mods;
+    state.pending_since = time;
+}
+
 /* Register the pending one-shot mods for the key press that consumes them. */
 static void consume_pending(void) {
     if (state.pending) {
@@ -185,7 +194,6 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
              * it does not latch.
              */
             state.pending &= ~mods;
-            state.tapping = 0;
         } else {
             state.tapping       = mods;
             state.tapping_since = record->event.time;
@@ -216,8 +224,7 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
             if (state.tapping == mods) {
                 state.tapping = 0;
                 if (TIMER_DIFF_16(record->event.time, state.tapping_since) < SMART_MOD_ONE_SHOT_TERM) {
-                    state.pending |= mods;
-                    state.pending_since = record->event.time;
+                    make_pending(mods, record->event.time);
                 }
             }
         }
@@ -295,8 +302,7 @@ static void process_held_smart_mod_layer_key(const keyrecord_t *record) {
         unregister_mods(mods & ~state.held);
         if (mods && state.window_open && TIMER_DIFF_16(record->event.time, state.window_since) < SMART_MOD_LAYER_RELEASE_WINDOW) {
             /* No key was typed, and the release is quick: keep them. */
-            state.pending |= mods;
-            state.pending_since = record->event.time;
+            make_pending(mods, record->event.time);
         }
         state.window_open = false;
     }
@@ -318,8 +324,7 @@ static void process_shift_tap(uint16_t keycode, keyrecord_t *record, bool again)
     } else if (state.pending) {
         state.pending = 0;
     } else {
-        state.pending            = MOD_BIT_LSHIFT;
-        state.pending_since      = record->event.time;
+        make_pending(MOD_BIT_LSHIFT, record->event.time);
         state.shift_tapped       = true;
         state.shift_tapped_since = record->event.time;
     }
@@ -347,10 +352,14 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     /* This key event may come before the elapsed-time hook notices. */
     expire_pending();
 
-    /* Any key press ends the wait for the second Shift tap. */
+    /*
+     * Any key press ends the wait for the second Shift tap, and comes in
+     * between for the held one-shot mod key, which is not a tap then.
+     */
     const bool shift_tapped = state.shift_tapped;
     if (record->event.pressed) {
         state.shift_tapped = false;
+        state.tapping      = 0;
     }
 
     if (mods) {
@@ -358,35 +367,29 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    if (smart_mod_is_layer_key(keycode) && is_held_smart_mod_layer_key_event(record)) {
-        if (record->event.pressed) {
-            state.tapping = 0;
+    if (smart_mod_is_layer_key(keycode)) {
+        if (is_held_smart_mod_layer_key_event(record)) {
+            process_held_smart_mod_layer_key(record);
+            return false;
         }
-        process_held_smart_mod_layer_key(record);
-        return false;
+        if (smart_mod_layer_key_taps_shift(keycode)) {
+            if (record->event.pressed) {
+                process_shift_tap(keycode, record, shift_tapped);
+            }
+            return false;
+        }
+        /* Tapped, it is the ordinary key of its layer-tap keycode. */
     }
 
-    if (smart_mod_is_layer_key(keycode) && smart_mod_layer_key_taps_shift(keycode)) {
-        if (record->event.pressed) {
-            state.tapping = 0;
-            process_shift_tap(keycode, record, shift_tapped);
-        }
-        return false;
-    }
-
-    if (record->event.pressed) {
-        /* Another key in between: the held one-shot mod key is not a tap. */
-        state.tapping = 0;
-        if (!lets_pending_pass(keycode, record)) {
-            /*
-             * A key is typed: the one-shot mod keys that are held on the
-             * smart mod layer are ordinary modifiers that were used.
-             */
-            state.latching    = 0;
-            state.key_typed   = true;
-            state.window_open = false;
-            consume_pending();
-        }
+    if (record->event.pressed && !lets_pending_pass(keycode, record)) {
+        /*
+         * A key is typed: the one-shot mod keys that are held on the smart
+         * mod layer are ordinary modifiers that were used.
+         */
+        state.latching    = 0;
+        state.key_typed   = true;
+        state.window_open = false;
+        consume_pending();
     }
     return true;
 }
