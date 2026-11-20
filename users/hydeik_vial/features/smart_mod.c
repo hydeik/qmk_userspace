@@ -10,13 +10,13 @@
 #include "timer.h"
 
 /*
- * The state machine. Every field is a set of modifier bits (MOD_BIT), so a
- * modifier is in at most one of these states at a time.
+ * The state machine. `tapping`, `pending` and `applied` are sets of modifier
+ * bits (MOD_BIT); the times are those of key events, 16 bits wide.
  */
 static struct {
     /*
-     * The held one-shot mod key that is still a tap: no other key has been
-     * pressed since its press, and the One Shot Term has not ended.
+     * The held one-shot mod key that can still become a tap: no other key has
+     * been pressed since its press, and the One Shot Term has not ended.
      */
     uint8_t  tapping;
     uint16_t tapping_since;

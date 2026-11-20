@@ -12,6 +12,15 @@
  *
  * The module knows no keymap. Its caller forwards three QMK hooks to it and
  * tells it which keycodes are one-shot mod keys.
+ *
+ * A one-shot mod key is an ordinary modifier while it is held. Tapped, that
+ * is, released within the One Shot Term with no other key pressed in between,
+ * it leaves a pending one-shot mod, which the host does not see. The next key
+ * press consumes all pending one-shot mods: they are registered for that key
+ * and dropped once its report has been sent. Other one-shot mod keys, ordinary
+ * modifier keys and keys that only switch layers do not consume them. Pressing
+ * the same one-shot mod key again cancels its pending one-shot mod, and a
+ * timeout clears them all.
  */
 
 #pragma once
@@ -68,7 +77,11 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record);
  */
 void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record);
 
-/* Elapsed-time hook. Call from `housekeeping_task_user`. */
+/*
+ * Elapsed-time hook. Call from `housekeeping_task_user`, that is, in every
+ * scan loop. It also stands in for the after-report hook, which QMK does not
+ * call for a key that one of its features handled completely.
+ */
 void smart_mod_housekeeping_task(void);
 
 /****************************************************************************
@@ -76,7 +89,10 @@ void smart_mod_housekeeping_task(void);
  ****************************************************************************/
 
 /*
- * Forget everything: held one-shot mod keys and pending one-shot mods. It
- * sends no report and leaves the registered modifiers alone.
+ * Forget everything: the held one-shot mod key and the pending one-shot mods.
+ * It sends no report and leaves the registered modifiers alone.
+ *
+ * The state starts out empty, so the caller does not have to call this. The
+ * unit tests do, so that no state leaks from one test into the next.
  */
 void smart_mod_reset(void);
