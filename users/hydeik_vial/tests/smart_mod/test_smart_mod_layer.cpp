@@ -641,6 +641,47 @@ TEST_F(SmartModLayer, ReleasedAfterAKeyWasTypedNothingRemains) {
 }
 
 /*
+ * Item 7: once a key was typed, nothing remains, although a one-shot mod key
+ * is pressed again afterwards and the smart mod layer key is released well
+ * within the release window of that press. The smart mod layer is still on
+ * for that press, because the one-shot Ctrl key is held throughout.
+ */
+TEST_F(SmartModLayer, OneShotModPressedAfterAKeyWasTypedDoesNotBringTheReleaseWindowBack) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    one_shot_ctrl.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    tap(key_b);
+    VERIFY_AND_CLEAR(driver);
+
+    /* Shift is latched already: the host is told nothing. */
+    EXPECT_NO_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    one_shot_ctrl.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
  * Item 7: a long hold of the smart mod layer key does not bring the release
  * window back when the 16-bit time of the key events wraps around.
  */

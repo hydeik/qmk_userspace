@@ -60,10 +60,15 @@ static struct {
      */
     uint8_t latched;
     /*
+     * Whether a key was typed since the first smart mod layer key was held.
+     * The release of the last one leaves nothing pending then.
+     */
+    bool key_typed;
+    /*
      * Whether the release window is open: the latched one-shot mods become
      * pending if the last smart mod layer key is released now. It opens at
-     * the press of a one-shot mod key on the smart mod layer, and closes
-     * when a key is typed or the window ends.
+     * the press of a one-shot mod key on the smart mod layer, unless a key
+     * was typed, and closes when a key is typed or the window ends.
      */
     bool     window_open;
     uint16_t window_since;
@@ -85,6 +90,7 @@ void smart_mod_reset(void) {
     state.layer_on        = false;
     state.latching        = 0;
     state.latched         = 0;
+    state.key_typed       = false;
     state.window_open     = false;
     state.shift_tapped    = false;
 }
@@ -170,8 +176,10 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
             state.tapping_since = record->event.time;
             if (state.layer_on) {
                 state.latching |= mods;
-                state.window_open  = true;
-                state.window_since = record->event.time;
+                if (!state.key_typed) {
+                    state.window_open  = true;
+                    state.window_since = record->event.time;
+                }
             }
         }
     } else {
@@ -206,6 +214,7 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
 static void process_held_layer_key(const keyrecord_t *record) {
     if (record->event.pressed) {
         if (state.layer_keys_held++ == 0) {
+            state.key_typed = false;
             switch_layer_on();
         }
     } else if (state.layer_keys_held && --state.layer_keys_held == 0) {
@@ -309,6 +318,7 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
              * smart mod layer are ordinary modifiers that were used.
              */
             state.latching    = 0;
+            state.key_typed   = true;
             state.window_open = false;
             consume_pending();
         }
