@@ -17,4 +17,9 @@ VPATH += $(abspath $(TEST_PATH)/../../features)
 SRC += smart_mod.c test_glue.c
 
 # Features of users/hydeik_common/common.mk that the scenarios depend on.
+CAPS_WORD_ENABLE = yes
 LAYER_LOCK_ENABLE = yes
+
+# Features of users/hydeik_vial/rules.mk that the scenarios depend on.
+TAP_DANCE_ENABLE = yes
+INTROSPECTION_KEYMAP_C = tap_dance_actions.c

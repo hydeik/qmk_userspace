@@ -25,3 +25,8 @@ enum test_keycode_t {
     COS_RALT,
     COS_RGUI,
 };
+
+/* The tap dance keys of tap_dance_actions.c. */
+enum test_tap_dance_t {
+    TEST_TAP_DANCE_X_Y,
+};

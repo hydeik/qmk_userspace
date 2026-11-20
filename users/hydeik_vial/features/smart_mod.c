@@ -145,6 +145,11 @@ void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record) {
 }
 
 void smart_mod_housekeeping_task(void) {
+    /*
+     * QMK skips the after-report hook for a key that one of its features
+     * handled completely, so the drop is caught up on here.
+     */
+    drop_applied();
     expire_tapping();
     expire_pending();
 }

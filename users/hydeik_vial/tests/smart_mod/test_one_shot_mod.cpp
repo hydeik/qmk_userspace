@@ -517,6 +517,77 @@ TEST_F(OneShotMod, CustomKeycodeConsumes) {
 }
 
 /*
+ * Items 4 and 5: a tap dance key consumes a pending one-shot mod, at its
+ * press. QMK's tap dance remembers the modifiers of that moment and applies
+ * them to the key it sends once the tap dance has finished, so the one-shot
+ * mod reaches that key although it was dropped long before.
+ */
+TEST_F(OneShotMod, TapDanceKeyConsumes) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       tap_dance      = KeymapKey(0, 1, 0, TD(TEST_TAP_DANCE_X_Y));
+    auto       key_a          = KeymapKey(0, 2, 0, KC_A);
+
+    set_keymap({one_shot_shift, tap_dance, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(tap_dance);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_X));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    idle_for(TAPPING_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/*
+ * Items 4 and 5: a key that QMK handles without calling the after-report
+ * hook, such as the Caps Word toggle, consumes a pending one-shot mod like
+ * any other key. The one-shot mod is dropped in the same scan loop, so the
+ * host does not go on seeing it.
+ */
+TEST_F(OneShotMod, KeyHandledWithoutTheAfterReportHookConsumes) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_ctrl    = KeymapKey(0, 0, 0, COS_LCTL);
+    auto       caps_word_toggle = KeymapKey(0, 1, 0, CW_TOGG);
+    auto       key_1            = KeymapKey(0, 2, 0, KC_1);
+
+    set_keymap({one_shot_ctrl, caps_word_toggle, key_1});
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    caps_word_toggle.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    caps_word_toggle.release();
+    run_one_scan_loop();
+    /* Caps Word off again. */
+    tap(caps_word_toggle);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_1, KC_1);
+}
+
+/*
  * Item 6: pressing the same one-shot mod key again cancels its pending
  * one-shot mod, and that second press never becomes a one-shot, although it
  * is released well within the One Shot Term.
