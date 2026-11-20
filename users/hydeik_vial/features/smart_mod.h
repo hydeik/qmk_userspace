@@ -49,3 +49,13 @@ void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record);
 
 /* Elapsed-time hook. Call from `housekeeping_task_user`. */
 void smart_mod_housekeeping_task(void);
+
+/****************************************************************************
+ * State
+ ****************************************************************************/
+
+/*
+ * Forget everything: held one-shot mod keys and pending one-shot mods. It
+ * sends no report and leaves the registered modifiers alone.
+ */
+void smart_mod_reset(void);

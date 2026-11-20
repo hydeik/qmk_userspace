@@ -10,13 +10,42 @@
 #include "test_keymap_key.hpp"
 
 extern "C" {
+#include "smart_mod.h"
 #include "test_glue.h"
 }
 
 using testing::InSequence;
 
-class OneShotMod : public TestFixture {};
+/*
+ * The single one-shot mod rules. "Item N" refers to the numbered items of the
+ * resolution of issue #25, "How should a single one-shot mod behave in
+ * hydeik_vial?".
+ *
+ * A scan loop handles the key events at the current time and then advances
+ * the time by 1 ms. `press()` / `release()` take effect in the next scan loop.
+ */
+class OneShotMod : public TestFixture {
+  public:
+    OneShotMod() {
+        smart_mod_reset();
+    }
 
+    /* Press `key`, and release it `duration_ms` (at least 1) later. */
+    void hold_for(KeymapKey& key, unsigned duration_ms) {
+        key.press();
+        run_one_scan_loop();
+        idle_for(duration_ms - 1);
+        key.release();
+        run_one_scan_loop();
+    }
+
+    /* Tap `key` well within the One Shot Term. */
+    void tap(KeymapKey& key) {
+        hold_for(key, 1);
+    }
+};
+
+/* Item 1: a one-shot mod key is an ordinary modifier while it is held. */
 TEST_F(OneShotMod, IsAnOrdinaryModifierWhileHeld) {
     TestDriver driver;
     InSequence s;
@@ -42,6 +71,47 @@ TEST_F(OneShotMod, IsAnOrdinaryModifierWhileHeld) {
 
     EXPECT_EMPTY_REPORT(driver);
     one_shot_shift.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Item 3: a tapped one-shot mod is unregistered on release and becomes a
+ * pending one-shot mod.
+ * Item 4: the next key press consumes it, and it applies to that key only.
+ */
+TEST_F(OneShotMod, TapAppliesToTheNextKeyPressOnly) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_A));
+    EXPECT_REPORT(driver, (KC_A));
+    key_a.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_EMPTY_REPORT(driver);
+    key_a.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_A));
+    key_a.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_EMPTY_REPORT(driver);
+    key_a.release();
     run_one_scan_loop();
     VERIFY_AND_CLEAR(driver);
 }
