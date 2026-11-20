@@ -20,19 +20,20 @@
  * How many smart mod layer keys can be held at once. One more is ignored
  * until another is released.
  */
-#define MAX_LAYER_KEYS_HELD 4
+#define MAX_SMART_MOD_LAYER_KEYS_HELD 4
 
 /*
- * The state machine. `held`, `tapping`, `pending`, `applied`, `latching` and
- * `latched` are sets of modifier bits (MOD_BIT); the times are those of key
- * events, 16 bits wide.
+ * The state machine. `held`, `pending`, `consumed`, `latching` and `latched`
+ * are sets of modifier bits (MOD_BIT), and `tapping` is the modifier bits of
+ * a single key; the times are those of key events, 16 bits wide.
  */
 static struct {
     /* The one-shot mod keys that are down. */
     uint8_t held;
     /*
-     * The held one-shot mod key that can still become a tap: no other key has
-     * been pressed since its press, and the One Shot Term has not ended.
+     * The modifier bits of the one held one-shot mod key that can still
+     * become a tap, or 0 if there is none: no other key has been pressed
+     * since its press, and the One Shot Term has not ended.
      */
     uint8_t  tapping;
     uint16_t tapping_since;
@@ -46,21 +47,23 @@ static struct {
      * Pending one-shot mods that were registered for the key press that
      * consumed them, and are dropped once the report of that key is sent.
      */
-    uint8_t applied;
+    uint8_t consumed;
     /*
      * The smart mod layer keys that are held, not tapped: their number and
      * their positions. Whether a release is that of a held key is told by
      * the position, because QMK does not always report a release with the
      * tap count of its press.
      */
-    uint8_t  layer_keys_held;
-    keypos_t layer_key_positions[MAX_LAYER_KEYS_HELD];
+    uint8_t  smart_mod_layer_keys_held;
+    keypos_t held_smart_mod_layer_keys[MAX_SMART_MOD_LAYER_KEYS_HELD];
     /*
-     * Whether the smart mod layer is on. It is switched on when the first
-     * smart mod layer key is held, and off as soon as all one-shot mod keys
-     * are up again, or else with the last smart mod layer key.
+     * Whether this module has switched the smart mod layer on, and not off
+     * again. It switches the layer on when the first smart mod layer key is
+     * held, and off as soon as all one-shot mod keys are up again, or else
+     * with the last smart mod layer key. This is the module's own record,
+     * not the layer state of QMK: another key may switch the layer off.
      */
-    bool layer_on;
+    bool layer_switched_on;
     /*
      * The held one-shot mod keys that latch on release: pressed on the smart
      * mod layer, with no key typed since.
@@ -94,24 +97,24 @@ static struct {
 } state;
 
 void smart_mod_reset(void) {
-    state.held            = 0;
-    state.tapping         = 0;
-    state.pending         = 0;
-    state.applied         = 0;
-    state.layer_keys_held = 0;
-    state.layer_on        = false;
-    state.latching        = 0;
-    state.latched         = 0;
-    state.key_typed       = false;
-    state.window_open     = false;
-    state.shift_tapped    = false;
+    state.held                      = 0;
+    state.tapping                   = 0;
+    state.pending                   = 0;
+    state.consumed                  = 0;
+    state.smart_mod_layer_keys_held = 0;
+    state.layer_switched_on         = false;
+    state.latching                  = 0;
+    state.latched                   = 0;
+    state.key_typed                 = false;
+    state.window_open               = false;
+    state.shift_tapped              = false;
 }
 
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
-static void drop_applied(void) {
-    if (state.applied) {
-        const uint8_t mods = state.applied;
-        state.applied      = 0;
+static void drop_consumed(void) {
+    if (state.consumed) {
+        const uint8_t mods = state.consumed;
+        state.consumed     = 0;
         unregister_mods(mods);
     }
 }
@@ -153,20 +156,20 @@ static void consume_pending(void) {
          * A modifier that a held key has registered already is that key's to
          * release, so it is not among those dropped afterwards.
          */
-        state.applied = state.pending & ~get_mods();
-        state.pending = 0;
-        register_mods(state.applied);
+        state.consumed = state.pending & ~get_mods();
+        state.pending  = 0;
+        register_mods(state.consumed);
     }
 }
 
-static void switch_layer_on(void) {
-    state.layer_on = true;
+static void switch_smart_mod_layer_on(void) {
+    state.layer_switched_on = true;
     layer_on(smart_mod_layer());
 }
 
-static void switch_layer_off(void) {
-    if (state.layer_on) {
-        state.layer_on = false;
+static void switch_smart_mod_layer_off(void) {
+    if (state.layer_switched_on) {
+        state.layer_switched_on = false;
         layer_off(smart_mod_layer());
     }
 }
@@ -190,7 +193,7 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
              * Another key may have switched the smart mod layer off behind
              * this module, so QMK is asked too.
              */
-            if (state.layer_on && layer_state_is(smart_mod_layer())) {
+            if (state.layer_switched_on && layer_state_is(smart_mod_layer())) {
                 state.latching |= mods;
                 if (!state.key_typed) {
                     state.window_open  = true;
@@ -204,7 +207,9 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
             /* Latch it: the modifier stays registered. */
             state.latching &= ~mods;
             state.latched |= mods;
-            state.tapping &= ~mods;
+            if (state.tapping == mods) {
+                state.tapping = 0;
+            }
         } else {
             /* A latched one-shot mod cannot be released on its own. */
             unregister_mods(mods & ~state.latched);
@@ -218,39 +223,39 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
         }
         if (!state.held) {
             /* The one-shot mods are chosen. Back to the keys beneath. */
-            switch_layer_off();
+            switch_smart_mod_layer_off();
         }
     }
 }
 
 /*
  * Return where the smart mod layer key at `key` is among the held ones, or
- * `state.layer_keys_held` if it is not held.
+ * `state.smart_mod_layer_keys_held` if it is not held.
  */
-static uint8_t find_held_layer_key(keypos_t key) {
+static uint8_t find_held_smart_mod_layer_key(keypos_t key) {
     uint8_t i = 0;
-    while (i < state.layer_keys_held && !KEYEQ(state.layer_key_positions[i], key)) {
+    while (i < state.smart_mod_layer_keys_held && !KEYEQ(state.held_smart_mod_layer_keys[i], key)) {
         i++;
     }
     return i;
 }
 
 /* Whether the smart mod layer key at `key` is held now, and was not before. */
-static bool add_held_layer_key(keypos_t key) {
-    if (state.layer_keys_held == MAX_LAYER_KEYS_HELD || find_held_layer_key(key) < state.layer_keys_held) {
+static bool add_held_smart_mod_layer_key(keypos_t key) {
+    if (state.smart_mod_layer_keys_held == MAX_SMART_MOD_LAYER_KEYS_HELD || find_held_smart_mod_layer_key(key) < state.smart_mod_layer_keys_held) {
         return false;
     }
-    state.layer_key_positions[state.layer_keys_held++] = key;
+    state.held_smart_mod_layer_keys[state.smart_mod_layer_keys_held++] = key;
     return true;
 }
 
 /* Whether the smart mod layer key at `key` was held, and is no longer. */
-static bool remove_held_layer_key(keypos_t key) {
-    const uint8_t i = find_held_layer_key(key);
-    if (i == state.layer_keys_held) {
+static bool remove_held_smart_mod_layer_key(keypos_t key) {
+    const uint8_t i = find_held_smart_mod_layer_key(key);
+    if (i == state.smart_mod_layer_keys_held) {
         return false;
     }
-    state.layer_key_positions[i] = state.layer_key_positions[--state.layer_keys_held];
+    state.held_smart_mod_layer_keys[i] = state.held_smart_mod_layer_keys[--state.smart_mod_layer_keys_held];
     return true;
 }
 
@@ -260,24 +265,24 @@ static bool remove_held_layer_key(keypos_t key) {
  * comes without a tap count, is taken as one too: QMK reports the release of
  * a tap like that when it has ended the tap itself before.
  */
-static bool is_held_layer_key_event(const keyrecord_t *record) {
+static bool is_held_smart_mod_layer_key_event(const keyrecord_t *record) {
     if (record->tap.count == 0) {
         return true;
     }
-    return !record->event.pressed && find_held_layer_key(record->event.key) < state.layer_keys_held;
+    return !record->event.pressed && find_held_smart_mod_layer_key(record->event.key) < state.smart_mod_layer_keys_held;
 }
 
 /*
  * A smart mod layer key that is held, not tapped. QMK does not get to see
  * it: the smart mod layer is switched on and off here alone.
  */
-static void process_held_layer_key(const keyrecord_t *record) {
+static void process_held_smart_mod_layer_key(const keyrecord_t *record) {
     if (record->event.pressed) {
-        if (add_held_layer_key(record->event.key) && state.layer_keys_held == 1) {
+        if (add_held_smart_mod_layer_key(record->event.key) && state.smart_mod_layer_keys_held == 1) {
             state.key_typed = false;
-            switch_layer_on();
+            switch_smart_mod_layer_on();
         }
-    } else if (remove_held_layer_key(record->event.key) && state.layer_keys_held == 0) {
+    } else if (remove_held_smart_mod_layer_key(record->event.key) && state.smart_mod_layer_keys_held == 0) {
         /*
          * The last one is released, and with it every latched one-shot mod.
          * A one-shot mod key that is still down goes on as an ordinary
@@ -286,7 +291,7 @@ static void process_held_layer_key(const keyrecord_t *record) {
         const uint8_t mods = state.latched;
         state.latched      = 0;
         state.latching     = 0;
-        switch_layer_off();
+        switch_smart_mod_layer_off();
         unregister_mods(mods & ~state.held);
         if (mods && state.window_open && TIMER_DIFF_16(record->event.time, state.window_since) < SMART_MOD_LAYER_RELEASE_WINDOW) {
             /* No key was typed, and the release is quick: keep them. */
@@ -353,11 +358,11 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    if (smart_mod_is_layer_key(keycode) && is_held_layer_key_event(record)) {
+    if (smart_mod_is_layer_key(keycode) && is_held_smart_mod_layer_key_event(record)) {
         if (record->event.pressed) {
             state.tapping = 0;
         }
-        process_held_layer_key(record);
+        process_held_smart_mod_layer_key(record);
         return false;
     }
 
@@ -387,7 +392,7 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
 }
 
 void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record) {
-    drop_applied();
+    drop_consumed();
 }
 
 void smart_mod_housekeeping_task(void) {
@@ -395,7 +400,7 @@ void smart_mod_housekeeping_task(void) {
      * QMK skips the after-report hook for a key that one of its features
      * handled completely, so the drop is caught up on here.
      */
-    drop_applied();
+    drop_consumed();
     expire_tapping();
     expire_window();
     expire_pending();
