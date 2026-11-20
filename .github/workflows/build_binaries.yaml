@@ -107,12 +107,54 @@ jobs:
             *.hex
             *.uf2
 
+  # Runs the unit tests of the hydeik_vial keymap family with the same
+  # `make test` as a local run. The firmware source goes where `make firmware`
+  # puts it, at its pinned commit, so the Makefile's check of the checkout
+  # passes. The tests are built natively; the container provides gcc and make,
+  # as it does for the unit tests of the firmware source itself.
+  test:
+    name: Test (${{ matrix.family }})
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli:latest
+
+    strategy:
+      matrix:
+        family: [hydeik_vial]
+
+    steps:
+      - name: Checkout userspace
+        uses: actions/checkout@v6
+
+      - name: Read the firmware source from firmware_sources.json
+        id: source
+        env:
+          FAMILY: ${{ matrix.family }}
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'EOF'
+          import json, os
+          source = json.load(open("firmware_sources.json"))[os.environ["FAMILY"]]
+          print("repo=" + source["repo"])
+          print("ref=" + source["ref"])
+          EOF
+          cat "$GITHUB_OUTPUT"
+
+      - name: Checkout firmware source
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ steps.source.outputs.repo }}
+          ref: ${{ steps.source.outputs.ref }}
+          path: .firmware/${{ matrix.family }}
+          submodules: recursive
+
+      - name: Run unit tests
+        run: make test
+
   # Replaces the `latest` release, only from `main` and only when every build
-  # target succeeded, so a failed build never removes previously published
-  # firmware.
+  # target succeeded and the unit tests passed, so a failed build or a failed
+  # test never removes previously published firmware.
   publish:
     name: Publish
-    needs: build
+    needs: [build, test]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
