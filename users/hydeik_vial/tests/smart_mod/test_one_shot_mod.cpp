@@ -752,3 +752,185 @@ TEST_F(OneShotMod, KeyThatDoesNotConsumeDoesNotRestartTheTimeout) {
 
     expect_unmodified_tap(driver, key_1, KC_1);
 }
+
+/*
+ * Rolled keys. Item 4: Shift tap, `t` down, `h` down gives `Th`: the pending
+ * Shift is dropped once the report of `t` has been sent, before `h` is.
+ */
+TEST_F(OneShotMod, RolledKeysGetTheOneShotModOnTheFirstKeyOnly) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_t          = KeymapKey(0, 1, 0, KC_T);
+    auto       key_h          = KeymapKey(0, 2, 0, KC_H);
+
+    set_keymap({one_shot_shift, key_t, key_h});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_T));
+    EXPECT_REPORT(driver, (KC_T));
+    key_t.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_T, KC_H));
+    key_h.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_H));
+    key_t.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_EMPTY_REPORT(driver);
+    key_h.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+}
+
+/* Rolled keys, item 4: the same when both presses arrive in one scan loop. */
+TEST_F(OneShotMod, KeysPressedInTheSameScanLoopGetTheOneShotModOnTheFirstKeyOnly) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_t          = KeymapKey(0, 1, 0, KC_T);
+    auto       key_h          = KeymapKey(0, 2, 0, KC_H);
+
+    set_keymap({one_shot_shift, key_t, key_h});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_T));
+    EXPECT_REPORT(driver, (KC_T));
+    EXPECT_REPORT(driver, (KC_T, KC_H));
+    key_t.press();
+    key_h.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_H));
+    EXPECT_EMPTY_REPORT(driver);
+    key_t.release();
+    key_h.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Named scenario "no report carries a modifier while a one-shot mod is
+ * pending", for each of the four modifiers and both of their keys.
+ */
+struct PendingOneShotModCase {
+    const char* name;
+    /* The one-shot mod key that is tapped first, and the modifier it sends. */
+    uint16_t one_shot_keycode;
+    uint8_t  mod;
+    /* The one-shot mod key that is tapped second, and the modifier it sends. */
+    uint16_t second_one_shot_keycode;
+    uint8_t  second_mod;
+};
+
+/* Lets googletest name a case in its output. */
+void PrintTo(const PendingOneShotModCase& c, std::ostream* os) {
+    *os << c.name;
+}
+
+class PendingOneShotMod : public ::testing::WithParamInterface<PendingOneShotModCase>, public OneShotMod {};
+
+/*
+ * Item 3: between the report that releases the tapped key and the key press
+ * that consumes it, no report is sent at all.
+ */
+TEST_P(PendingOneShotMod, NoReportCarriesAModifierWhileAOneShotModIsPending) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_mod = KeymapKey(0, 0, 0, GetParam().one_shot_keycode);
+    auto       key_a        = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_mod, key_a});
+
+    EXPECT_REPORT(driver, (GetParam().mod));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_a, KC_A, GetParam().mod);
+}
+
+/*
+ * Items 3 and 9: the same while a second one-shot mod is tapped.
+ *
+ * Read with items 1 and 11: the second one-shot mod key is an ordinary
+ * modifier while it is held, so its own tap sends a lone modifier press and
+ * release. What must not happen is that the pending one-shot mod shows up in
+ * those reports, or in any other before the consuming key press. The ticket
+ * words this as "no report with a modifier is sent, including when a second
+ * one-shot mod is tapped", which taken literally contradicts item 1.
+ */
+TEST_P(PendingOneShotMod, NoReportCarriesThePendingModifierWhileASecondOneShotModIsTapped) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_mod        = KeymapKey(0, 0, 0, GetParam().one_shot_keycode);
+    auto       second_one_shot_mod = KeymapKey(0, 1, 0, GetParam().second_one_shot_keycode);
+    auto       key_a               = KeymapKey(0, 2, 0, KC_A);
+
+    set_keymap({one_shot_mod, second_one_shot_mod, key_a});
+
+    EXPECT_REPORT(driver, (GetParam().mod));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT / 2);
+    VERIFY_AND_CLEAR(driver);
+
+    /* Only the modifier of the key that is held, never the pending one. */
+    EXPECT_REPORT(driver, (GetParam().second_mod));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(second_one_shot_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (GetParam().mod, GetParam().second_mod));
+    EXPECT_REPORT(driver, (GetParam().mod, GetParam().second_mod, KC_A));
+    EXPECT_REPORT(driver, (KC_A));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(key_a);
+    VERIFY_AND_CLEAR(driver);
+}
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(
+    EachModifier,
+    PendingOneShotMod,
+    ::testing::Values(
+        PendingOneShotModCase{"LeftCtrl",   COS_LCTL, KC_LEFT_CTRL,   COS_LSFT, KC_LEFT_SHIFT},
+        PendingOneShotModCase{"LeftShift",  COS_LSFT, KC_LEFT_SHIFT,  COS_LALT, KC_LEFT_ALT},
+        PendingOneShotModCase{"LeftAlt",    COS_LALT, KC_LEFT_ALT,    COS_LGUI, KC_LEFT_GUI},
+        PendingOneShotModCase{"LeftGui",    COS_LGUI, KC_LEFT_GUI,    COS_LCTL, KC_LEFT_CTRL},
+        PendingOneShotModCase{"RightCtrl",  COS_RCTL, KC_RIGHT_CTRL,  COS_RSFT, KC_RIGHT_SHIFT},
+        PendingOneShotModCase{"RightShift", COS_RSFT, KC_RIGHT_SHIFT, COS_RALT, KC_RIGHT_ALT},
+        PendingOneShotModCase{"RightAlt",   COS_RALT, KC_RIGHT_ALT,   COS_RGUI, KC_RIGHT_GUI},
+        PendingOneShotModCase{"RightGui",   COS_RGUI, KC_RIGHT_GUI,   COS_RCTL, KC_RIGHT_CTRL}
+    ),
+    [](const ::testing::TestParamInfo<PendingOneShotModCase>& info) { return std::string(info.param.name); }
+);
+// clang-format on
