@@ -16,6 +16,7 @@ extern "C" {
 }
 
 using testing::_;
+using testing::AnyNumber;
 using testing::InSequence;
 
 /*
@@ -31,8 +32,8 @@ using testing::InSequence;
  * depends on the layers that are on. So pressing `one_shot_shift` types `f`
  * when the smart mod layer is off.
  *
- *            0        1        2        3     4     5     6    7
- *   base     SMT_MOD  SPC_MOD  ENT_MOD  f     a     b     c    TO(nav)
+ *            0        1        2        3     4     5     6    7         8
+ *   base     SMT_MOD  SPC_MOD  ENT_MOD  f     a     b     c    TO(nav)   1
  *   nav      .        .        .        Sft*  Ctl*  Left  .    TO(base)
  *   mod      .        .        .        Sft*  Ctl*  .     .    .
  *
@@ -49,6 +50,7 @@ class SmartModLayer : public TestFixture {
     KeymapKey key_b{TEST_LAYER_BASE, 5, 0, KC_B};
     KeymapKey key_c{TEST_LAYER_BASE, 6, 0, KC_C};
     KeymapKey to_nav{TEST_LAYER_BASE, 7, 0, TO(TEST_LAYER_NAV)};
+    KeymapKey key_1{TEST_LAYER_BASE, 8, 0, KC_1};
 
     KeymapKey nav_one_shot_shift{TEST_LAYER_NAV, 3, 0, COS_LSFT};
     KeymapKey nav_one_shot_ctrl{TEST_LAYER_NAV, 4, 0, COS_LCTL};
@@ -60,7 +62,7 @@ class SmartModLayer : public TestFixture {
 
     SmartModLayer() {
         smart_mod_reset();
-        for (KeymapKey key : {smt_mod, spc_mod, ent_mod, key_f, key_a, key_b, key_c, to_nav}) {
+        for (KeymapKey key : {smt_mod, spc_mod, ent_mod, key_f, key_a, key_b, key_c, to_nav, key_1}) {
             add_key(key);
         }
         for (KeymapKey key : {nav_one_shot_shift, nav_one_shot_ctrl, nav_left, to_base}) {
@@ -785,4 +787,335 @@ TEST_F(SmartModLayer, PressingTheSameOneShotModOnTheSmartModLayerCancelsThePendi
     expect_silent_release(driver, spc_mod);
 
     expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/****************************************************************************
+ * Tapping the smart mod layer keys
+ ****************************************************************************/
+
+/*
+ * Item 10: with no pending one-shot mod, a tap of `SMT_MOD` makes Shift a
+ * pending one-shot mod. Its tap keycode is never sent.
+ */
+TEST_F(SmartModLayer, SmtModTapMakesShiftPending) {
+    TestDriver driver;
+    InSequence s;
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    idle_for(TAPPING_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 10: the Shift made pending by the tap is cancelled by a second tap
+ * that comes when the tapping term has ended, counted from the press of the
+ * first tap.
+ * Item 11: Caps Word does not turn on then.
+ */
+TEST_F(SmartModLayer, SecondSmtModTapWhenTheTappingTermHasEndedCancelsThePendingShift) {
+    TestDriver driver;
+    InSequence s;
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    idle_until_after_press_of_tap(TAPPING_TERM);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+    expect_unmodified_tap(driver, key_c, KC_C);
+}
+
+/*
+ * Item 11: Caps Word turns on when the second `SMT_MOD` tap comes just before
+ * the tapping term ends, while the Shift made pending by the first tap is
+ * still pending. That pending Shift is dropped: a digit, which Caps Word
+ * leaves alone, is not shifted.
+ *
+ * Caps Word sends reports of its own around a shifted letter (a lone Shift,
+ * an empty report), so those are allowed in any number.
+ */
+TEST_F(SmartModLayer, SecondSmtModTapJustWithinTheTappingTermTurnsCapsWordOn) {
+    TestDriver driver;
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    idle_until_after_press_of_tap(TAPPING_TERM - 1);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_1, KC_1);
+
+    for (KeymapKey* key : {&key_b, &key_c}) {
+        EXPECT_REPORT(driver, (KC_LEFT_SHIFT)).Times(AnyNumber());
+        EXPECT_REPORT(driver, (KC_LEFT_SHIFT, key->report_code));
+        EXPECT_EMPTY_REPORT(driver).Times(AnyNumber());
+        tap(*key);
+        VERIFY_AND_CLEAR(driver);
+    }
+
+    /* Space ends Caps Word. */
+    EXPECT_REPORT(driver, (KC_SPC));
+    EXPECT_EMPTY_REPORT(driver).Times(AnyNumber());
+    tap(spc_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 11: Caps Word does not turn on when the Shift made pending by the
+ * first tap was consumed in between. The quick second tap is an ordinary
+ * first tap.
+ */
+TEST_F(SmartModLayer, SecondSmtModTapAfterTheShiftWasConsumedIsAnOrdinaryFirstTap) {
+    TestDriver driver;
+    InSequence s;
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    /* No Caps Word. */
+    expect_unmodified_tap(driver, key_c, KC_C);
+}
+
+/*
+ * Item 10: with a pending one-shot mod, a tap of `SMT_MOD` cancels it and
+ * adds no Shift (also item 9).
+ * Item 11: after that cancelling tap, a quick second tap is an ordinary first
+ * tap: it makes Shift pending, and Caps Word does not turn on.
+ */
+TEST_F(SmartModLayer, SmtModTapCancelsAPendingCtrlAndAQuickSecondTapIsAnOrdinaryFirstTap) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    /* No Caps Word. */
+    expect_unmodified_tap(driver, key_c, KC_C);
+}
+
+/* Item 10: a tap of `SMT_MOD` with a pending Ctrl leaves nothing at all. */
+TEST_F(SmartModLayer, SmtModTapWithAPendingCtrlCancelsItAndAddsNoShift) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    idle_for(TAPPING_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/* Item 10: the tap cancels all pending one-shot mods, however many. */
+TEST_F(SmartModLayer, SmtModTapCancelsAllPendingOneShotMods) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    EXPECT_NO_REPORT(driver);
+    tap(smt_mod);
+    idle_for(TAPPING_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/* The smart mod layer keys without the tap rule of `SMT_MOD`. */
+struct OrdinaryTapCase {
+    const char* name;
+    uint8_t     column;
+    uint8_t     code;
+};
+
+/* Lets googletest name a case in its output. */
+void PrintTo(const OrdinaryTapCase& c, std::ostream* os) {
+    *os << c.name;
+}
+
+class SmartModLayerKeyWithOrdinaryTap : public ::testing::WithParamInterface<OrdinaryTapCase>, public SmartModLayer {
+  public:
+    KeymapKey& smart_mod_layer_key() {
+        KeymapKey* keys[] = {&smt_mod, &spc_mod, &ent_mod};
+        return *keys[GetParam().column];
+    }
+};
+
+// clang-format off
+INSTANTIATE_TEST_SUITE_P(
+    SmartModLayer,
+    SmartModLayerKeyWithOrdinaryTap,
+    ::testing::Values(
+        OrdinaryTapCase{"SpcMod", 1, KC_SPC},
+        OrdinaryTapCase{"EntMod", 2, KC_ENT}
+    ),
+    [](const ::testing::TestParamInfo<OrdinaryTapCase>& info) { return std::string(info.param.name); }
+);
+// clang-format on
+
+/* Item 12: a tap of `SPC_MOD` / `ENT_MOD` is an ordinary key. */
+TEST_P(SmartModLayerKeyWithOrdinaryTap, TapIsAnOrdinaryKey) {
+    TestDriver driver;
+    InSequence s;
+
+    expect_unmodified_tap(driver, smart_mod_layer_key(), GetParam().code);
+
+    /* Nothing is pending afterwards. */
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/* Item 12: a tap of `SPC_MOD` / `ENT_MOD` consumes pending one-shot mods. */
+TEST_P(SmartModLayerKeyWithOrdinaryTap, TapConsumesPendingOneShotMods) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    expect_tap_consuming(driver, smart_mod_layer_key(), GetParam().code, KC_LEFT_CTRL);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/****************************************************************************
+ * NAV and FUN layers
+ ****************************************************************************/
+
+/*
+ * Item 13: with no smart mod layer key held, the one-shot mods of another
+ * layer follow the single one-shot mod rules: a tap becomes pending, not
+ * latched, and applies to the next key only.
+ */
+TEST_F(SmartModLayer, OneShotModTappedWithNoSmartModLayerKeyHeldDoesNotLatch) {
+    TestDriver driver;
+    InSequence s;
+
+    EXPECT_NO_REPORT(driver);
+    tap(to_nav);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, nav_left, KC_LEFT, KC_LEFT_SHIFT);
+
+    expect_unmodified_tap(driver, nav_left, KC_LEFT);
+}
+
+/*
+ * Item 13: there, a one-shot mod key released when the One Shot Term has
+ * ended leaves nothing, where on the smart mod layer it would latch.
+ */
+TEST_F(SmartModLayer, OneShotModHeldLongWithNoSmartModLayerKeyHeldLeavesNothing) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    hold_for(nav_one_shot_shift, SMART_MOD_ONE_SHOT_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, nav_left, KC_LEFT);
+}
+
+/*
+ * Item 13: holding a smart mod layer key from such a layer works as from the
+ * base layer: the one-shot mod latches, the smart mod layer switches itself
+ * off, and the keys of the layer beneath are typed with it.
+ */
+TEST_F(SmartModLayer, HoldingASmartModLayerKeyFromAnotherLayerLatches) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+
+    hold(driver, smt_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    expect_tap_with_registered(driver, nav_left, KC_LEFT, KC_LEFT_SHIFT);
+    expect_tap_with_registered(driver, nav_left, KC_LEFT, KC_LEFT_SHIFT);
+
+    expect_release_leaving_no_modifier(driver, smt_mod);
+
+    expect_unmodified_tap(driver, nav_left, KC_LEFT);
+}
+
+/*
+ * Items 3 and 13: once the smart mod layer has switched itself off over such
+ * a layer, a one-shot mod key of that layer does not latch, although the
+ * smart mod layer key is still held. No modifier can be added afterwards.
+ */
+TEST_F(SmartModLayer, OneShotModOfAnotherLayerDoesNotLatchAfterTheSmartModLayerSwitchedItselfOff) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+
+    hold(driver, smt_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    /* The same physical key as the one-shot Ctrl of the smart mod layer. */
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_LEFT_CTRL));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    hold_for(nav_one_shot_ctrl, SMART_MOD_ONE_SHOT_TERM);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_with_registered(driver, nav_left, KC_LEFT, KC_LEFT_SHIFT);
+
+    expect_release_leaving_no_modifier(driver, smt_mod);
 }

@@ -6,9 +6,15 @@
 #include "smart_mod.h"
 
 #include "action_layer.h"
+#include "action_tapping.h"
 #include "action_util.h"
+#include "modifiers.h"
 #include "quantum_keycodes.h"
 #include "timer.h"
+
+#ifdef CAPS_WORD_ENABLE
+#    include "caps_word.h"
+#endif
 
 /*
  * The state machine. `held`, `tapping`, `pending`, `applied`, `latching` and
@@ -61,6 +67,13 @@ static struct {
      */
     bool     window_open;
     uint16_t window_since;
+    /*
+     * Whether the only pending one-shot mod is the Shift of a Shift tap, with
+     * no key pressed since: a second Shift tap within the tapping term of
+     * the first one turns Caps Word on.
+     */
+    bool     shift_tapped;
+    uint16_t shift_tapped_since;
 } state;
 
 void smart_mod_reset(void) {
@@ -73,6 +86,7 @@ void smart_mod_reset(void) {
     state.latching        = 0;
     state.latched         = 0;
     state.window_open     = false;
+    state.shift_tapped    = false;
 }
 
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
@@ -109,7 +123,8 @@ static void expire_window(void) {
 /* Clear the pending one-shot mods if their timeout has ended. */
 static void expire_pending(void) {
     if (state.pending && timer_elapsed(state.pending_since) >= SMART_MOD_ONE_SHOT_TIMEOUT) {
-        state.pending = 0;
+        state.pending      = 0;
+        state.shift_tapped = false;
     }
 }
 
@@ -214,6 +229,29 @@ static void process_held_layer_key(const keyrecord_t *record) {
 }
 
 /*
+ * The press of a tapped smart mod layer key with the Shift tap rule. It is a
+ * toggle: it makes Shift pending, or cancels all pending one-shot mods.
+ * `again` tells that the Shift of such a tap is the only pending one-shot
+ * mod and no key has been pressed since.
+ */
+static void process_shift_tap(uint16_t keycode, keyrecord_t *record, bool again) {
+    if (again && TIMER_DIFF_16(record->event.time, state.shift_tapped_since) < GET_TAPPING_TERM(keycode, record)) {
+        /* A double tap: Caps Word instead of the pending Shift. */
+        state.pending = 0;
+#ifdef CAPS_WORD_ENABLE
+        caps_word_on();
+#endif
+    } else if (state.pending) {
+        state.pending = 0;
+    } else {
+        state.pending            = MOD_BIT_LSHIFT;
+        state.pending_since      = record->event.time;
+        state.shift_tapped       = true;
+        state.shift_tapped_since = record->event.time;
+    }
+}
+
+/*
  * Whether the press in `record` leaves the pending one-shot mods alone: the
  * key is an ordinary modifier or only switches layers. Every other key press
  * consumes them. One-shot mod keys never get here.
@@ -235,6 +273,12 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     /* This key event may come before the elapsed-time hook notices. */
     expire_pending();
 
+    /* Any key press ends the wait for the second Shift tap. */
+    const bool shift_tapped = state.shift_tapped;
+    if (record->event.pressed) {
+        state.shift_tapped = false;
+    }
+
     if (mods) {
         process_one_shot_mod_key(mods, record);
         return false;
@@ -245,6 +289,14 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
             state.tapping = 0;
         }
         process_held_layer_key(record);
+        return false;
+    }
+
+    if (smart_mod_is_layer_key(keycode) && smart_mod_layer_key_taps_shift(keycode)) {
+        if (record->event.pressed) {
+            state.tapping = 0;
+            process_shift_tap(keycode, record, shift_tapped);
+        }
         return false;
     }
 
