@@ -6,7 +6,7 @@
 /*
  * The tap dance keys of the test keymap. In the firmware build of the
  * hydeik_vial keymap family they come from Vial instead. This file is
- * included into the keymap of the test build (INTROSPECTION_KEYMAP_C).
+ * included into the keymap of the test build (see test_keymap_tables.c).
  */
 
 #include "quantum.h"

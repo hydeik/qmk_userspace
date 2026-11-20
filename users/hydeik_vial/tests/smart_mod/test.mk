@@ -22,4 +22,5 @@ LAYER_LOCK_ENABLE = yes
 
 # Features of users/hydeik_vial/rules.mk that the scenarios depend on.
 TAP_DANCE_ENABLE = yes
-INTROSPECTION_KEYMAP_C = tap_dance_actions.c
+COMBO_ENABLE = yes
+INTROSPECTION_KEYMAP_C = test_keymap_tables.c

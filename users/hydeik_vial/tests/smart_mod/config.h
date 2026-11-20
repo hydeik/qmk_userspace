@@ -12,3 +12,4 @@
  * test depends on. Keep them in sync by hand.
  */
 #define TAPPING_TERM 200
+#define COMBO_TERM 30

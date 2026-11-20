@@ -63,3 +63,8 @@ enum test_layer_t {
 enum test_tap_dance_t {
     TEST_TAP_DANCE_X_Y,
 };
+
+/* The combos of combos.c. */
+enum test_combo_t {
+    TEST_COMBO_J_K_Q,
+};

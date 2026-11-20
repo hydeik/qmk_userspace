@@ -552,6 +552,35 @@ TEST_F(OneShotMod, TapDanceKeyConsumes) {
 }
 
 /*
+ * Item 5: the output of a combo consumes a pending one-shot mod. The keys of
+ * the combo send nothing themselves; `j` and `k` pressed together are `q`.
+ */
+TEST_F(OneShotMod, ComboOutputConsumes) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_j          = KeymapKey(0, 1, 0, KC_J);
+    auto       key_k          = KeymapKey(0, 2, 0, KC_K);
+    auto       key_a          = KeymapKey(0, 3, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_j, key_k, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_Q));
+    EXPECT_REPORT(driver, (KC_Q));
+    EXPECT_EMPTY_REPORT(driver);
+    tap_combo({key_j, key_k});
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/*
  * Items 4 and 5: a key that QMK handles without calling the after-report
  * hook, such as the Caps Word toggle, consumes a pending one-shot mod like
  * any other key. The one-shot mod is dropped in the same scan loop, so the
