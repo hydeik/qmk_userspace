@@ -39,25 +39,29 @@ TEST_FAMILY := hydeik_vial
 TEST_DIRS := $(sort $(patsubst %/test.mk,%,$(wildcard $(QMK_USERSPACE)/users/$(TEST_FAMILY)/tests/*/test.mk)))
 
 # Apple clang, which is what `gcc` is on macOS, warns where gcc does not and
-# rejects narrowing conversions in the firmware's own test sources.
-ifneq ($(findstring clang,$(shell gcc --version 2>/dev/null)),)
-TEST_MAKE_FLAGS := ALLOW_WARNINGS=yes EXTRAFLAGS=-Wno-c++11-narrowing
-endif
+# rejects narrowing conversions in the test sources of the firmware source.
+# These flags are added by the `test` recipe, only when `gcc` is clang.
+CLANG_TEST_FLAGS := ALLOW_WARNINGS=yes EXTRAFLAGS=-Wno-c++11-narrowing
 
 # Each test is built by the test makefile of the firmware source, called
 # directly with the test directory of this repository, so nothing is placed in
 # the firmware checkout but its own build output. A test binary that fails, or
 # that contains no test at all, fails the goal.
+#
+# That test makefile puts the test directory on VPATH and in `include`, so the
+# path of this repository must not contain spaces.
 test:
 	checkout=$$(cd "$(QMK_USERSPACE)" && $(FIRMWARE_SOURCES) locate "$(TEST_FAMILY)") || exit 1; \
 	[ -n "$(TEST_DIRS)" ] || { echo "No tests found in users/$(TEST_FAMILY)/tests/." >&2; exit 1; }; \
+	flags=; \
+	if gcc --version 2>/dev/null | grep -q clang; then flags="$(CLANG_TEST_FLAGS)"; fi; \
 	failed=; \
 	for test_dir in $(TEST_DIRS); do \
 		name=$$(basename "$$test_dir"); \
 		output="$(TEST_FAMILY)_$$name"; \
 		$(MAKE) -r -R -C "$$checkout" -f builddefs/build_test.mk \
 			TEST="$$name" TEST_OUTPUT="$$output" TEST_PATH="$$test_dir" FULL_TESTS="$$name" \
-			SILENT=false $(TEST_MAKE_FLAGS) || exit 1; \
+			SILENT=false $$flags || exit 1; \
 		binary="$$checkout/.build/test/$$output.elf"; \
 		if ! "$$binary" --gtest_list_tests | grep -q '^  '; then \
 			echo "$$name: the test binary contains no tests." >&2; failed=1; \
