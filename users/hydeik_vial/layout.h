@@ -23,9 +23,18 @@ enum layer_t {
  * Custom keycodes
  ****************************************************************************/
 enum custom_keycode_t {
-    /* Custom oneshot mod layer. */
+    /*
+     * Reserved slot with no behaviour. It stays so that the one-shot mod keys
+     * keep the numbers QK_KB_0 + 1 .. QK_KB_0 + 8, which keymaps stored by
+     * Vial hold. Do not remove or reuse it.
+     */
     COS_MOD = QK_KB_0,
-    /* Custom oneshot mods implementation. */
+    /*
+     * One-shot mod keys: an ordinary modifier while held, and a pending
+     * one-shot mod for the next key press when tapped. On the smart mod layer
+     * they latch for as long as a smart mod layer key is held. See
+     * features/smart_mod.h.
+     */
     COS_LCTL,
     COS_LSFT,
     COS_LALT,
@@ -34,12 +43,20 @@ enum custom_keycode_t {
     COS_RSFT,
     COS_RALT,
     COS_RGUI,
-    COS_CLR,    // clear all mods
-
-    /* Swapper */
-    SW_WIN, /* cmd-tab */
+    /*
+     * Keep "customKeycodes" in the vial.json of every keymap of this keymap
+     * family, and the copy of this enum in tests/smart_mod/test_glue.h, in
+     * step with this enum: the same entries in the same order.
+     */
 };
 
+/*
+ * Smart mod layer keys: held, they turn the smart mod layer on. Tapped,
+ * `SMT_MOD` makes Shift a pending one-shot mod, or cancels all pending
+ * one-shot mods, and a double tap turns Caps Word on; its tap keycode KC_KP_0
+ * is never sent. `SPC_MOD` and `ENT_MOD` are Space and Enter when tapped.
+ * No layer here places `ENT_MOD`; it is kept for keymaps edited in Vial.
+ */
 #define SMT_MOD  LT(_MOD, KC_KP_0)
 #define SPC_MOD  LT(_MOD, KC_SPC)
 #define ENT_MOD  LT(_MOD, KC_ENT)
@@ -52,7 +69,7 @@ enum custom_keycode_t {
 
 /*
  * Hooks for the common core's layer grids: home-row keys are plain keys, and
- * held modifiers are the custom one-shot mods.
+ * modifier keys are one-shot mod keys.
  */
 #define HOME_ROW_KEY(name) KC_##name
 #define ONESHOT_MOD(name) COS_##name
@@ -153,7 +170,9 @@ enum custom_keycode_t {
                                   TO(_BASE),_______,   _______,  _______
 
 /*
- * One-shot mod layer
+ * Smart mod layer: one-shot mod keys over the home row. It is on while a
+ * smart mod layer key is held and the one-shot mods are being chosen, and
+ * switches itself off once the chosen one-shot mod keys are all released.
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   |         |         |         |         |         |

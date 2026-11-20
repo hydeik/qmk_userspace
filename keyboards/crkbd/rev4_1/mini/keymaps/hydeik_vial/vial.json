@@ -343,8 +343,8 @@
     },
     "customKeycodes": [
         {
-            "name": "MOD",
-            "title": "Oneshot Mod Layer",
+            "name": "Rsvd",
+            "title": "Reserved (does nothing)",
             "shortName": "COS_MOD"
         },
         {
@@ -380,17 +380,12 @@
         {
             "name": "OSM RAlt",
             "title": "Oneshot Right Alt Mod",
-            "shortName": "COS_LALT"
+            "shortName": "COS_RALT"
         },
         {
             "name": "OSM RGUI",
             "title": "Oneshot Right GUI Mod",
             "shortName": "COS_RGUI"
-        },
-        {
-            "name": "OSM Clear",
-            "title": "Clear Oneshot Mods",
-            "shortName": "COS_CLR"
         }
     ]
 }
