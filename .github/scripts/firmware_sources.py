@@ -16,9 +16,11 @@ Commands (run from the repository root):
     locate FAMILY    Print the path of the firmware checkout of FAMILY. Fail
                      if it, or one of its submodules, is missing or not at
                      the pinned commit.
+    source FAMILY    Print the firmware source of FAMILY as `repo=<repo>` and
+                     `ref=<ref>` lines.
 
-`matrix` and `select` are used by CI, `fetch` and `locate` by the Makefile
-for local builds.
+`matrix`, `select` and `source` are used by CI, `fetch` and `locate` by the
+Makefile for local builds and unit tests.
 
 Every command fails if firmware_sources.json is malformed. `matrix` and
 `select` also fail if any build target's keymap has no entry in it.
@@ -214,16 +216,26 @@ def cmd_fetch():
             )
 
 
-def cmd_locate(family):
+def declared_source(family):
+    """Return the validated firmware source declaration of a keymap family."""
     sources = load_sources()
     if family not in sources:
         raise SystemExit(
             f"`{family}` is not a keymap family declared in {SOURCES_FILE} "
             f"(declared: {', '.join(sources)})"
         )
+    return sources[family]
 
+
+def cmd_source(family):
+    source = declared_source(family)
+    print(f"repo={source['repo']}")
+    print(f"ref={source['ref']}")
+
+
+def cmd_locate(family):
     checkout = firmware_checkout(family)
-    ref = sources[family]["ref"]
+    ref = declared_source(family)["ref"]
     commit = checked_out_commit(checkout)
     if commit is None:
         raise SystemExit(
@@ -253,6 +265,8 @@ def main(argv):
         cmd_fetch()
     elif len(argv) == 2 and argv[0] == "locate":
         cmd_locate(argv[1])
+    elif len(argv) == 2 and argv[0] == "source":
+        cmd_source(argv[1])
     else:
         raise SystemExit(__doc__)
 

@@ -113,13 +113,9 @@ jobs:
   # passes. The tests are built natively; the container provides gcc and make,
   # as it does for the unit tests of the firmware source itself.
   test:
-    name: Test (${{ matrix.family }})
+    name: Test (hydeik_vial)
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
-
-    strategy:
-      matrix:
-        family: [hydeik_vial]
 
     steps:
       - name: Checkout userspace
@@ -127,15 +123,8 @@ jobs:
 
       - name: Read the firmware source from firmware_sources.json
         id: source
-        env:
-          FAMILY: ${{ matrix.family }}
         run: |
-          python3 - >> "$GITHUB_OUTPUT" <<'EOF'
-          import json, os
-          source = json.load(open("firmware_sources.json"))[os.environ["FAMILY"]]
-          print("repo=" + source["repo"])
-          print("ref=" + source["ref"])
-          EOF
+          python3 .github/scripts/firmware_sources.py source hydeik_vial >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
       - name: Checkout firmware source
@@ -143,7 +132,7 @@ jobs:
         with:
           repository: ${{ steps.source.outputs.repo }}
           ref: ${{ steps.source.outputs.ref }}
-          path: .firmware/${{ matrix.family }}
+          path: .firmware/hydeik_vial
           submodules: recursive
 
       - name: Run unit tests
