@@ -7,15 +7,31 @@
  * Test-only glue between QMK and smart_mod. It forwards the three QMK hooks
  * to smart_mod and tells it which keycodes are one-shot mod keys, which keys
  * are smart mod layer keys, which of them has the tap rule of `SMT_MOD`, and
- * which layer is the smart mod layer. That is what hydeik_vial.c will do once
- * smart_mod is part of the firmware build.
+ * which layer is the smart mod layer.
+ *
+ * test_glue.c is the copy of users/hydeik_vial/hydeik_vial.c that the unit
+ * tests build. The two must configure smart_mod the same way. They differ
+ * only in this:
+ *
+ * - The unit tests are built without layout.h, so this file has its own copy
+ *   of the keycodes and layer numbers used there, under `TEST_LAYER_*` names
+ *   for the layers. The assertions in test_glue.c and in hydeik_vial.c pin
+ *   the numbers that the copy repeats.
+ * - The unit tests are built without Vial. In the firmware, Vial's tap-hold
+ *   settings decide whether a smart mod layer key is tapped or held, and the
+ *   tapping term of the double tap of `SMT_MOD` is the one set in Vial, not
+ *   the `TAPPING_TERM` of config.h.
  */
 
 #pragma once
 
 #include "quantum_keycodes.h"
 
-/* The one-shot mod keys, numbered as in users/hydeik_vial/layout.h. */
+/*
+ * The custom keycodes: the same entries in the same order as in
+ * users/hydeik_vial/layout.h. `COS_MOD` is the reserved slot with no
+ * behaviour; the others are the one-shot mod keys.
+ */
 enum test_keycode_t {
     COS_MOD = QK_KB_0,
     COS_LCTL,
