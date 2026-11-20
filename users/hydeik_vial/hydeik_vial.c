@@ -3,49 +3,77 @@
  * SPDX-License-Identifier: GPL-2.0+
  */
 
+/*
+ * Glue between QMK and smart_mod, the state machine of the one-shot mods and
+ * the smart mod layer (features/smart_mod.h describes the behaviour). This
+ * file forwards the three QMK hooks to smart_mod and tells it which keycodes
+ * are one-shot mod keys, which keys are smart mod layer keys, which of them
+ * has the Shift tap rule, and which layer is the smart mod layer. It holds no
+ * behaviour of its own.
+ *
+ * tests/smart_mod/test_glue.c is the copy of this file that the unit tests
+ * build. The two must configure smart_mod the same way. They differ only in
+ * this:
+ *
+ * - The unit tests are built without layout.h, so test_glue.h has its own
+ *   copy of the keycodes and layer numbers used here, under `TEST_LAYER_*`
+ *   names for the layers. The assertions below pin the numbers that the copy
+ *   repeats.
+ * - The unit tests are built without Vial. Here, Vial's tap-hold settings
+ *   decide whether a smart mod layer key is tapped or held, and the tapping
+ *   term of the double tap of `SMT_MOD` is the one set in Vial, not the
+ *   `TAPPING_TERM` of config.h.
+ */
+
 #include "hydeik_vial.h"
 
+#include "features/smart_mod.h"
+
+/*
+ * Keymaps stored by Vial hold these numbers, and vial.json names the custom
+ * keycodes by their position. tests/smart_mod/test_glue.c pins them too.
+ */
+_Static_assert((int)COS_MOD == (int)QK_KB_0, "COS_MOD must stay the reserved slot at QK_KB_0");
+_Static_assert((int)COS_LCTL == (int)QK_KB_0 + 1, "the one-shot mod keys must start at QK_KB_0 + 1");
+_Static_assert((int)COS_RGUI == (int)QK_KB_0 + 8, "the one-shot mod keys must end at QK_KB_0 + 8");
+_Static_assert(_MOD == 5, "the smart mod layer must stay layer 5");
+
 /*****************************************************************************
- * Exidex's oneshot mods & oneshot mod layer
- * (https://github.com/Exidex/qmk_firmware)
+ * Told to smart_mod
  *****************************************************************************/
-bool is_custom_oneshot_mod_key(uint16_t keycode) {
+
+/* The one-shot mod keys and their modifiers. */
+uint8_t smart_mod_one_shot_mod_bits(uint16_t keycode) {
     switch (keycode) {
         case COS_LCTL:
+            return MOD_BIT_LCTRL;
         case COS_LSFT:
+            return MOD_BIT_LSHIFT;
         case COS_LALT:
+            return MOD_BIT_LALT;
         case COS_LGUI:
+            return MOD_BIT_LGUI;
         case COS_RCTL:
+            return MOD_BIT_RCTRL;
         case COS_RSFT:
+            return MOD_BIT_RSHIFT;
         case COS_RALT:
+            return MOD_BIT_RALT;
         case COS_RGUI:
-            return true;
+            return MOD_BIT_RGUI;
         default:
-            return false;
+            return 0;
     }
 }
 
-bool is_custom_oneshot_cancel_key(uint16_t keycode) {
-    switch (keycode) {
-        case COS_CLR:
-            return true;
-        default:
-            return false;
-    }
+/* The smart mod layer. Nothing but smart_mod switches it on or off. */
+uint8_t smart_mod_layer(void) {
+    return _MOD;
 }
 
-bool is_custom_oneshot_ignored_key(uint16_t keycode) {
+/* The smart mod layer keys. */
+bool smart_mod_is_layer_key(uint16_t keycode) {
     switch (keycode) {
-        case COS_MOD:
-        case COS_LCTL:
-        case COS_LSFT:
-        case COS_LALT:
-        case COS_LGUI:
-        case COS_RCTL:
-        case COS_RSFT:
-        case COS_RALT:
-        case COS_RGUI:
-        case COS_CLR:
         case SMT_MOD:
         case SPC_MOD:
         case ENT_MOD:
@@ -55,214 +83,27 @@ bool is_custom_oneshot_ignored_key(uint16_t keycode) {
     }
 }
 
-uint8_t custom_oneshot_mod_get_mods(uint16_t keycode) {
-    switch (keycode) {
-        case COS_LCTL:
-            return MOD_BIT_LCTRL;
-            break;
-        case COS_LSFT:
-            return MOD_BIT_LSHIFT;
-            break;
-        case COS_LALT:
-            return MOD_BIT_LALT;
-            break;
-        case COS_LGUI:
-            return MOD_BIT_LGUI;
-            break;
-        case COS_RCTL:
-            return MOD_BIT_RCTRL;
-            break;
-        case COS_RSFT:
-            return MOD_BIT_RSHIFT;
-            break;
-        case COS_RALT:
-            return MOD_BIT_RALT;
-            break;
-        case COS_RGUI:
-            return MOD_BIT_RGUI;
-            break;
-        default:
-            return 0;
-            break;
-    }
-}
-
-/* Stores the state of whether the oneshot-mod keys are pressed (keys down). */
-static uint8_t pressed_mods = 0;
-/* A variable used to keep track of when a key other than a modifier key is pressed. */
-static uint8_t used_mods = 0;
-/* Count the number of smart mod layer is held */
-static uint8_t smart_mod_layer_hold_count = 0;
-
-static void clear_custom_oneshot_mods(void) {
-    clear_mods();
-    pressed_mods = 0;
-    used_mods = 0;
-}
-
-static void custom_oneshot_layer_hold_event(keyrecord_t *record) {
-    if (record->event.pressed) { /* key down */
-        used_mods = get_mods();
-    } else { /* key up */
-        if (used_mods) {
-            unregister_mods(used_mods);
-            used_mods = 0;
-        }
-    }
-}
-
-static void custom_oneshot_on_other_key_release_event(void) {
-    used_mods |= pressed_mods;
-    /* Oneshot mods are the mods other than used_mods. */
-    const uint8_t queued_mods = get_mods() & ~used_mods;
-    if (queued_mods) {
-        if (smart_mod_layer_hold_count) {
-            used_mods |= queued_mods;
-        } else {
-            unregister_mods(queued_mods);
-        }
-    }
-}
-
-static void smart_mod_layer_hold_event_handler(
-    keyrecord_t *record
-) {
-    if (record->event.pressed) { /* key down */
-        if (smart_mod_layer_hold_count == 0) {
-            layer_on(SMART_MOD_TARGET_LAYER);
-            used_mods = get_mods(); /* mark oneshot mods as used */
-        }
-        ++smart_mod_layer_hold_count;
-    } else {
-        --smart_mod_layer_hold_count;
-        if (smart_mod_layer_hold_count == 0) {
-            if (!pressed_mods) {
-                if (IS_LAYER_ON(SMART_MOD_TARGET_LAYER)) {
-                    layer_off(SMART_MOD_TARGET_LAYER);
-                }
-                unregister_mods(used_mods);
-                used_mods = 0;
-            }
-        }
-    }
-}
-
-static bool process_custom_oneshot_mods(uint16_t keycode, keyrecord_t *record) {
-    if (is_custom_oneshot_mod_key(keycode)) {
-        /* Handle custom oneshot mod key */
-        const uint8_t mod = custom_oneshot_mod_get_mods(keycode);
-        if (record->event.pressed) {
-            pressed_mods |= mod;
-            register_mods(mod);
-        } else {
-            pressed_mods &= ~mod;
-
-            if (used_mods & mod) {
-                used_mods &= ~mod;
-                unregister_mods(mod);
-            }
-
-            if (!pressed_mods) {
-                if (IS_LAYER_ON(SMART_MOD_TARGET_LAYER)) {
-                    layer_off(SMART_MOD_TARGET_LAYER);
-                }
-            }
-        }
-    } else if (IS_QK_MOMENTARY(keycode)) {
-        const uint8_t layer = QK_MOMENTARY_GET_LAYER(keycode);
-        if (layer == SMART_MOD_TARGET_LAYER) {
-            smart_mod_layer_hold_event_handler(record);
-            return false;
-        } else {
-            custom_oneshot_layer_hold_event(record);
-        }
-    } else if (IS_QK_LAYER_MOD(keycode)) {
-        const uint8_t layer = QK_LAYER_MOD_GET_LAYER(keycode);
-        if (layer == SMART_MOD_TARGET_LAYER) {
-            smart_mod_layer_hold_event_handler(record);
-            return false;
-        } else {
-            custom_oneshot_layer_hold_event(record);
-        }
-    } else if (IS_QK_LAYER_TAP(keycode)) {
-        const uint8_t layer = QK_LAYER_TAP_GET_LAYER(keycode);
-        if (record->tap.count == 0) { /* key is held: */
-            if (layer == SMART_MOD_TARGET_LAYER) {
-                smart_mod_layer_hold_event_handler(record);
-                return false;
-            } else {
-                custom_oneshot_layer_hold_event(record);
-            }
-        } else { /* key is tapped */
-            if (!record->event.pressed) {
-                custom_oneshot_on_other_key_release_event();
-            }
-        }
-    } else {
-        /* Handle other keys */
-        if (record->event.pressed) {
-            if (is_custom_oneshot_cancel_key(keycode)) {
-                /* Cancel all oneshot mods on designated cancel keydown. */
-                clear_custom_oneshot_mods();
-            }
-        } else {
-            if (!is_custom_oneshot_ignored_key(keycode)) {
-                custom_oneshot_on_other_key_release_event();
-            }
-        }
-
-    }
-    return true;
-}
-
-static bool process_smart_mod_layer_key(
-    uint16_t target_keycode,
-    uint16_t keycode,
-    keyrecord_t *record
-) {
-#ifdef CAPS_WORD_ENABLE
-    static bool tapped = false;
-    static uint16_t tap_timer = 0;
-#endif /* CAPS_WORD_ENABLE */
-    if (keycode == target_keycode) {
-        if (record->tap.count > 0) {
-            if (record->event.pressed) {
-                clear_custom_oneshot_mods();
-#ifdef CAPS_WORD_ENABLE
-                if (tapped && !timer_expired(record->event.time, tap_timer)) {
-                    caps_word_on();
-                }
-                tapped = true;
-                tap_timer = record->event.time + GET_TAPPING_TERM(keycode, record);
-#endif /* CAPS_WORD_ENABLE */
-            } else {
-                register_mods(MOD_BIT_LSHIFT);
-            }
-        }
-        return false;
-#ifdef CAPS_WORD_ENABLE
-    } else {
-        if (record->event.pressed) {
-            tapped = false;
-        }
-#endif /* CAPS_WORD_ENABLE */
-    }
-
-    return true;
-}
-
 /*
- * Custom bahavior of keycodes
+ * A tap of `SMT_MOD` makes Shift a pending one-shot mod, or cancels all
+ * pending one-shot mods, and a double tap turns Caps Word on. A tap of the
+ * other smart mod layer keys is their ordinary key.
  */
+bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
+    return keycode == SMT_MOD;
+}
+
+/*****************************************************************************
+ * QMK hooks
+ *****************************************************************************/
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (!(
-        process_custom_oneshot_mods(keycode, record) &&
-        process_smart_mod_layer_key(SMT_MOD, keycode, record)
-    )) {
-        return false;
-    }
-
-    return true;
+    return smart_mod_process_record(keycode, record);
 }
 
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    smart_mod_post_process_record(keycode, record);
+}
+
+void housekeeping_task_user(void) {
+    smart_mod_housekeeping_task();
+}

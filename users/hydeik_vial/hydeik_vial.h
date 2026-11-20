@@ -8,6 +8,3 @@
 #include QMK_KEYBOARD_H
 
 #include "layout.h"
-
-#define SMART_MOD_TARGET_LAYER  _MOD
-
