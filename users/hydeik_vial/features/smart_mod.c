@@ -5,15 +5,19 @@
 
 #include "smart_mod.h"
 
+#include "action_layer.h"
 #include "action_util.h"
 #include "quantum_keycodes.h"
 #include "timer.h"
 
 /*
- * The state machine. `tapping`, `pending` and `applied` are sets of modifier
- * bits (MOD_BIT); the times are those of key events, 16 bits wide.
+ * The state machine. `held`, `tapping`, `pending`, `applied`, `latching` and
+ * `latched` are sets of modifier bits (MOD_BIT); the times are those of key
+ * events, 16 bits wide.
  */
 static struct {
+    /* The one-shot mod keys that are down. */
+    uint8_t held;
     /*
      * The held one-shot mod key that can still become a tap: no other key has
      * been pressed since its press, and the One Shot Term has not ended.
@@ -31,12 +35,35 @@ static struct {
      * consumed them, and are dropped once the report of that key is sent.
      */
     uint8_t applied;
+    /* The number of smart mod layer keys that are held, not tapped. */
+    uint8_t layer_keys_held;
+    /*
+     * Whether the smart mod layer is on. It is switched on when the first
+     * smart mod layer key is held, and off as soon as all one-shot mod keys
+     * are up again, or else with the last smart mod layer key.
+     */
+    bool layer_on;
+    /*
+     * The held one-shot mod keys that latch on release: pressed on the smart
+     * mod layer, with no key typed since.
+     */
+    uint8_t latching;
+    /*
+     * Latched one-shot mods: registered, and kept so until the last smart mod
+     * layer key is released.
+     */
+    uint8_t latched;
 } state;
 
 void smart_mod_reset(void) {
-    state.tapping = 0;
-    state.pending = 0;
-    state.applied = 0;
+    state.held            = 0;
+    state.tapping         = 0;
+    state.pending         = 0;
+    state.applied         = 0;
+    state.layer_keys_held = 0;
+    state.layer_on        = false;
+    state.latching        = 0;
+    state.latched         = 0;
 }
 
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
@@ -79,27 +106,82 @@ static void consume_pending(void) {
     }
 }
 
+static void switch_layer_on(void) {
+    state.layer_on = true;
+    layer_on(smart_mod_layer());
+}
+
+static void switch_layer_off(void) {
+    if (state.layer_on) {
+        state.layer_on = false;
+        layer_off(smart_mod_layer());
+    }
+}
+
 static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
     if (record->event.pressed) {
         /* A one-shot mod key is an ordinary modifier while held. */
         register_mods(mods);
+        state.held |= mods;
         if (state.pending & mods) {
-            /* The same key again: cancel it. This press is never a tap. */
+            /*
+             * The same key again: cancel it. This press is never a tap, and
+             * it does not latch.
+             */
             state.pending &= ~mods;
             state.tapping = 0;
         } else {
             state.tapping       = mods;
             state.tapping_since = record->event.time;
-        }
-    } else {
-        unregister_mods(mods);
-        if (state.tapping == mods) {
-            state.tapping = 0;
-            if (TIMER_DIFF_16(record->event.time, state.tapping_since) < SMART_MOD_ONE_SHOT_TERM) {
-                state.pending |= mods;
-                state.pending_since = record->event.time;
+            if (state.layer_on) {
+                state.latching |= mods;
             }
         }
+    } else {
+        state.held &= ~mods;
+        if (state.latching & mods) {
+            /* Latch it: the modifier stays registered. */
+            state.latching &= ~mods;
+            state.latched |= mods;
+            state.tapping &= ~mods;
+        } else {
+            /* A latched one-shot mod cannot be released on its own. */
+            unregister_mods(mods & ~state.latched);
+            if (state.tapping == mods) {
+                state.tapping = 0;
+                if (TIMER_DIFF_16(record->event.time, state.tapping_since) < SMART_MOD_ONE_SHOT_TERM) {
+                    state.pending |= mods;
+                    state.pending_since = record->event.time;
+                }
+            }
+        }
+        if (!state.held) {
+            /* The one-shot mods are chosen. Back to the keys beneath. */
+            switch_layer_off();
+        }
+    }
+}
+
+/*
+ * A smart mod layer key that is held, not tapped. QMK does not get to see
+ * it: the smart mod layer is switched on and off here alone.
+ */
+static void process_held_layer_key(const keyrecord_t *record) {
+    if (record->event.pressed) {
+        if (state.layer_keys_held++ == 0) {
+            switch_layer_on();
+        }
+    } else if (state.layer_keys_held && --state.layer_keys_held == 0) {
+        /*
+         * The last one is released, and with it every latched one-shot mod.
+         * A one-shot mod key that is still down goes on as an ordinary
+         * modifier, or as a tap, outside the smart mod layer.
+         */
+        const uint8_t mods = state.latched;
+        state.latched      = 0;
+        state.latching     = 0;
+        switch_layer_off();
+        unregister_mods(mods & ~state.held);
     }
 }
 
@@ -130,10 +212,23 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
+    if (smart_mod_is_layer_key(keycode) && record->tap.count == 0) {
+        if (record->event.pressed) {
+            state.tapping = 0;
+        }
+        process_held_layer_key(record);
+        return false;
+    }
+
     if (record->event.pressed) {
         /* Another key in between: the held one-shot mod key is not a tap. */
         state.tapping = 0;
         if (!lets_pending_pass(keycode, record)) {
+            /*
+             * A key is typed: the one-shot mod keys that are held on the
+             * smart mod layer are ordinary modifiers that were used.
+             */
+            state.latching = 0;
             consume_pending();
         }
     }
