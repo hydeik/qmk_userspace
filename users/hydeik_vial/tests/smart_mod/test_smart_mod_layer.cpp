@@ -1160,3 +1160,32 @@ TEST_F(SmartModLayer, OneShotModOfAnotherLayerDoesNotLatchAfterTheSmartModLayerS
 
     expect_release_leaving_no_modifier(driver, smt_mod);
 }
+
+/*
+ * Item 13: when another key switches the smart mod layer off while the smart
+ * mod layer key is still held, a one-shot mod key of the layer that is on
+ * then follows the single one-shot mod rules: a tap becomes pending, not
+ * latched.
+ */
+TEST_F(SmartModLayer, OneShotModOfAnotherLayerDoesNotLatchAfterAnotherKeySwitchedTheSmartModLayerOff) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+
+    /* `TO(nav)` leaves no other layer on. */
+    EXPECT_NO_REPORT(driver);
+    tap(to_nav);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_silent_release(driver, spc_mod);
+
+    expect_tap_consuming(driver, nav_left, KC_LEFT, KC_LEFT_SHIFT);
+
+    expect_unmodified_tap(driver, nav_left, KC_LEFT);
+}

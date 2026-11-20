@@ -174,7 +174,11 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
         } else {
             state.tapping       = mods;
             state.tapping_since = record->event.time;
-            if (state.layer_on) {
+            /*
+             * Another key may have switched the smart mod layer off behind
+             * this module, so QMK is asked too.
+             */
+            if (state.layer_on && layer_state_is(smart_mod_layer())) {
                 state.latching |= mods;
                 if (!state.key_typed) {
                     state.window_open  = true;
