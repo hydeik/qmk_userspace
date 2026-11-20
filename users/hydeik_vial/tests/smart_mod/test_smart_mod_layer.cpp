@@ -522,3 +522,267 @@ TEST_F(SmartModLayer, SeveralKeyPressesAreAllShiftedAndNothingIsLeftAfterwards) 
 
     expect_unmodified_tap(driver, key_c, KC_C);
 }
+
+/*
+ * Item 7: if no key was typed and the smart mod layer key is released just
+ * before the release window ends, the latched one-shot mods become pending
+ * one-shot mods. The window is measured from the press of the one-shot mod
+ * key.
+ */
+TEST_F(SmartModLayer, ReleasedJustWithinTheReleaseWindowLatchedOneShotModsBecomePending) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_press_of_tap(SMART_MOD_LAYER_RELEASE_WINDOW - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    /* Released, not registered: a pending one-shot mod is invisible. */
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/* Item 7: released when the release window has ended, nothing remains. */
+TEST_F(SmartModLayer, ReleasedWhenTheReleaseWindowHasEndedNothingRemains) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_press_of_tap(SMART_MOD_LAYER_RELEASE_WINDOW);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 7: with several one-shot mods the release window is measured from the
+ * press of the last one-shot mod key. Just before it ends all of them become
+ * pending, also the one that was pressed earlier.
+ */
+TEST_F(SmartModLayer, ReleaseWindowIsMeasuredFromThePressOfTheLastOneShotModKey) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    one_shot_ctrl.press();
+    idle_for(SMART_MOD_LAYER_RELEASE_WINDOW / 2);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    tap(one_shot_shift);
+    one_shot_ctrl.release();
+    idle_until_after_press_of_tap(SMART_MOD_LAYER_RELEASE_WINDOW - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_B));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(key_b);
+    VERIFY_AND_CLEAR(driver);
+}
+
+/* Item 7: the same, released when that release window has ended. */
+TEST_F(SmartModLayer, ReleaseWindowOfTheLastOneShotModKeyEndsForAllOfThem) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    one_shot_ctrl.press();
+    idle_for(SMART_MOD_LAYER_RELEASE_WINDOW / 2);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    tap(one_shot_shift);
+    one_shot_ctrl.release();
+    idle_until_after_press_of_tap(SMART_MOD_LAYER_RELEASE_WINDOW);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 7: if a key was typed, nothing remains, although the smart mod layer
+ * key is released well within the release window.
+ */
+TEST_F(SmartModLayer, ReleasedAfterAKeyWasTypedNothingRemains) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    expect_tap_with_registered(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 7: a long hold of the smart mod layer key does not bring the release
+ * window back when the 16-bit time of the key events wraps around.
+ */
+TEST_F(SmartModLayer, ReleasedAfterTheKeyEventTimeWrappedAroundNothingRemains) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_press_of_tap(UINT16_MAX + 1 + SMART_MOD_LAYER_RELEASE_WINDOW / 2);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 7, with item 7 of the single one-shot mod rules: the one-shot mods
+ * that became pending time out like any other, counted from the release of
+ * the smart mod layer key. Just before the timeout ends they are still
+ * pending.
+ */
+TEST_F(SmartModLayer, OneShotModsMadePendingByTheReleaseAreStillPendingJustBeforeTheTimeout) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    EXPECT_NO_REPORT(driver);
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 2);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_SHIFT);
+}
+
+/* Item 7: the same, when the timeout has ended. */
+TEST_F(SmartModLayer, OneShotModsMadePendingByTheReleaseAreGoneAfterTheTimeout) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+    expect_release_leaving_no_modifier(driver, spc_mod);
+
+    EXPECT_NO_REPORT(driver);
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/****************************************************************************
+ * Pending one-shot mods and the smart mod layer key
+ ****************************************************************************/
+
+/*
+ * Item 8: holding a smart mod layer key does not latch one-shot mods that
+ * were already pending. They stay pending, invisible to the host, and are
+ * consumed by the next key.
+ */
+TEST_F(SmartModLayer, HoldingASmartModLayerKeyDoesNotLatchPendingOneShotMods) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    hold(driver, spc_mod);
+
+    expect_tap_consuming(driver, key_b, KC_B, KC_LEFT_CTRL);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+
+    expect_silent_release(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
+ * Item 8: a one-shot mod latched while another is pending does not latch the
+ * pending one either. The next key gets both, the key after it only the
+ * latched one.
+ */
+TEST_F(SmartModLayer, PendingOneShotModIsConsumedWhileAnotherIsLatched) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    hold(driver, spc_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    tap(key_b);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_with_registered(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    expect_release_leaving_no_modifier(driver, spc_mod);
+}
+
+/*
+ * Item 9: a pending one-shot mod is cancelled by holding a smart mod layer
+ * key and pressing the same one-shot mod key again. That press does not
+ * latch (item 6 of the single one-shot mod rules).
+ */
+TEST_F(SmartModLayer, PressingTheSameOneShotModOnTheSmartModLayerCancelsThePendingOne) {
+    TestDriver driver;
+    InSequence s;
+
+    tap(to_nav);
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(nav_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+    tap(to_base);
+
+    hold(driver, spc_mod);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+
+    expect_silent_release(driver, spc_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}

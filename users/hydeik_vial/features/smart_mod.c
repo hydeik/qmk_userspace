@@ -53,6 +53,14 @@ static struct {
      * layer key is released.
      */
     uint8_t latched;
+    /*
+     * Whether the release window is open: the latched one-shot mods become
+     * pending if the last smart mod layer key is released now. It opens at
+     * the press of a one-shot mod key on the smart mod layer, and closes
+     * when a key is typed or the window ends.
+     */
+    bool     window_open;
+    uint16_t window_since;
 } state;
 
 void smart_mod_reset(void) {
@@ -64,6 +72,7 @@ void smart_mod_reset(void) {
     state.layer_on        = false;
     state.latching        = 0;
     state.latched         = 0;
+    state.window_open     = false;
 }
 
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
@@ -83,6 +92,17 @@ static void drop_applied(void) {
 static void expire_tapping(void) {
     if (state.tapping && timer_elapsed(state.tapping_since) >= SMART_MOD_ONE_SHOT_TERM) {
         state.tapping = 0;
+    }
+}
+
+/*
+ * Close the release window if it has ended. As with the One Shot Term, the
+ * release of the smart mod layer key finds that out by itself only as long
+ * as the time of the key events has not wrapped around.
+ */
+static void expire_window(void) {
+    if (state.window_open && timer_elapsed(state.window_since) >= SMART_MOD_LAYER_RELEASE_WINDOW) {
+        state.window_open = false;
     }
 }
 
@@ -135,6 +155,8 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
             state.tapping_since = record->event.time;
             if (state.layer_on) {
                 state.latching |= mods;
+                state.window_open  = true;
+                state.window_since = record->event.time;
             }
         }
     } else {
@@ -182,6 +204,12 @@ static void process_held_layer_key(const keyrecord_t *record) {
         state.latching     = 0;
         switch_layer_off();
         unregister_mods(mods & ~state.held);
+        if (mods && state.window_open && TIMER_DIFF_16(record->event.time, state.window_since) < SMART_MOD_LAYER_RELEASE_WINDOW) {
+            /* No key was typed, and the release is quick: keep them. */
+            state.pending |= mods;
+            state.pending_since = record->event.time;
+        }
+        state.window_open = false;
     }
 }
 
@@ -228,7 +256,8 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
              * A key is typed: the one-shot mod keys that are held on the
              * smart mod layer are ordinary modifiers that were used.
              */
-            state.latching = 0;
+            state.latching    = 0;
+            state.window_open = false;
             consume_pending();
         }
     }
@@ -246,5 +275,6 @@ void smart_mod_housekeeping_task(void) {
      */
     drop_applied();
     expire_tapping();
+    expire_window();
     expire_pending();
 }
