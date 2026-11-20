@@ -18,7 +18,7 @@ A keymap family is a complete typing design that can be applied to more than one
 | Path | Contents |
 | --- | --- |
 | `users/hydeik/` | The `hydeik` keymap family: its layers, keycodes and behaviour. |
-| `users/hydeik_vial/` | The `hydeik_vial` keymap family. |
+| `users/hydeik_vial/` | The `hydeik_vial` keymap family. Its [unit tests](#unit-tests) are in `tests/`. |
 | `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), and one layout adapter per keyboard (`keyboards/`). |
 | `keyboards/<keyboard>/keymaps/<keymap family>/` | One keymap: a keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
@@ -47,7 +47,7 @@ This is the official build route. Every push is built by `.github/workflows/buil
 1. Push your changes to GitHub (any branch), or start the workflow manually from the Actions tab.
 1. Wait for the actions run to complete.
 1. Download the firmware:
-    * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded, so a failed build never removes previously published firmware.
+    * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded and the [unit tests](#unit-tests) passed, so a failed build or a failed test never removes previously published firmware.
     * From the `firmware-<keymap family>` artifacts of the actions run (`firmware-hydeik` and `firmware-hydeik_vial`), for other branches.
 
 The workflow fails if any build target in `qmk.json` has a keymap name with no entry in `firmware_sources.json`.
@@ -93,6 +93,20 @@ The toolchain is not managed by this repository. Install the QMK CLI and compile
     The keymap name selects the firmware checkout, and the target is handed to that firmware source's own `make` with `QMK_USERSPACE` set to this repository. The build stops with a message to run `make firmware` if the checkout or one of its submodules is missing or not at its pinned commit.
 
 Building with `qmk compile` or `qmk flash` is not supported: they build against the single firmware checkout the QMK CLI is configured with, which cannot serve two firmware sources, and nothing checks the pin.
+
+## Unit tests
+
+The `hydeik_vial` keymap family has unit tests for its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which will hold its one-shot mods and its smart mod layer. They drive key events through QMK's unit-test framework and check the keyboard reports sent to the host. Run them with:
+
+```
+make test
+```
+
+This needs the firmware checkout of `hydeik_vial` from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a firmware toolchain. Like a build, it stops with a message to run `make firmware` if the checkout is missing or not at its pinned commit. It fails if any test fails.
+
+Each directory `users/hydeik_vial/tests/<test>/` with a `test.mk` is one test binary, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial, so with QMK's stock tap-hold behaviour, and their `config.h` mirrors the settings of `users/hydeik_vial/config.h` by hand.
+
+CI runs the same `make test` in the `Test` job of the workflow.
 
 ## License
 
