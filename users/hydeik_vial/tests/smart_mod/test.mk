@@ -15,3 +15,6 @@ VPATH += /
 VPATH += $(abspath $(TEST_PATH)/../../features)
 
 SRC += smart_mod.c test_glue.c
+
+# Features of users/hydeik_common/common.mk that the scenarios depend on.
+LAYER_LOCK_ENABLE = yes

@@ -6,6 +6,7 @@
 #include "smart_mod.h"
 
 #include "action_util.h"
+#include "quantum_keycodes.h"
 #include "timer.h"
 
 /*
@@ -69,6 +70,22 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
     }
 }
 
+/*
+ * Whether the press in `record` leaves the pending one-shot mods alone: the
+ * key is an ordinary modifier or only switches layers. Every other key press
+ * consumes them. One-shot mod keys never get here.
+ */
+static bool lets_pending_pass(uint16_t keycode, const keyrecord_t *record) {
+    if (IS_MODIFIER_KEYCODE(keycode) || keycode == QK_LAYER_LOCK) {
+        return true;
+    }
+    if (IS_QK_MOD_TAP(keycode) || IS_QK_LAYER_TAP(keycode)) {
+        /* Held, not tapped. */
+        return record->tap.count == 0;
+    }
+    return IS_QK_TO(keycode) || IS_QK_MOMENTARY(keycode) || IS_QK_LAYER_MOD(keycode) || IS_QK_DEF_LAYER(keycode) || IS_QK_PERSISTENT_DEF_LAYER(keycode) || IS_QK_TOGGLE_LAYER(keycode) || IS_QK_ONE_SHOT_LAYER(keycode) || IS_QK_LAYER_TAP_TOGGLE(keycode);
+}
+
 bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     const uint8_t mods = smart_mod_one_shot_mod_bits(keycode);
     if (mods) {
@@ -79,7 +96,9 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         /* Another key in between: the held one-shot mod key is not a tap. */
         state.tapping = 0;
-        consume_pending();
+        if (!lets_pending_pass(keycode, record)) {
+            consume_pending();
+        }
     }
     return true;
 }
