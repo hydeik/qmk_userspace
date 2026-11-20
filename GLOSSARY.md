@@ -25,7 +25,7 @@ One keyboard paired with one keymap, producing one firmware binary.
 
 **One-shot mod**:
 A modifier key of the `hydeik_vial` keymap family that acts as an ordinary modifier while held and, when tapped, applies to the next key press only.
-_Avoid_: OSM, sticky key, COS key
+_Avoid_: OSM, sticky key, COS key, QMK's built-in one-shot mods (a different mechanism)
 
 **Pending one-shot mod**:
 A one-shot mod that has been tapped and not yet consumed, cancelled, or timed out. The host does not see it until the key press that consumes it.
