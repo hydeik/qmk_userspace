@@ -22,6 +22,18 @@
 #include "action.h"
 
 /****************************************************************************
+ * Timing, in milliseconds. `config.h` can override each value.
+ ****************************************************************************/
+
+/*
+ * One Shot Term: a one-shot mod key becomes a pending one-shot mod only if it
+ * is released less than this long after its press.
+ */
+#ifndef SMART_MOD_ONE_SHOT_TERM
+#    define SMART_MOD_ONE_SHOT_TERM 200
+#endif
+
+/****************************************************************************
  * Told by the caller
  ****************************************************************************/
 
