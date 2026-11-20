@@ -498,6 +498,50 @@ TEST_F(SmartModLayer, LatchedOneShotModsOutliveTheSecondSmartModLayerKey) {
 }
 
 /*
+ * Item 6: only a smart mod layer key that was held counts as released. A
+ * smart mod layer key that is tapped and then pressed again repeats its tap;
+ * when another tap-hold key is pressed meanwhile, QMK ends that tap itself
+ * and reports the real release later as if the key had been held. That
+ * release must not stand in for the release of a held smart mod layer key.
+ */
+TEST_F(SmartModLayer, ReleaseOfARepeatedTapDoesNotCountAsTheReleaseOfAHeldSmartModLayerKey) {
+    TestDriver driver;
+    InSequence s;
+
+    hold(driver, smt_mod);
+    latch(driver, one_shot_shift, KC_LEFT_SHIFT);
+
+    expect_tap_with_registered(driver, spc_mod, KC_SPC, KC_LEFT_SHIFT);
+
+    /* Pressed again at once: the tap repeats. */
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_SPC));
+    spc_mod.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    /* QMK ends the repeated tap here. */
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    ent_mod.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    /* The real release, which QMK reports once `ENT_MOD` is held. */
+    EXPECT_NO_REPORT(driver);
+    spc_mod.release();
+    idle_for(TAPPING_TERM + 1);
+    VERIFY_AND_CLEAR(driver);
+
+    /* `SMT_MOD` is still held, and so the latched one-shot mod stays. */
+    expect_silent_release(driver, ent_mod);
+
+    expect_tap_with_registered(driver, key_b, KC_B, KC_LEFT_SHIFT);
+
+    expect_release_leaving_no_modifier(driver, smt_mod);
+
+    expect_unmodified_tap(driver, key_b, KC_B);
+}
+
+/*
  * Items 4, 6 and 7, smart mod layer key + Shift + several key presses: every
  * press is shifted, and nothing is left after the smart mod layer key is
  * released, however quickly: no report carries a modifier afterwards.
