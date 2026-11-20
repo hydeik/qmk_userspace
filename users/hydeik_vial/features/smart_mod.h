@@ -33,6 +33,15 @@
 #    define SMART_MOD_ONE_SHOT_TERM 200
 #endif
 
+/*
+ * Pending one-shot mods are all cleared once this long has passed since the
+ * last one-shot mod tap. The value matches ONESHOT_TIMEOUT of the common core
+ * on purpose.
+ */
+#ifndef SMART_MOD_ONE_SHOT_TIMEOUT
+#    define SMART_MOD_ONE_SHOT_TIMEOUT 2000
+#endif
+
 /****************************************************************************
  * Told by the caller
  ****************************************************************************/

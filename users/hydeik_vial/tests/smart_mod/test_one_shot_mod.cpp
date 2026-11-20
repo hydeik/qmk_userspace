@@ -45,6 +45,14 @@ class OneShotMod : public TestFixture {
         hold_for(key, 1);
     }
 
+    /*
+     * Right after `tap()`, let the time pass so that the next key event comes
+     * `ms` (at least 1) after the release of that tap.
+     */
+    void idle_until_after_tap(unsigned ms) {
+        idle_for(ms - 1);
+    }
+
     /* Tap `key`, which sends `code`, and expect that no modifier applies. */
     void expect_unmodified_tap(TestDriver& driver, KeymapKey& key, uint8_t code) {
         EXPECT_REPORT(driver, (code));
@@ -601,4 +609,146 @@ TEST_F(OneShotMod, SecondPressHeldIsAnOrdinaryModifier) {
     VERIFY_AND_CLEAR(driver);
 
     expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/*
+ * Named scenario "a tapped modifier is gone after the timeout".
+ * Item 7: the timeout clears a pending one-shot mod, and the host sees
+ * nothing of it. The letter comes exactly when the timeout ends.
+ */
+TEST_F(OneShotMod, TappedModifierIsGoneAfterTheTimeout) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/* Item 7: just before the timeout ends, the one-shot mod is still pending. */
+TEST_F(OneShotMod, TappedModifierIsStillPendingJustBeforeTheTimeout) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_a, KC_A, KC_LEFT_SHIFT);
+}
+
+/*
+ * Item 7: the timeout is counted from the last one-shot mod tap, for all
+ * pending one-shot mods. Just before it ends, the earlier one is still
+ * pending too, although its own tap is longer ago than the timeout.
+ */
+TEST_F(OneShotMod, TimeoutIsCountedFromTheLastOneShotModTap) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_ctrl  = KeymapKey(0, 0, 0, COS_LCTL);
+    auto       one_shot_shift = KeymapKey(0, 1, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 2, 0, KC_A);
+
+    set_keymap({one_shot_ctrl, one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT / 2);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT));
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL, KC_LEFT_SHIFT, KC_A));
+    EXPECT_REPORT(driver, (KC_A));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(key_a);
+    VERIFY_AND_CLEAR(driver);
+}
+
+/* Item 7: the timeout clears all pending one-shot mods at once. */
+TEST_F(OneShotMod, TimeoutClearsAllPendingOneShotMods) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_ctrl  = KeymapKey(0, 0, 0, COS_LCTL);
+    auto       one_shot_shift = KeymapKey(0, 1, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 2, 0, KC_A);
+
+    set_keymap({one_shot_ctrl, one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/*
+ * Item 7: a key that lets a pending one-shot mod pass (item 5) is not a
+ * one-shot mod tap, so it does not restart the timeout.
+ */
+TEST_F(OneShotMod, KeyThatDoesNotConsumeDoesNotRestartTheTimeout) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       to_layer_1     = KeymapKey(0, 1, 0, TO(1));
+    auto       to_layer_1_too = KeymapKey(1, 1, 0, TO(1));
+    auto       key_1          = KeymapKey(1, 2, 0, KC_1);
+
+    set_keymap({one_shot_shift, to_layer_1, to_layer_1_too, key_1});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_NO_REPORT(driver);
+    idle_until_after_tap(SMART_MOD_ONE_SHOT_TIMEOUT / 2);
+    tap(to_layer_1);
+    /* That tap took 2 ms. The next key event comes when the timeout ends. */
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - SMART_MOD_ONE_SHOT_TIMEOUT / 2 - 2);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_1, KC_1);
 }

@@ -20,8 +20,12 @@ static struct {
      */
     uint8_t  tapping;
     uint16_t tapping_since;
-    /* Pending one-shot mods: tapped, and not visible to the host. */
-    uint8_t pending;
+    /*
+     * Pending one-shot mods: tapped, and not visible to the host. They time
+     * out together, counted from the last one-shot mod tap.
+     */
+    uint8_t  pending;
+    uint16_t pending_since;
     /*
      * Pending one-shot mods that were registered for the key press that
      * consumed them, and are dropped once the report of that key is sent.
@@ -41,6 +45,13 @@ static void drop_applied(void) {
         const uint8_t mods = state.applied;
         state.applied      = 0;
         unregister_mods(mods);
+    }
+}
+
+/* Clear the pending one-shot mods if their timeout has ended. */
+static void expire_pending(void) {
+    if (state.pending && timer_elapsed(state.pending_since) >= SMART_MOD_ONE_SHOT_TIMEOUT) {
+        state.pending = 0;
     }
 }
 
@@ -71,6 +82,7 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
             state.tapping = 0;
             if (TIMER_DIFF_16(record->event.time, state.tapping_since) < SMART_MOD_ONE_SHOT_TERM) {
                 state.pending |= mods;
+                state.pending_since = record->event.time;
             }
         }
     }
@@ -94,6 +106,10 @@ static bool lets_pending_pass(uint16_t keycode, const keyrecord_t *record) {
 
 bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     const uint8_t mods = smart_mod_one_shot_mod_bits(keycode);
+
+    /* This key event may come before the elapsed-time hook notices. */
+    expire_pending();
+
     if (mods) {
         process_one_shot_mod_key(mods, record);
         return false;
@@ -113,4 +129,6 @@ void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record) {
     drop_applied();
 }
 
-void smart_mod_housekeeping_task(void) {}
+void smart_mod_housekeeping_task(void) {
+    expire_pending();
+}
