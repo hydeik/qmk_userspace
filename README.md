@@ -96,7 +96,7 @@ Building with `qmk compile` or `qmk flash` is not supported: they build against 
 
 ## Unit tests
 
-The `hydeik_vial` keymap family has unit tests for its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which will hold its one-shot mods and its smart mod layer. They drive key events through QMK's unit-test framework and check the keyboard reports sent to the host. Run them with:
+The `hydeik_vial` keymap family has unit tests for its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer. They drive key events through QMK's unit-test framework and check the keyboard reports sent to the host. Run them with:
 
 ```
 make test
