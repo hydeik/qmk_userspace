@@ -48,6 +48,17 @@ static void drop_applied(void) {
     }
 }
 
+/*
+ * End the tap of the held one-shot mod key if the One Shot Term has ended.
+ * The release finds that out too, but only as long as the 16-bit time of the
+ * key events has not wrapped around since the press.
+ */
+static void expire_tapping(void) {
+    if (state.tapping && timer_elapsed(state.tapping_since) >= SMART_MOD_ONE_SHOT_TERM) {
+        state.tapping = 0;
+    }
+}
+
 /* Clear the pending one-shot mods if their timeout has ended. */
 static void expire_pending(void) {
     if (state.pending && timer_elapsed(state.pending_since) >= SMART_MOD_ONE_SHOT_TIMEOUT) {
@@ -58,7 +69,11 @@ static void expire_pending(void) {
 /* Register the pending one-shot mods for the key press that consumes them. */
 static void consume_pending(void) {
     if (state.pending) {
-        state.applied = state.pending;
+        /*
+         * A modifier that a held key has registered already is that key's to
+         * release, so it is not among those dropped afterwards.
+         */
+        state.applied = state.pending & ~get_mods();
         state.pending = 0;
         register_mods(state.applied);
     }
@@ -130,5 +145,6 @@ void smart_mod_post_process_record(uint16_t keycode, keyrecord_t *record) {
 }
 
 void smart_mod_housekeeping_task(void) {
+    expire_tapping();
     expire_pending();
 }

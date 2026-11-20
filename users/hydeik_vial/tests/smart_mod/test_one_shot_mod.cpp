@@ -754,6 +754,66 @@ TEST_F(OneShotMod, KeyThatDoesNotConsumeDoesNotRestartTheTimeout) {
 }
 
 /*
+ * Items 1 and 4: dropping a consumed one-shot mod does not release the same
+ * modifier of an ordinary modifier key that is still held.
+ */
+TEST_F(OneShotMod, ConsumedOneShotModDoesNotReleaseAHeldOrdinaryModifier) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_shift      = KeymapKey(0, 1, 0, KC_LEFT_SHIFT);
+    auto       key_a          = KeymapKey(0, 2, 0, KC_A);
+    auto       key_b          = KeymapKey(0, 3, 0, KC_B);
+
+    set_keymap({one_shot_shift, key_shift, key_a, key_b});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    key_shift.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_A));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    tap(key_a);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    tap(key_b);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_EMPTY_REPORT(driver);
+    key_shift.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Item 2: a one-shot mod key held for so long that the 16-bit key event time
+ * has wrapped around is still not a tap.
+ */
+TEST_F(OneShotMod, ReleasedAfterTheKeyEventTimeWrappedAroundLeavesNothing) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    hold_for(one_shot_shift, UINT16_MAX + 2);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/*
  * Rolled keys. Item 4: Shift tap, `t` down, `h` down gives `Th`: the pending
  * Shift is dropped once the report of `t` has been sent, before `h` is.
  */
