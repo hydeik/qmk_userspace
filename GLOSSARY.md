@@ -30,3 +30,15 @@ _Avoid_: OSM, sticky key, COS key
 **Pending one-shot mod**:
 A one-shot mod that has been tapped and not yet consumed, cancelled, or timed out. The host does not see it until the key press that consumes it.
 _Avoid_: Queued mod, armed mod
+
+**Smart mod layer**:
+The layer of one-shot mods reached by holding a smart mod layer key. It switches itself off as soon as the chosen one-shot mods are released, so the keys beneath it can be typed with them.
+_Avoid_: MOD layer (as a concept name), one-shot mod layer
+
+**Smart mod layer key**:
+A thumb key that reaches the smart mod layer while held and keeps the chosen one-shot mods latched until it is released.
+_Avoid_: Layer key, mod key
+
+**Latched one-shot mod**:
+A one-shot mod chosen on the smart mod layer that stays active, visible to the host, for as long as a smart mod layer key is held.
+_Avoid_: Used mod, locked mod, sticky mod
