@@ -31,6 +31,25 @@ uint8_t smart_mod_one_shot_mod_bits(uint16_t keycode) {
     }
 }
 
+uint8_t smart_mod_layer(void) {
+    return TEST_LAYER_MOD;
+}
+
+bool smart_mod_is_layer_key(uint16_t keycode) {
+    switch (keycode) {
+        case SMT_MOD:
+        case SPC_MOD:
+        case ENT_MOD:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
+    return keycode == SMT_MOD;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return smart_mod_process_record(keycode, record);
 }
