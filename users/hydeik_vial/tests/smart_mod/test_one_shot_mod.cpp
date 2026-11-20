@@ -507,3 +507,98 @@ TEST_F(OneShotMod, CustomKeycodeConsumes) {
 
     expect_unmodified_tap(driver, key_a, KC_A);
 }
+
+/*
+ * Item 6: pressing the same one-shot mod key again cancels its pending
+ * one-shot mod, and that second press never becomes a one-shot, although it
+ * is released well within the One Shot Term.
+ */
+TEST_F(OneShotMod, PressingTheSameKeyAgainCancels) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+
+    set_keymap({one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}
+
+/* Item 6: the second press cancels that pending one-shot mod only. */
+TEST_F(OneShotMod, PressingTheSameKeyAgainKeepsTheOtherPendingOneShotMods) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_ctrl  = KeymapKey(0, 0, 0, COS_LCTL);
+    auto       one_shot_shift = KeymapKey(0, 1, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 2, 0, KC_A);
+
+    set_keymap({one_shot_ctrl, one_shot_shift, key_a});
+
+    EXPECT_REPORT(driver, (KC_LEFT_CTRL));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, key_a, KC_A, KC_LEFT_CTRL);
+}
+
+/*
+ * Item 6: held, the second press is an ordinary modifier, and it leaves
+ * nothing behind on release.
+ */
+TEST_F(OneShotMod, SecondPressHeldIsAnOrdinaryModifier) {
+    TestDriver driver;
+    InSequence s;
+    auto       one_shot_shift = KeymapKey(0, 0, 0, COS_LSFT);
+    auto       key_a          = KeymapKey(0, 1, 0, KC_A);
+    auto       key_b          = KeymapKey(0, 2, 0, KC_B);
+
+    set_keymap({one_shot_shift, key_a, key_b});
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(one_shot_shift);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    one_shot_shift.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_A));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    tap(key_a);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT, KC_B));
+    EXPECT_REPORT(driver, (KC_LEFT_SHIFT));
+    tap(key_b);
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_EMPTY_REPORT(driver);
+    one_shot_shift.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    expect_unmodified_tap(driver, key_a, KC_A);
+}

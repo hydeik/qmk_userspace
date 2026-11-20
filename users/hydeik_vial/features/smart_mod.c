@@ -57,8 +57,14 @@ static void process_one_shot_mod_key(uint8_t mods, const keyrecord_t *record) {
     if (record->event.pressed) {
         /* A one-shot mod key is an ordinary modifier while held. */
         register_mods(mods);
-        state.tapping       = mods;
-        state.tapping_since = record->event.time;
+        if (state.pending & mods) {
+            /* The same key again: cancel it. This press is never a tap. */
+            state.pending &= ~mods;
+            state.tapping = 0;
+        } else {
+            state.tapping       = mods;
+            state.tapping_since = record->event.time;
+        }
     } else {
         unregister_mods(mods);
         if (state.tapping == mods) {
