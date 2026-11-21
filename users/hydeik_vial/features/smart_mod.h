@@ -136,6 +136,13 @@ void smart_mod_housekeeping_task(void);
  ****************************************************************************/
 
 /*
+ * Return whether a smart mod layer key is held now, not tapped. It is so from
+ * the press that QMK reports as a hold until the release of the last held
+ * smart mod layer key, whether or not the smart mod layer is still on.
+ */
+bool smart_mod_is_layer_key_held(void);
+
+/*
  * Forget everything: the held keys and the pending and latched one-shot mods.
  * It sends no report and leaves the registered modifiers and the layers
  * alone.

@@ -11,7 +11,7 @@
  * layer from the grid plus its own four thumb keys, for example:
  *
  *     #define HOME_ROW_KEY(name) KC_##name
- *     #define SYM_LAYER SYM_GRID(HOME_ROW_KEY, TO(_NAV)), _______, _______, _______, KC_ESC
+ *     #define SYM_LAYER SYM_GRID(HOME_ROW_KEY, MO(_NAV)), _______, _______, _______, KC_ESC
  *
  * Grid parameters:
  *
