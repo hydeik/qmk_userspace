@@ -7,6 +7,7 @@
 # Common-core sources, named by their full path from the userspace root.
 SRC += users/hydeik_common/common.c
 SRC += users/hydeik_common/features/key_typed.c
+SRC += users/hydeik_common/features/target_layer.c
 
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes

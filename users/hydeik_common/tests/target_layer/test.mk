@@ -1,11 +1,12 @@
 # Copyright Hidekazu Ikeno <@hydeik>
 # SPDX-License-Identifier: GPL-2.0+
 
-# Unit test of the common core's Caps Word rule, on the unit-test frameworks
-# of both firmware sources. Run it with `make test` from the repository root.
+# Unit tests of the target_layer state machine, on the unit-test frameworks of
+# both firmware sources. Run them with `make test` from the repository root.
 #
-# It is the minimal test that proves a common-core test builds and passes on
-# both firmware sources. The test compiles the real common.c.
+# The test compiles the real target_layer.c, the real common.c for the Repeat
+# Key rule, and a test-only glue with a test-only table of entries. No keymap
+# family is part of the test build.
 
 # The firmware sources this test runs on, each named by the keymap family
 # that declares it in firmware_sources.json. `make test` reads this line
@@ -18,9 +19,11 @@ VPATH += /
 
 # Common-core sources are named by basename and found through VPATH.
 VPATH += $(abspath $(TEST_PATH)/../..)
+VPATH += $(abspath $(TEST_PATH)/../../features)
 
-SRC += common.c
+SRC += common.c target_layer.c test_glue.c
 
 # Features of users/hydeik_common/common.mk that the scenarios depend on.
 CAPS_WORD_ENABLE = yes
+LAYER_LOCK_ENABLE = yes
 REPEAT_KEY_ENABLE = yes

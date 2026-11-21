@@ -1,0 +1,40 @@
+/*
+ * Copyright Hidekazu Ikeno <@hydeik>
+ * SPDX-License-Identifier: GPL-2.0+
+ */
+
+/*
+ * Test-only glue between QMK and target_layer. It forwards the three QMK
+ * hooks to target_layer and defines a test-only table of entries, which is
+ * that of no keymap family.
+ *
+ * The table, with `MO(TEST_LAYER_NAV)` and `MO(TEST_LAYER_FUN)` as the
+ * trigger keys:
+ *
+ * | Holding key | Holding layer | Target layer | Quick release |
+ * | ----------- | ------------- | ------------ | ------------- |
+ * | `TAB_SYM`   | SYM           | NAV          | nothing       |
+ * | `ENT_NUM`   | NUM           | NAV          | nothing       |
+ * | `ENT_NUM`   | NUM           | FUN          | nothing       |
+ *
+ * So NAV has two holding keys, `ENT_NUM` is the holding key of two target
+ * layers, and `TAB_SYM` is no holding key of FUN.
+ */
+
+#pragma once
+
+#include "quantum_keycodes.h"
+
+/* The layers. */
+enum test_layer_t {
+    TEST_LAYER_BASE,
+    TEST_LAYER_SYM,
+    TEST_LAYER_NUM,
+    TEST_LAYER_NAV,
+    TEST_LAYER_FUN,
+    TEST_LAYER_COUNT,
+};
+
+/* The holding keys. */
+#define TAB_SYM LT(TEST_LAYER_SYM, KC_TAB)
+#define ENT_NUM LT(TEST_LAYER_NUM, KC_ENT)
