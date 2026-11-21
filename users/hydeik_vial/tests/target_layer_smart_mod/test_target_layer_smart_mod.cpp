@@ -33,6 +33,7 @@
 
 extern "C" {
 #include "caps_word.h"
+#include "keyboard.h"
 #include "layer_lock.h"
 #include "smart_mod.h"
 #include "test_glue.h"
@@ -131,6 +132,15 @@ class TargetLayerSmartMod : public TestFixture {
     void hold(KeymapKey &key) {
         key.press();
         idle_for(TAPPING_TERM + 1);
+    }
+
+    /*
+     * Run one scan loop that takes less than a millisecond: the time does
+     * not move on, as it does not in most scan loops of the firmware.
+     */
+    void scan_within_the_same_millisecond() {
+        keyboard_task();
+        housekeeping_task();
     }
 
     /* Release `key`. */
@@ -684,6 +694,52 @@ TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotTimeOutWhileASmartMo
     idle_for(20);
     expect_layers_on({});
     VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * The pending FUN does not end before one-shot mods that became pending at
+ * the release of a smart mod layer key: the timeout of FUN starts anew no
+ * earlier than theirs. Here Ctrl is latched and `SPC_MOD` released within
+ * the release window, and the key comes in the last millisecond before the
+ * pending Ctrl ends, after a scan loop that took less than that millisecond.
+ * It is the key of FUN with Ctrl, never a key of BASE with Ctrl.
+ */
+TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotEndBeforeOneShotModsMadePendingAtTheReleaseOfASmartModLayerKey) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    hold_silently(driver, spc_mod);
+    latch(driver, right_pinky, KC_RCTL);
+    let_go_leaving_no_modifier(driver, spc_mod);
+    expect_layers_on({TEST_LAYER_FUN});
+
+    /* One scan loop has passed since the release of `SPC_MOD`. */
+    EXPECT_NO_REPORT(driver);
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 2);
+    scan_within_the_same_millisecond();
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, left_middle, KC_F5, KC_RCTL);
+    expect_layers_on({});
+}
+
+/*
+ * The same at the very moment at which the pending Ctrl ends: the key is
+ * that of FUN without Ctrl, never a key of BASE with Ctrl.
+ */
+TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunIsStillOnWhenOneShotModsMadePendingAtTheReleaseOfASmartModLayerKeyEnd) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    hold_silently(driver, spc_mod);
+    latch(driver, right_pinky, KC_RCTL);
+    let_go_leaving_no_modifier(driver, spc_mod);
+
+    /* One scan loop has passed since the release of `SPC_MOD`. */
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+
+    expect_unmodified_tap(driver, left_middle, KC_F5);
+    expect_layers_on({});
 }
 
 /****************************************************************************

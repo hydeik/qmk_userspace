@@ -79,10 +79,13 @@ static struct {
     /*
      * While PHASE_PENDING: whether a typed key has used the pending target
      * layer, which is switched off once the report of that key is sent.
-     * Otherwise it times out, counted from `pending_since`. Both are
-     * written in other phases too, and set when the phase begins.
+     * Otherwise it times out, counted from `pending_since`, unless the
+     * caller suspends the timeout: `pending_suspended` tells that the last
+     * scan loop found it suspended. They are written in other phases too,
+     * and set when the phase begins.
      */
     bool     pending_used;
+    bool     pending_suspended;
     uint16_t pending_since;
     /*
      * The locked target layers, one bit per layer: the target layers that
@@ -276,9 +279,10 @@ static void trigger_pressed(uint8_t layer, uint16_t time) {
  * at the key-event time `time` of the release of that holding key.
  */
 static void make_pending(uint16_t time) {
-    state.phase         = PHASE_PENDING;
-    state.pending_used  = false;
-    state.pending_since = time;
+    state.phase             = PHASE_PENDING;
+    state.pending_used      = false;
+    state.pending_suspended = false;
+    state.pending_since     = time;
 }
 
 /*
@@ -293,15 +297,20 @@ static void switch_off_used(void) {
 
 /*
  * Switch off the pending target layer if its timeout has ended. While the
- * caller suspends the timeout, it does not run at all: it starts anew when
- * the suspension ends.
+ * caller suspends the timeout, it does not run at all. It starts anew in the
+ * first scan loop that finds the suspension ended, and so no earlier than a
+ * timeout that the caller started at the key event that ended the
+ * suspension.
  */
 static void expire_pending(void) {
     if (state.phase != PHASE_PENDING) {
         return;
     }
     if (target_layer_is_pending_timeout_suspended()) {
-        state.pending_since = timer_read();
+        state.pending_suspended = true;
+    } else if (state.pending_suspended) {
+        state.pending_suspended = false;
+        state.pending_since     = timer_read();
     } else if (timer_elapsed(state.pending_since) >= TARGET_LAYER_PENDING_TIMEOUT) {
         switch_off();
     }

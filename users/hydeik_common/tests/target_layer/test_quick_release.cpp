@@ -679,7 +679,7 @@ TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerIsStillOnWh
 /*
  * Rule 15 as amended by issue #41: a pending target layer does not time out
  * while the caller says that its timeout is suspended. The timeout starts
- * anew when the suspension ends.
+ * anew in the first scan loop that finds the suspension ended.
  */
 TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerDoesNotTimeOutWhileSuspended) {
     TestDriver driver;
@@ -692,7 +692,7 @@ TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerDoesNotTime
     expect_layers_on({TEST_LAYER_PEN});
 
     test_pending_timeout_suspended = false;
-    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 1);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
     expect_layers_on({TEST_LAYER_PEN});
 
     run_one_scan_loop();
