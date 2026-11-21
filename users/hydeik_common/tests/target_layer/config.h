@@ -18,3 +18,10 @@
  * becomes a hold only once the tapping term has passed.
  */
 #define TAPPING_TERM 200
+
+/*
+ * Mirror the value of users/hydeik_common/common_config.h that the behaviour
+ * under test depends on: how long a one-shot mod of QMK's own `OSM()` keys
+ * stays pending. Keep it in sync by hand.
+ */
+#define ONESHOT_TIMEOUT 2000

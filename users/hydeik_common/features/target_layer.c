@@ -50,8 +50,8 @@ typedef struct {
     uint16_t keycode;
     keypos_t position;
     /*
-     * Whether this key is a holding key of the activation: it was held when
-     * the trigger key switched the target layer on, and keeps it on.
+     * Whether this key keeps the target layer on: it is one of its holding
+     * keys and was held when the trigger key switched the target layer on.
      */
     bool keeps_target_layer_on;
 } held_holding_key_t;
@@ -79,10 +79,13 @@ static struct {
     /*
      * While PHASE_PENDING: whether a typed key has used the pending target
      * layer, which is switched off once the report of that key is sent.
-     * Otherwise it times out, counted from `pending_since`. Both are
-     * written in other phases too, and set when the phase begins.
+     * Otherwise it times out, counted from `pending_since`, unless the
+     * caller suspends the timeout: `pending_suspended` tells that the last
+     * scan loop found it suspended. They are written in other phases too,
+     * and set when the phase begins.
      */
     bool     pending_used;
+    bool     pending_suspended;
     uint16_t pending_since;
     /*
      * The locked target layers, one bit per layer: the target layers that
@@ -229,8 +232,8 @@ static void sync_with_layer_lock(void) {
 
 /*
  * Switch the target layer `layer` on, for a trigger key pressed at the
- * key-event time `time`. The holding keys of `layer` that are held now are
- * the holding keys of this activation.
+ * key-event time `time`. The holding keys of `layer` that are held now keep
+ * it on.
  */
 static void switch_on(uint8_t layer, uint16_t time) {
     for (uint8_t i = 0; i < state.holding_keys_held; i++) {
@@ -276,9 +279,10 @@ static void trigger_pressed(uint8_t layer, uint16_t time) {
  * at the key-event time `time` of the release of that holding key.
  */
 static void make_pending(uint16_t time) {
-    state.phase         = PHASE_PENDING;
-    state.pending_used  = false;
-    state.pending_since = time;
+    state.phase             = PHASE_PENDING;
+    state.pending_used      = false;
+    state.pending_suspended = false;
+    state.pending_since     = time;
 }
 
 /*
@@ -293,15 +297,20 @@ static void switch_off_used(void) {
 
 /*
  * Switch off the pending target layer if its timeout has ended. While the
- * caller suspends the timeout, it does not run at all: it starts anew when
- * the suspension ends.
+ * caller suspends the timeout, it does not run at all. It starts anew in the
+ * first scan loop that finds the suspension ended, and so no earlier than a
+ * timeout that the caller started at the key event that ended the
+ * suspension.
  */
 static void expire_pending(void) {
     if (state.phase != PHASE_PENDING) {
         return;
     }
     if (target_layer_is_pending_timeout_suspended()) {
-        state.pending_since = timer_read();
+        state.pending_suspended = true;
+    } else if (state.pending_suspended) {
+        state.pending_suspended = false;
+        state.pending_since     = timer_read();
     } else if (timer_elapsed(state.pending_since) >= TARGET_LAYER_PENDING_TIMEOUT) {
         switch_off();
     }
@@ -360,9 +369,9 @@ static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t t
         }
     }
     /*
-     * The last holding key of the activation is up. If its release is quick,
-     * the entry of this holding key says what becomes of the target layer;
-     * it kept the target layer on, so it has such an entry.
+     * The last holding key that kept the target layer on is up. If this is
+     * a quick release, the entry of this holding key says what becomes of
+     * the target layer; it kept the target layer on, so it has such an entry.
      */
     uint8_t quick_release = TARGET_LAYER_QUICK_RELEASE_NOTHING;
     if (state.release_is_quick && TIMER_DIFF_16(time, state.trigger_pressed_at) < TARGET_LAYER_ONE_SHOT_TERM) {
@@ -382,16 +391,20 @@ static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t t
 }
 
 /*
- * A key that is neither a trigger key nor a held holding key was pressed.
+ * The key event of a key that is neither a trigger key nor a held holding
+ * key.
  */
-static void other_key_pressed(uint16_t keycode, const keyrecord_t *record) {
+static void other_key_event(uint16_t keycode, const keyrecord_t *record) {
     if (target_layer_is_one_shot_mod_key(keycode, record)) {
         /*
          * Not a typed key. The timeout of a pending target layer starts
-         * anew, so that it does not end before the pending one-shot mod.
+         * anew at its press and at its release, so that it does not end
+         * before the pending one-shot mod. It counts from now, not from the
+         * time of the key event: QMK may hand over the press of a tap only
+         * at its release, and its own one-shot mods count from then.
          */
-        state.pending_since = record->event.time;
-    } else if (is_key_typed(keycode, record)) {
+        state.pending_since = timer_read();
+    } else if (record->event.pressed && is_key_typed(keycode, record)) {
         /*
          * A key is typed: the release of the holding key is not quick any
          * more, and a pending target layer is used.
@@ -421,9 +434,7 @@ bool target_layer_process_record(uint16_t keycode, keyrecord_t *record) {
         }
         /* Tapped, it is a typed key like any other. */
     }
-    if (record->event.pressed) {
-        other_key_pressed(keycode, record);
-    }
+    other_key_event(keycode, record);
     return true;
 }
 

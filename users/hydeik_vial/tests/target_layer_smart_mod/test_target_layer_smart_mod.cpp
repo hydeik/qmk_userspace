@@ -33,6 +33,7 @@
 
 extern "C" {
 #include "caps_word.h"
+#include "keyboard.h"
 #include "layer_lock.h"
 #include "smart_mod.h"
 #include "test_glue.h"
@@ -131,6 +132,15 @@ class TargetLayerSmartMod : public TestFixture {
     void hold(KeymapKey &key) {
         key.press();
         idle_for(TAPPING_TERM + 1);
+    }
+
+    /*
+     * Run one scan loop that takes less than a millisecond: the time does
+     * not move on, as it does not in most scan loops of the firmware.
+     */
+    void scan_within_the_same_millisecond() {
+        keyboard_task();
+        housekeeping_task();
     }
 
     /* Release `key`. */
@@ -686,6 +696,52 @@ TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotTimeOutWhileASmartMo
     VERIFY_AND_CLEAR(driver);
 }
 
+/*
+ * The pending FUN does not end before one-shot mods that became pending at
+ * the release of a smart mod layer key: the timeout of FUN starts anew no
+ * earlier than theirs. Here Ctrl is latched and `SPC_MOD` released within
+ * the release window, and the key comes in the last millisecond before the
+ * pending Ctrl ends, after a scan loop that took less than that millisecond.
+ * It is the key of FUN with Ctrl, never a key of BASE with Ctrl.
+ */
+TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotEndBeforeOneShotModsMadePendingAtTheReleaseOfASmartModLayerKey) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    hold_silently(driver, spc_mod);
+    latch(driver, right_pinky, KC_RCTL);
+    let_go_leaving_no_modifier(driver, spc_mod);
+    expect_layers_on({TEST_LAYER_FUN});
+
+    /* One scan loop has passed since the release of `SPC_MOD`. */
+    EXPECT_NO_REPORT(driver);
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 2);
+    scan_within_the_same_millisecond();
+    VERIFY_AND_CLEAR(driver);
+
+    expect_tap_consuming(driver, left_middle, KC_F5, KC_RCTL);
+    expect_layers_on({});
+}
+
+/*
+ * The same at the very moment at which the pending Ctrl ends: the key is
+ * that of FUN without Ctrl, never a key of BASE with Ctrl.
+ */
+TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunIsStillOnWhenOneShotModsMadePendingAtTheReleaseOfASmartModLayerKeyEnd) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    hold_silently(driver, spc_mod);
+    latch(driver, right_pinky, KC_RCTL);
+    let_go_leaving_no_modifier(driver, spc_mod);
+
+    /* One scan loop has passed since the release of `SPC_MOD`. */
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 1);
+
+    expect_unmodified_tap(driver, left_middle, KC_F5);
+    expect_layers_on({});
+}
+
 /****************************************************************************
  * Issue #41: the smart mod layer above a target layer
  ****************************************************************************/
@@ -857,11 +913,12 @@ TEST_F(TargetLayerSmartMod, Issue41_Order3_KeyRolledOverTheOneThatUsedBothUpIsAP
 }
 
 /*
- * Requirement 4. A tap of `SMT_MOD` on a pending FUN starts both timeouts at
- * the same moment, so they end together. Up to the last moment before, the
- * key is that of FUN with Shift.
+ * Requirement 4. A tap of `SMT_MOD` on a pending FUN starts both timeouts:
+ * that of the pending Shift at its press, and that of FUN anew at its
+ * release, here one scan loop later. Up to the last moment before the
+ * pending Shift ends, the key is that of FUN with Shift.
  */
-TEST_F(TargetLayerSmartMod, Issue41_Order4_JustBeforeBothTimeoutsEndTheKeyIsThatOfFunWithTheOneShotMod) {
+TEST_F(TargetLayerSmartMod, Issue41_Order4_JustBeforeThePendingOneShotModEndsTheKeyIsThatOfFunWithIt) {
     TestDriver driver;
 
     leave_fun_pending(driver);
@@ -874,12 +931,11 @@ TEST_F(TargetLayerSmartMod, Issue41_Order4_JustBeforeBothTimeoutsEndTheKeyIsThat
 }
 
 /*
- * Requirement 4. A key pressed at the very moment at which both timeouts end
- * finds the pending one-shot mod ended and the pending target layer not
- * ended before it: it is the key of FUN without Shift, never a key of BASE
- * with Shift.
+ * Requirement 4. A key pressed at the very moment at which the pending
+ * one-shot mod ends finds the pending target layer not ended before it: it is
+ * the key of FUN without Shift, never a key of BASE with Shift.
  */
-TEST_F(TargetLayerSmartMod, Issue41_Order4_WhenBothTimeoutsEndTogetherThePendingFunDoesNotEndBeforeThePendingOneShotMod) {
+TEST_F(TargetLayerSmartMod, Issue41_Order4_WhenThePendingOneShotModEndsThePendingFunHasNotEndedBeforeIt) {
     TestDriver driver;
 
     leave_fun_pending(driver);
@@ -891,35 +947,52 @@ TEST_F(TargetLayerSmartMod, Issue41_Order4_WhenBothTimeoutsEndTogetherThePending
     expect_layers_on({});
 }
 
+/*
+ * Requirement 4. The release of a tapped one-shot mod key starts both
+ * timeouts at the same moment, so they end together. A key pressed at that
+ * very moment finds the pending one-shot mod ended and the pending target
+ * layer not ended before it: it is the key of FUN without Ctrl, never a key
+ * of BASE with Ctrl.
+ */
+TEST_F(TargetLayerSmartMod, Issue41_Order4_WhenBothTimeoutsEndTogetherThePendingFunDoesNotEndBeforeThePendingOneShotMod) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    tap_one_shot_mod_key(driver, right_pinky, KC_RCTL);
+    /* One scan loop has passed since the release of that tap. */
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 1);
+
+    expect_unmodified_tap(driver, left_middle, KC_F5);
+    expect_layers_on({});
+}
+
 /* Requirement 4. Once both timeouts have ended, nothing of either is left. */
 TEST_F(TargetLayerSmartMod, Issue41_Order4_AfterBothTimeoutsEndedTheKeyIsAPlainKeyOfBase) {
     TestDriver driver;
 
     leave_fun_pending(driver);
     tap_silently(driver, smt_mod);
-    /* Two scan loops have passed since the press of that tap. */
-    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 1);
+    /* One scan loop has passed since the release of that tap. */
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
     expect_layers_on({});
 
     expect_unmodified_tap(driver, left_middle, KC_C);
 }
 
 /****************************************************************************
- * Issue #41: a gap that is open
+ * Issue #41: rule 15 amended again, a one-shot mod key that is tapped slowly
  ****************************************************************************/
 
 /*
- * Disabled, because it fails: it shows a gap between the amended rule 15 and
- * what the rule is for, which is to be decided before it is closed.
- *
- * The press of a one-shot mod key restarts the timeout of a pending target
- * layer, but the timeout of the pending one-shot mod counts from the release
- * of that tap, up to a One Shot Term later. So FUN ends that much before the
- * pending one-shot mod, and a key pressed in between is a key of BASE with
- * the modifier, which the amendment set out to rule out. Here the tap takes
- * 150 ms, and the key comes 50 ms before the pending one-shot mod ends.
+ * The release of a one-shot mod key restarts the timeout of a pending target
+ * layer too. The timeout of the pending one-shot mod counts from the release
+ * of its tap, up to a One Shot Term after the press, so a timeout of FUN
+ * counted from the press would end FUN that much before the pending one-shot
+ * mod, and a key pressed in between would be a key of BASE with the
+ * modifier. Here the tap takes 150 ms, and the key comes 50 ms before the
+ * pending one-shot mod ends.
  */
-TEST_F(TargetLayerSmartMod, DISABLED_Issue41_Rule15_PendingFunDoesNotEndBeforeAOneShotModThatWasTappedSlowly) {
+TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotEndBeforeAOneShotModThatWasTappedSlowly) {
     TestDriver driver;
 
     leave_fun_pending(driver);

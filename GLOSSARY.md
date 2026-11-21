@@ -24,12 +24,16 @@ _Avoid_: Firmware, backend, fork
 One keyboard paired with one keymap, producing one firmware binary.
 
 **One-shot mod**:
-A modifier key of the `hydeik_vial` keymap family that acts as an ordinary modifier while held and, when tapped, applies to the next key press only.
-_Avoid_: OSM, sticky key, COS key, QMK's built-in one-shot mods (a different mechanism)
+A modifier key that acts as an ordinary modifier while held and, when tapped, applies to the next key press only. It means the same in both keymap families, although each provides it in its own way.
+_Avoid_: OSM, sticky key, COS key, one-shot modifier
 
 **Pending one-shot mod**:
 A one-shot mod that has been tapped and not yet consumed, cancelled, or timed out. The host does not see it until the key press that consumes it.
 _Avoid_: Queued mod, armed mod
+
+**One Shot Term**:
+The short time within which a one-shot gesture has to be finished. A one-shot mod key released within it was tapped, and a holding key released within it, counted from the press of the trigger key, was released quickly.
+_Avoid_: Tapping term (QMK's tap-hold setting), timeout (how long a pending one-shot mod or a pending target layer lasts)
 
 **Smart mod layer**:
 The layer of one-shot mods reached by holding a smart mod layer key. It switches itself off as soon as the chosen one-shot mods are released, so the keys beneath it can be typed with them.
@@ -58,6 +62,10 @@ _Avoid_: Layer switch key, `TO` key
 **Target layer**:
 The layer that a trigger key switches to. It stays on for as long as the holding key is held.
 _Avoid_: Tertiary layer
+
+**Quick release**:
+The release of the last held holding key within the One Shot Term after the press of the trigger key, with no key typed in between. It can leave the target layer pending or locked instead of switching it off.
+_Avoid_: Tap (of a holding key), fast release
 
 **Pending target layer**:
 A target layer left on after its holding key was released quickly, with no key typed. It applies to the next key press only.
