@@ -54,7 +54,7 @@ using testing::InSequence;
  * the time by 1 ms. `press()` / `release()` take effect in the next scan loop.
  */
 class TargetLayerQuickRelease : public TestFixture {
-  public:
+   public:
     static constexpr uint8_t COLUMNS = 10;
 
     KeymapKey key_tab_sym{TEST_LAYER_BASE, 0, 0, TAB_SYM};
@@ -74,10 +74,10 @@ class TargetLayerQuickRelease : public TestFixture {
         target_layer_reset();
         test_pending_timeout_suspended = false;
 
-        for (const KeymapKey& key : {key_tab_sym, key_ent_num, key_lck, key_typed, key_typed_next, key_pen, key_layer_lock, key_one_shot_ctrl, key_shift, key_fun}) {
+        for (const KeymapKey &key : {key_tab_sym, key_ent_num, key_lck, key_typed, key_typed_next, key_pen, key_layer_lock, key_one_shot_ctrl, key_shift, key_fun}) {
             add_key(key);
         }
-        for (const KeymapKey& key : {
+        for (const KeymapKey &key : {
                  KeymapKey{TEST_LAYER_SYM, 2, 0, MO(TEST_LAYER_LCK)},
                  KeymapKey{TEST_LAYER_SYM, 3, 0, KC_1},
                  KeymapKey{TEST_LAYER_SYM, 5, 0, MO(TEST_LAYER_PEN)},
@@ -107,19 +107,19 @@ class TargetLayerQuickRelease : public TestFixture {
     }
 
     /* Press `key` and keep it down until QMK has made it a hold. */
-    void hold(KeymapKey& key) {
+    void hold(KeymapKey &key) {
         key.press();
         idle_for(TAPPING_TERM + 1);
     }
 
     /* Release `key`. */
-    void let_go(KeymapKey& key) {
+    void let_go(KeymapKey &key) {
         key.release();
         run_one_scan_loop();
     }
 
     /* Press `key`, and release it 1 ms later. */
-    void tap(KeymapKey& key) {
+    void tap(KeymapKey &key) {
         key.press();
         run_one_scan_loop();
         key.release();
@@ -130,14 +130,14 @@ class TargetLayerQuickRelease : public TestFixture {
      * Tap the trigger key `trigger`, then release the holding key `holding`
      * `ms` after the press of the trigger key. `ms` is at least 2.
      */
-    void tap_and_let_go_after(KeymapKey& trigger, KeymapKey& holding, uint16_t ms) {
+    void tap_and_let_go_after(KeymapKey &trigger, KeymapKey &holding, uint16_t ms) {
         tap(trigger);
         idle_for(ms - 2);
         let_go(holding);
     }
 
     /* The quick gesture: hold `holding`, tap `trigger`, release `holding`. */
-    void quick_gesture(KeymapKey& holding, KeymapKey& trigger) {
+    void quick_gesture(KeymapKey &holding, KeymapKey &trigger) {
         hold(holding);
         tap(trigger);
         let_go(holding);
@@ -153,7 +153,7 @@ class TargetLayerQuickRelease : public TestFixture {
     }
 
     /* Tap `key_typed` and expect that it sends `code`. */
-    void expect_typed(TestDriver& driver, uint8_t code) {
+    void expect_typed(TestDriver &driver, uint8_t code) {
         EXPECT_REPORT(driver, (code));
         EXPECT_EMPTY_REPORT(driver);
         tap(key_typed);

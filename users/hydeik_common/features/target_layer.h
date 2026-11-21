@@ -14,7 +14,23 @@
  * holding key of that activation is released; the trigger key may be released
  * at any time. Pressing the trigger key again switches the target layer off,
  * and the trigger key of another target layer replaces it: at most one target
- * layer is on at a time.
+ * layer is on at a time, besides the locked ones.
+ *
+ * A quick release of the last holding key, less than the One Shot Term after
+ * the press of the trigger key and with no key typed in between, does what
+ * the entry of that holding key says:
+ *
+ * - nothing: the target layer is switched off, as by any other release;
+ * - a pending target layer: it stays on for the next typed key only. Its
+ *   trigger key switches it off, holding any holding key ends it, and it
+ *   times out;
+ * - a locked target layer: it is locked as by the Layer Lock key, until its
+ *   trigger key or Layer Lock unlocks it.
+ *
+ * Layer Lock pressed on a target layer that is on through this module, held
+ * or pending, makes it a locked target layer too. A key typed is what
+ * `is_key_typed()` of the common core says, a tapped holding key and a mouse
+ * key included, except the one-shot mod keys that the caller tells.
  *
  * A trigger key is the ordinary keycode `MO(target layer)`. This module
  * intercepts `MO()` of every layer that the table lists as a target layer, so
@@ -27,12 +43,17 @@
  *
  * The module switches off only a target layer that it switched on itself. A
  * trigger key does nothing while its target layer is on for another reason,
- * Layer Lock included.
+ * which includes a Layer Lock that did not lock it while it was on through
+ * this module. A target layer should lie above its holding layers, as the
+ * Layer Lock key locks the highest layer that is on.
+ *
+ * Without Layer Lock in the build (`LAYER_LOCK_ENABLE`), a locked target
+ * layer is kept on by this module alone, and only its trigger key leaves it.
  *
  * The module knows no keymap, no keymap family and no firmware source, and
- * defines no QMK hook. Its caller defines the table of entries and forwards
- * three QMK hooks to it. common.mk adds it to the build of each keymap
- * family.
+ * defines no QMK hook. Its caller defines the table of entries and two
+ * functions that answer its questions, and forwards three QMK hooks to it.
+ * common.mk adds it to the build of each keymap family.
  */
 
 #pragma once
@@ -48,8 +69,7 @@
 
 /*
  * What a quick release of the holding key does to the target layer of an
- * entry. Not acted on yet: releasing the last holding key always switches
- * the target layer off.
+ * entry.
  */
 enum target_layer_quick_release_t {
     /* The target layer is switched off, as by any other release. */
@@ -68,7 +88,8 @@ enum target_layer_quick_release_t {
  *
  * `holding_key` is the keycode of the key, usually a layer-tap keycode
  * (`LT`). It must not be the trigger key of a target layer itself.
- * `quick_release` is a `target_layer_quick_release_t`.
+ * `quick_release` is a `target_layer_quick_release_t`. With several holding
+ * keys held, the entry of the one released last decides.
  */
 typedef struct {
     uint16_t holding_key;
@@ -126,21 +147,26 @@ bool target_layer_is_pending_timeout_suspended(void);
  ****************************************************************************/
 
 /*
- * Key-event hook. Call from `process_record_user`. Returns false if the key
- * event was handled here and must not be processed further: every press and
- * release of a trigger key.
+ * Key-event hook. Call from `process_record_user`, for every key event: also
+ * for those that another feature of the caller handles, such as its one-shot
+ * mod keys. Returns false if the key event was handled here and must be kept
+ * from QMK: every press and release of a trigger key.
  */
 bool target_layer_process_record(uint16_t keycode, keyrecord_t *record);
 
 /*
  * After-report hook. Call from `post_process_record_user`, that is, once the
- * reports of the key event have been sent to the host. It does nothing yet.
+ * reports of the key event have been sent to the host. It switches off the
+ * pending target layer that the key used.
  */
 void target_layer_post_process_record(uint16_t keycode, keyrecord_t *record);
 
 /*
  * Elapsed-time hook. Call from `housekeeping_task_user`, that is, in every
- * scan loop. It does nothing yet.
+ * scan loop. It ends the One Shot Term and the timeout of a pending target
+ * layer. A caller with pending one-shot mods of its own calls their
+ * elapsed-time hook first, so that a pending target layer does not end
+ * before them when both timeouts end in the same scan loop.
  */
 void target_layer_housekeeping_task(void);
 
@@ -149,8 +175,8 @@ void target_layer_housekeeping_task(void);
  ****************************************************************************/
 
 /*
- * Forget everything: the held holding keys and the target layer that is on.
- * It leaves the layers alone.
+ * Forget everything: the held holding keys, the target layer that is on and
+ * the locked target layers. It leaves the layers and Layer Lock alone.
  *
  * The state starts out empty, so the caller does not have to call this. The
  * unit tests do, so that no state leaks from one test into the next.
