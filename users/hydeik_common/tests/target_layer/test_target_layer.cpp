@@ -647,11 +647,11 @@ TEST_F(TargetLayer, Rule7_ReleasingTheHoldingKeyLongAfterTheTriggerPressSwitches
 }
 
 /*
- * An entry whose quick release does nothing: releasing the holding key right
- * after the trigger key, with no key typed, switches the target layer off as
- * any other release does.
+ * Rule 2: an entry can turn the pending target layer off. Its quick release
+ * does nothing then: releasing the holding key right after the trigger key,
+ * with no key typed, switches the target layer off as any other release does.
  */
-TEST_F(TargetLayer, QuickReleaseThatDoesNothingSwitchesTheTargetLayerOff) {
+TEST_F(TargetLayer, Rule2_QuickReleaseThatDoesNothingSwitchesTheTargetLayerOff) {
     TestDriver driver;
     EXPECT_NO_REPORT(driver);
 
