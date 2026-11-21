@@ -30,6 +30,10 @@ enum custom_keycodes {
     M_NOOP,
     TRG_MOU,
     TRG_FUN,
+    COS_LCTL,
+    COS_LSFT,
+    COS_LALT,
+    COS_LGUI,
 };
 
 enum keycode_aliases {

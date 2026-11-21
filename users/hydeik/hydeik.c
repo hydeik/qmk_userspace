@@ -2,6 +2,39 @@
 
 #include "hydeik.h"
 #include "split_probe.h"
+#include "users/hydeik_vial/features/smart_mod.h"
+
+/* Size proxy only: smart_mod wired in so that the linker keeps all of it. */
+uint8_t smart_mod_one_shot_mod_bits(uint16_t keycode) {
+    switch (keycode) {
+        case COS_LCTL:
+            return MOD_BIT_LCTRL;
+        case COS_LSFT:
+            return MOD_BIT_LSHIFT;
+        case COS_LALT:
+            return MOD_BIT_LALT;
+        case COS_LGUI:
+            return MOD_BIT_LGUI;
+        default:
+            return 0;
+    }
+}
+
+uint8_t smart_mod_layer(void) {
+    return _MOU;
+}
+
+bool smart_mod_is_layer_key(uint16_t keycode) {
+    return keycode == LT(_MOU, KC_F23) || keycode == LT(_MOU, KC_F24);
+}
+
+bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
+    return keycode == LT(_MOU, KC_F24);
+}
+
+void housekeeping_task_user(void) {
+    smart_mod_housekeeping_task();
+}
 
 const split_probe_entry_t split_probe_entries[] = {
     {NAV_SPC, TRG_MOU, _MOU},
@@ -235,6 +268,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (!split_probe_process_record(keycode, record)) {
         return false;
     }
+    if (!smart_mod_process_record(keycode, record)) {
+        return false;
+    }
     switch(keycode) {
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
@@ -278,4 +314,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     split_probe_post_process_record(keycode, record);
+    smart_mod_post_process_record(keycode, record);
 }
