@@ -4,8 +4,8 @@
  */
 
 /*
- * Glue between QMK and the two state machines of the hydeik_vial keymap
- * family:
+ * Glue between QMK and the features of the hydeik_vial keymap family. Two of
+ * them are state machines:
  *
  * - smart_mod, the one-shot mods and the smart mod layer
  *   (features/smart_mod.h describes the behaviour). This file tells it which
@@ -14,12 +14,20 @@
  *   layer.
  * - target_layer of the common core, the layer switching
  *   (users/hydeik_common/features/target_layer.h describes the behaviour).
- *   This file tells it the table of entries, which key presses are those of
+ *   This file tells it the table of entries, which key events are those of
  *   one-shot mod keys, and when the timeout of a pending target layer is
  *   suspended.
  *
- * This file forwards the three QMK hooks to both, in the order that their
- * interaction needs, and holds no behaviour of its own.
+ * The third feature is firmware_default, the firmware defaults of the Vial settings
+ * (features/firmware_default.h describes the behaviour).
+ *
+ * This file defines six QMK hooks. Three of them, `process_record_user`,
+ * `post_process_record_user` and `housekeeping_task_user`, go to both state
+ * machines, in the order that their interaction needs. The other three,
+ * `via_init_kb`, `eeconfig_init_user` and `keyboard_post_init_user`, go to
+ * firmware_default. The one behaviour of its own that this file holds is in
+ * `eeconfig_init_user`, which also does what the default of QMK does there:
+ * it clears the user settings in the EEPROM.
  *
  * The unit tests build this file in two ways:
  *
