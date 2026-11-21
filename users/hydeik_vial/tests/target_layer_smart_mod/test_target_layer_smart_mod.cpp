@@ -903,3 +903,37 @@ TEST_F(TargetLayerSmartMod, Issue41_Order4_AfterBothTimeoutsEndedTheKeyIsAPlainK
 
     expect_unmodified_tap(driver, left_middle, KC_C);
 }
+
+/****************************************************************************
+ * Issue #41: a gap that is open
+ ****************************************************************************/
+
+/*
+ * Disabled, because it fails: it shows a gap between the amended rule 15 and
+ * what the rule is for, which is to be decided before it is closed.
+ *
+ * The press of a one-shot mod key restarts the timeout of a pending target
+ * layer, but the timeout of the pending one-shot mod counts from the release
+ * of that tap, up to a One Shot Term later. So FUN ends that much before the
+ * pending one-shot mod, and a key pressed in between is a key of BASE with
+ * the modifier, which the amendment set out to rule out. Here the tap takes
+ * 150 ms, and the key comes 50 ms before the pending one-shot mod ends.
+ */
+TEST_F(TargetLayerSmartMod, DISABLED_Issue41_Rule15_PendingFunDoesNotEndBeforeAOneShotModThatWasTappedSlowly) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+
+    EXPECT_REPORT(driver, (KC_RCTL));
+    EXPECT_EMPTY_REPORT(driver);
+    right_pinky.press();
+    idle_for(150);
+    right_pinky.release();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    idle_for(SMART_MOD_ONE_SHOT_TIMEOUT - 50);
+    expect_layers_on({TEST_LAYER_FUN});
+
+    expect_tap_consuming(driver, left_middle, KC_F5, KC_RCTL);
+}
