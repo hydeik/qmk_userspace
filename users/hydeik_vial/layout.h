@@ -78,10 +78,11 @@ enum custom_keycode_t {
  * hydeik_vial.c.
  *
  * A target layer holds its own trigger key at the position of the trigger
- * key of its holding layer, so that the same key enters and leaves it.
+ * key of its holding layer, so that the same key enters and leaves it. The
+ * diagrams below show the trigger keys as `>NAV<` and `>FUN<`.
  */
-#define NAV_TRG  MO(_NAV)
-#define FUN_TRG  MO(_FUN)
+#define TRG_NAV  MO(_NAV)
+#define TRG_FUN  MO(_FUN)
 
 /****************************************************************************
  * Keymap blocks
@@ -124,13 +125,13 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | *       | (       | )       | :       | DEL     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | -NAV-   |
+ * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | >NAV<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | _SYM_   |         |   | MOD     | ESC     |
  *                               +---------+---------+   +---------+---------+
  */
 #define SYM_LAYER \
-    SYM_GRID(HOME_ROW_KEY, NAV_TRG), \
+    SYM_GRID(HOME_ROW_KEY, TRG_NAV), \
                                   _______,  _______,   _______,  KC_ESC
 
 /*
@@ -141,14 +142,14 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | 0       | 1       | 2       | 3       | DEL     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -FUN-   |
+ * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | >FUN<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | ESC     |         |   |         | _NUM_   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define NUM_LAYER \
-    NUM_GRID(HOME_ROW_KEY, FUN_TRG), \
+    NUM_GRID(HOME_ROW_KEY, TRG_FUN), \
                                   KC_ESC,   _______,   _______,  _______
 
 /*
@@ -159,7 +160,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | LEFT    | DOWN    | RGHT    | PGDN    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         |         |   | LLCK    |         |         |         | -NAV-   |
+ * |         |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
@@ -168,7 +169,7 @@ enum custom_keycode_t {
 #define NAV_LAYER \
     KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  \
     COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
-    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  NAV_TRG,  \
+    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV,  \
                                   _______,  _______,   _______,  _______
 
 /*
@@ -179,14 +180,14 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | -FUN-   |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | >FUN<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define FUN_LAYER \
-    FUN_GRID(ONESHOT_MOD, FUN_TRG), \
+    FUN_GRID(ONESHOT_MOD, TRG_FUN), \
                                   _______,  _______,   _______,  _______
 
 /*
