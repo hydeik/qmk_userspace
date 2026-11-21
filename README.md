@@ -19,7 +19,7 @@ A keymap family is a complete typing design that can be applied to more than one
 | --- | --- |
 | `users/hydeik/` | The `hydeik` keymap family: its layers, keycodes and behaviour. |
 | `users/hydeik_vial/` | The `hydeik_vial` keymap family. Its [unit tests](#unit-tests) are in `tests/`. |
-| `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), and one layout adapter per keyboard (`keyboards/`). |
+| `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), what counts as a key typed and the layer-switching state machine (`features/`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), one layout adapter per keyboard (`keyboards/`), and its [unit tests](#unit-tests) (`tests/`). |
 | `keyboards/<keyboard>/keymaps/<keymap family>/` | One keymap: a keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
 | `firmware_sources.json` | The firmware source of each keymap family, pinned to a commit. |
@@ -96,17 +96,30 @@ Building with `qmk compile` or `qmk flash` is not supported: they build against 
 
 ## Unit tests
 
-The `hydeik_vial` keymap family has unit tests for its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer. They drive key events through QMK's unit-test framework and check the keyboard reports sent to the host. Run them with:
+Unit tests drive key events through the unit-test framework of a firmware source and check the keyboard reports sent to the host. There are two kinds:
+
+* Tests of the common core, in `users/hydeik_common/tests/`: its `target_layer` state machine (`users/hydeik_common/features/target_layer.c`), which switches to a target layer. They run on the unit-test frameworks of both firmware sources, upstream QMK and vial-qmk.
+* Tests of the `hydeik_vial` keymap family, in `users/hydeik_vial/tests/`: its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer; `smart_mod` together with `target_layer`, wired as in the firmware and on the keymap of the family (`target_layer_smart_mod`); and the firmware defaults of its Vial settings (`firmware_default`). They run on vial-qmk only.
+
+Run them all with:
 
 ```
 make test
 ```
 
-This needs the firmware checkout of `hydeik_vial` from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a cross-compiler for the keyboard. The path of this repository must not contain spaces, which the test makefile of the firmware source cannot handle. Like a build, it stops with a message to run `make firmware` if the checkout is missing or not at its pinned commit. It fails if any test fails.
+This needs the firmware checkouts from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a cross-compiler for the keyboard. The path of this repository must not contain spaces, which the test makefile of the firmware source cannot handle. Like a build, it stops with a message to run `make firmware` if a firmware checkout it needs is missing or not at its pinned commit, before anything is built. It fails if any test fails, or if a test binary contains no test.
 
-Each directory `users/hydeik_vial/tests/<test>/` with a `test.mk` is one test binary, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial, so with QMK's stock tap-hold behaviour, and their `config.h` mirrors the settings of `users/hydeik_vial/config.h` by hand.
+Each directory `users/<owner>/tests/<test>/` with a `test.mk` is one test binary, where `<owner>` is a keymap family or `hydeik_common`, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial, so with QMK's stock tap-hold behaviour, and the `config.h` of a test mirrors the settings it depends on by hand. The one exception is `firmware_default`, which also compiles the module of vial-qmk that holds the Vial settings.
 
-CI runs the same `make test` in the `Test` job of the workflow.
+A test names the firmware sources it runs on with one line in its `test.mk`, each firmware source by the keymap family that declares it in `firmware_sources.json`:
+
+```
+TEST_FIRMWARE_SOURCES = hydeik hydeik_vial
+```
+
+`make test` reads that line as text, so it must be a single assignment of literal names. A test of a keymap family may leave it out, and then runs on the firmware source of that family. A test of the common core must have it.
+
+`make test FIRMWARE_SOURCE=hydeik` runs only the tests that run on the firmware source of that keymap family, and needs only that firmware checkout. CI runs the tests this way, once per firmware source, in the `Test` jobs of the workflow.
 
 ## License
 

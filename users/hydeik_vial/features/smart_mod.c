@@ -12,6 +12,8 @@
 #include "quantum_keycodes.h"
 #include "timer.h"
 
+#include "users/hydeik_common/features/key_typed.h"
+
 #ifdef CAPS_WORD_ENABLE
 #    include "caps_word.h"
 #endif
@@ -108,6 +110,10 @@ void smart_mod_reset(void) {
     state.key_typed                 = false;
     state.window_open               = false;
     state.shift_tapped              = false;
+}
+
+bool smart_mod_is_layer_key_held(void) {
+    return state.smart_mod_layer_keys_held != 0;
 }
 
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
@@ -330,22 +336,6 @@ static void process_shift_tap(uint16_t keycode, keyrecord_t *record, bool again)
     }
 }
 
-/*
- * Whether the press in `record` leaves the pending one-shot mods alone: the
- * key is an ordinary modifier or only switches layers. Every other key press
- * consumes them. One-shot mod keys never get here.
- */
-static bool lets_pending_pass(uint16_t keycode, const keyrecord_t *record) {
-    if (IS_MODIFIER_KEYCODE(keycode) || keycode == QK_LAYER_LOCK) {
-        return true;
-    }
-    if (IS_QK_MOD_TAP(keycode) || IS_QK_LAYER_TAP(keycode)) {
-        /* Held, not tapped. */
-        return record->tap.count == 0;
-    }
-    return IS_QK_TO(keycode) || IS_QK_MOMENTARY(keycode) || IS_QK_LAYER_MOD(keycode) || IS_QK_DEF_LAYER(keycode) || IS_QK_PERSISTENT_DEF_LAYER(keycode) || IS_QK_TOGGLE_LAYER(keycode) || IS_QK_ONE_SHOT_LAYER(keycode) || IS_QK_LAYER_TAP_TOGGLE(keycode);
-}
-
 bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
     const uint8_t mods = smart_mod_one_shot_mod_bits(keycode);
 
@@ -381,10 +371,12 @@ bool smart_mod_process_record(uint16_t keycode, keyrecord_t *record) {
         /* Tapped, it is the ordinary key of its layer-tap keycode. */
     }
 
-    if (record->event.pressed && !lets_pending_pass(keycode, record)) {
+    /* One-shot mod keys, which are not typed keys either, never get here. */
+    if (record->event.pressed && is_key_typed(keycode, record)) {
         /*
-         * A key is typed: the one-shot mod keys that are held on the smart
-         * mod layer are ordinary modifiers that were used.
+         * A key is typed. It consumes the pending one-shot mods, and the
+         * one-shot mod keys that are held on the smart mod layer are ordinary
+         * modifiers that were used.
          */
         state.latching    = 0;
         state.key_typed   = true;

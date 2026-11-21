@@ -15,22 +15,26 @@ concurrency:
 jobs:
   # Each keymap family declares its firmware source, pinned to a commit, in
   # firmware_sources.json. The build matrix has one entry per keymap family;
-  # this fails if a build target's keymap has no entry in that file.
+  # this fails if a build target's keymap has no entry in that file. The test
+  # matrix has one entry per firmware source that unit tests run on, named by
+  # its keymap family.
   firmware-sources:
     name: Read firmware sources
     runs-on: ubuntu-latest
 
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      test_matrix: ${{ steps.matrix.outputs.test_matrix }}
 
     steps:
       - name: Checkout userspace
         uses: actions/checkout@v6
 
-      - name: Build matrix from firmware_sources.json
+      - name: Build and test matrices from firmware_sources.json
         id: matrix
         run: |
           python3 .github/scripts/firmware_sources.py matrix >> "$GITHUB_OUTPUT"
+          python3 .github/scripts/firmware_sources.py test-matrix >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
   build:
@@ -107,40 +111,43 @@ jobs:
             *.hex
             *.uf2
 
-  # Runs the unit tests of the hydeik_vial keymap family with the same
-  # `make test` as a local run. The firmware source goes where `make firmware`
+  # Runs the unit tests once per firmware source, with the same `make test` as
+  # a local run, limited to the tests that run on that firmware source. A unit
+  # test names the firmware sources it runs on in its test.mk; a test of the
+  # common core runs on both. The firmware source goes where `make firmware`
   # puts it, at its pinned commit, so the Makefile's check of the checkout
   # passes. The tests are built natively; the container provides gcc and make,
   # as it does for the unit tests of the firmware source itself.
   test:
-    name: Test (hydeik_vial)
+    name: Test (${{ matrix.family }})
+    needs: firmware-sources
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.firmware-sources.outputs.test_matrix) }}
 
     steps:
       - name: Checkout userspace
         uses: actions/checkout@v6
 
-      - name: Read the firmware source from firmware_sources.json
-        id: source
-        run: |
-          python3 .github/scripts/firmware_sources.py source hydeik_vial >> "$GITHUB_OUTPUT"
-          cat "$GITHUB_OUTPUT"
-
       - name: Checkout firmware source
         uses: actions/checkout@v6
         with:
-          repository: ${{ steps.source.outputs.repo }}
-          ref: ${{ steps.source.outputs.ref }}
-          path: .firmware/hydeik_vial
+          repository: ${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          path: .firmware/${{ matrix.family }}
           submodules: recursive
 
       - name: Run unit tests
-        run: make test
+        env:
+          FAMILY: ${{ matrix.family }}
+        run: make test FIRMWARE_SOURCE="$FAMILY"
 
   # Replaces the `latest` release, only from `main` and only when every build
-  # target succeeded and the unit tests passed, so a failed build or a failed
-  # test never removes previously published firmware.
+  # target succeeded and the unit tests passed on every firmware source, so a
+  # failed build or a failed test never removes previously published firmware.
   publish:
     name: Publish
     needs: [build, test]

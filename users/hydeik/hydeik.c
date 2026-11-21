@@ -2,6 +2,42 @@
 
 #include "hydeik.h"
 
+#include "users/hydeik_common/features/target_layer.h"
+
+/*****************************************************************************
+ * Layer switching (users/hydeik_common/features/target_layer.h)
+ *****************************************************************************/
+
+/*
+ * The table of entries: while the holding key is held, the trigger key
+ * `MO()` of the target layer switches that layer on.
+ *
+ * - NAV_SPC + TRG_MOU: MOU. A quick release of NAV_SPC locks MOU.
+ * - NUM_ENT + TRG_FUN: FUN. A quick release of NUM_ENT leaves FUN pending,
+ *   that is, on for the next typed key only.
+ */
+const target_layer_entry_t target_layer_entries[] = {
+    {NAV_SPC, _MOU, TARGET_LAYER_QUICK_RELEASE_LOCKED},
+    {NUM_ENT, _FUN, TARGET_LAYER_QUICK_RELEASE_PENDING},
+};
+
+const uint8_t target_layer_entry_count =
+    sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
+
+/*
+ * The one-shot mod keys of this keymap family are QMK's own `OSM()` keys,
+ * pressed or released.
+ */
+bool target_layer_is_one_shot_mod_key(uint16_t keycode,
+                                      const keyrecord_t *record) {
+    return IS_QK_ONE_SHOT_MOD(keycode);
+}
+
+/* Nothing suspends the timeout of a pending target layer in this family. */
+bool target_layer_is_pending_timeout_suspended(void) {
+    return false;
+}
+
 /*****************************************************************************
  * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
  *****************************************************************************/
@@ -225,6 +261,11 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
         break
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    /* Layer switching sees every key event first; it keeps trigger keys. */
+    if (!target_layer_process_record(keycode, record)) {
+        return false;
+    }
+
     switch(keycode) {
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
@@ -266,10 +307,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 #undef CASE_MT_NON_BASIC_KEYCODE
 
-/*
- * Custom behavior for layers
- */
-layer_state_t layer_state_set_user(layer_state_t state) {
-    return update_tri_layer_state(state, _SYM, _NUM, _FUN);
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    target_layer_post_process_record(keycode, record);
+}
+
+void housekeeping_task_user(void) {
+    target_layer_housekeeping_task();
 }
 
