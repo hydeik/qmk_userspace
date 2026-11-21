@@ -1,6 +1,7 @@
 include $(QMK_USERSPACE)/users/hydeik_common/common.mk
 
 SRC += hydeik_vial.c
+SRC += features/firmware_default.c
 SRC += features/smart_mod.c
 
 COMBO_ENABLE ?= yes
