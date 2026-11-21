@@ -27,6 +27,7 @@
 
 #include "hydeik_vial.h"
 
+#include "features/firmware_default.h"
 #include "features/smart_mod.h"
 
 /*
@@ -106,4 +107,27 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void housekeeping_task_user(void) {
     smart_mod_housekeeping_task();
+}
+
+/*
+ * The hooks of firmware_default, the firmware defaults of the Vial settings
+ * (features/firmware_default.h). They are not part of test_glue.c: the unit
+ * tests of firmware_default call it directly.
+ *
+ * `via_init_kb()` is a keyboard-level hook that no keyboard of this keymap
+ * family defines, and vial-qmk has no user-level hook at that point.
+ */
+
+void via_init_kb(void) {
+    firmware_default_via_init();
+}
+
+void eeconfig_init_user(void) {
+    /* What the default `eeconfig_init_user()` of QMK does. */
+    eeconfig_update_user(0);
+    firmware_default_eeconfig_init();
+}
+
+void keyboard_post_init_user(void) {
+    firmware_default_keyboard_post_init();
 }
