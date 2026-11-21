@@ -44,3 +44,25 @@ uint8_t dynamic_keymap_get_qmk_settings(uint16_t offset) {
 void dynamic_keymap_set_qmk_settings(uint16_t offset, uint8_t value) {
     stored_settings[offset] = value;
 }
+
+/* quantum/qmk_settings.c, reached from the C++ test source. */
+
+void vial_settings_init(void) {
+    qmk_settings_init();
+}
+
+void vial_settings_reset(void) {
+    qmk_settings_reset();
+}
+
+int vial_settings_get(uint16_t setting, void *value, size_t size) {
+    return qmk_settings_get(setting, value, size);
+}
+
+int vial_settings_set(uint16_t setting, const void *value, size_t size) {
+    return qmk_settings_set(setting, value, size);
+}
+
+void vial_settings_forget_loaded(void) {
+    memset(&QS, 0, sizeof(QS));
+}

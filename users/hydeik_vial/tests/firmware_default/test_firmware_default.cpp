@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0+
  */
 
-#include <cstring>
-
 #include "keyboard_report_util.hpp"
 #include "keycode.h"
 #include "test_common.hpp"
@@ -14,7 +12,6 @@
 extern "C" {
 #include "fakes.h"
 #include "firmware_default.h"
-#include "qmk_settings.h"
 }
 
 using testing::_;
@@ -34,14 +31,14 @@ const uint16_t SETTING_CHORDAL_HOLD            = 26;
 /* What the Vial GUI shows for an on/off setting. */
 bool shown_in_vial(uint16_t setting) {
     uint8_t value = 0xFF;
-    EXPECT_EQ(qmk_settings_get(setting, &value, sizeof(value)), 0);
+    EXPECT_EQ(vial_settings_get(setting, &value, sizeof(value)), 0);
     return value != 0;
 }
 
 /* The user switching a setting on or off in the Vial GUI. */
 void set_in_vial(uint16_t setting, bool on) {
     uint8_t value = on ? 1 : 0;
-    ASSERT_EQ(qmk_settings_set(setting, &value, sizeof(value)), 0);
+    ASSERT_EQ(vial_settings_set(setting, &value, sizeof(value)), 0);
 }
 
 /*
@@ -62,27 +59,27 @@ void set_in_vial(uint16_t setting, bool on) {
 
 /* The first boot of a newly built firmware: VIA finds its EEPROM not valid. */
 void boot_newly_built_firmware(void) {
-    qmk_settings_init();
+    vial_settings_init();
     fake_via_eeprom_set_valid(false);
     firmware_default_via_init();
-    qmk_settings_reset();
+    vial_settings_reset();
     fake_via_eeprom_set_valid(true);
     firmware_default_keyboard_post_init();
 }
 
 /* The boot after the EEPROM was cleared with `EE_CLR`. */
 void boot_after_eeprom_clear(void) {
-    qmk_settings_init();
+    vial_settings_init();
     firmware_default_via_init();
-    qmk_settings_reset();
+    vial_settings_reset();
     firmware_default_eeconfig_init();
     firmware_default_keyboard_post_init();
 }
 
 /* Any other boot: the same firmware, the settings as they were stored. */
 void power_cycle(void) {
-    memset(&QS, 0, sizeof(QS));
-    qmk_settings_init();
+    vial_settings_forget_loaded();
+    vial_settings_init();
     firmware_default_via_init();
     firmware_default_keyboard_post_init();
 }
