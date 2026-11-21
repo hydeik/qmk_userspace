@@ -9,10 +9,13 @@
  * are smart mod layer keys, which of them has the tap rule of `SMT_MOD`, and
  * which layer is the smart mod layer.
  *
- * test_glue.c is the copy of users/hydeik_vial/hydeik_vial.c that the unit
- * tests build. The two must configure smart_mod the same way. They differ
- * only in this:
+ * test_glue.c is the copy of the smart_mod part of
+ * users/hydeik_vial/hydeik_vial.c that the unit tests build. The two must
+ * configure smart_mod the same way. They differ only in this:
  *
+ * - target_layer of the common core is not part of this test build. The
+ *   tests of the two state machines together are in
+ *   tests/target_layer_smart_mod/, which builds hydeik_vial.c itself.
  * - The unit tests are built without layout.h, so this file has its own copy
  *   of the keycodes and layer numbers used there, under `TEST_LAYER_*` names
  *   for the layers. The assertions in test_glue.c and in hydeik_vial.c pin

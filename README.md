@@ -99,7 +99,7 @@ Building with `qmk compile` or `qmk flash` is not supported: they build against 
 Unit tests drive key events through the unit-test framework of a firmware source and check the keyboard reports sent to the host. There are two kinds:
 
 * Tests of the common core, in `users/hydeik_common/tests/`: its `target_layer` state machine (`users/hydeik_common/features/target_layer.c`), which switches to a target layer. They run on the unit-test frameworks of both firmware sources, upstream QMK and vial-qmk.
-* Tests of the `hydeik_vial` keymap family, in `users/hydeik_vial/tests/`: its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer. They run on vial-qmk only.
+* Tests of the `hydeik_vial` keymap family, in `users/hydeik_vial/tests/`: its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer; `smart_mod` together with `target_layer`, wired as in the firmware and on the keymap of the family (`target_layer_smart_mod`); and the firmware defaults of its Vial settings (`firmware_default`). They run on vial-qmk only.
 
 Run them all with:
 

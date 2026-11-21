@@ -60,8 +60,28 @@ enum custom_keycode_t {
 #define SMT_MOD  LT(_MOD, KC_KP_0)
 #define SPC_MOD  LT(_MOD, KC_SPC)
 #define ENT_MOD  LT(_MOD, KC_ENT)
+
+/*
+ * Holding keys: held, they keep their holding layer on, SYM or NUM, and make
+ * the trigger key of their target layer work. Tapped, they are Tab and Enter.
+ */
 #define TAB_SYM  LT(_SYM, KC_TAB)
 #define ENT_NUM  LT(_NUM, KC_ENT)
+
+/*
+ * Trigger keys: `MO()` of a target layer is no momentary layer key. Pressed
+ * while its holding key is held, `TAB_SYM` for NAV and `ENT_NUM` for FUN, it
+ * switches to its target layer; pressed again, or on a pending or locked
+ * target layer, it switches that layer off. Alone it does nothing. A quick
+ * release of the holding key locks NAV and leaves FUN pending. See
+ * users/hydeik_common/features/target_layer.h and the table of entries in
+ * hydeik_vial.c.
+ *
+ * A target layer holds its own trigger key at the position of the trigger
+ * key of its holding layer, so that the same key enters and leaves it.
+ */
+#define NAV_TRG  MO(_NAV)
+#define FUN_TRG  MO(_FUN)
 
 /****************************************************************************
  * Keymap blocks
@@ -110,7 +130,7 @@ enum custom_keycode_t {
  *                               +---------+---------+   +---------+---------+
  */
 #define SYM_LAYER \
-    SYM_GRID(HOME_ROW_KEY, TO(_NAV)), \
+    SYM_GRID(HOME_ROW_KEY, NAV_TRG), \
                                   _______,  _______,   _______,  KC_ESC
 
 /*
@@ -121,14 +141,14 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | 0       | 1       | 2       | 3       | DEL     |   | BSPC    | '       | _       | =       | *       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -NAV-   |
+ * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | -FUN-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | ESC     |         |   |         | _NUM_   |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define NUM_LAYER \
-    NUM_GRID(HOME_ROW_KEY, TO(_NAV)), \
+    NUM_GRID(HOME_ROW_KEY, FUN_TRG), \
                                   KC_ESC,   _______,   _______,  _______
 
 /*
@@ -139,17 +159,17 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | LEFT    | DOWN    | RGHT    | PGDN    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         |         |   | LLCK    |         |         |         | -FUN-   |
+ * |         |         |         |         |         |   | LLCK    |         |         |         | -NAV-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | -BASE-  |         |   |         |         |
+ *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define NAV_LAYER \
     KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  \
     COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
-    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TO(_FUN), \
-                                  TO(_BASE),_______,   _______,  _______
+    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  NAV_TRG,  \
+                                  _______,  _______,   _______,  _______
 
 /*
  * Function layer
@@ -159,15 +179,15 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    |         |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | -FUN-   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | -BASE-  |         |   |         |         |
+ *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
  */
 
 #define FUN_LAYER \
-    FUN_GRID(ONESHOT_MOD, _______), \
-                                  TO(_BASE),_______,   _______,  _______
+    FUN_GRID(ONESHOT_MOD, FUN_TRG), \
+                                  _______,  _______,   _______,  _______
 
 /*
  * Smart mod layer: one-shot mod keys over the home row. It is on while a

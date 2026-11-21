@@ -4,31 +4,44 @@
  */
 
 /*
- * Glue between QMK and smart_mod, the state machine of the one-shot mods and
- * the smart mod layer (features/smart_mod.h describes the behaviour). This
- * file forwards the three QMK hooks to smart_mod and tells it which keycodes
- * are one-shot mod keys, which keys are smart mod layer keys, which of them
- * has the Shift tap rule, and which layer is the smart mod layer. It holds no
- * behaviour of its own.
+ * Glue between QMK and the two state machines of the hydeik_vial keymap
+ * family:
  *
- * tests/smart_mod/test_glue.c is the copy of this file that the unit tests
- * build. The two must configure smart_mod the same way. They differ only in
- * this:
+ * - smart_mod, the one-shot mods and the smart mod layer
+ *   (features/smart_mod.h describes the behaviour). This file tells it which
+ *   keycodes are one-shot mod keys, which keys are smart mod layer keys,
+ *   which of them has the Shift tap rule, and which layer is the smart mod
+ *   layer.
+ * - target_layer of the common core, the layer switching
+ *   (users/hydeik_common/features/target_layer.h describes the behaviour).
+ *   This file tells it the table of entries, which key presses are those of
+ *   one-shot mod keys, and when the timeout of a pending target layer is
+ *   suspended.
  *
- * - The unit tests are built without layout.h, so test_glue.h has its own
- *   copy of the keycodes and layer numbers used here, under `TEST_LAYER_*`
- *   names for the layers. The assertions below pin the numbers that the copy
- *   repeats.
- * - The unit tests are built without Vial. Here, Vial's tap-hold settings
- *   decide whether a smart mod layer key is tapped or held, and the tapping
- *   term of the double tap of `SMT_MOD` is the one set in Vial, not the
- *   `TAPPING_TERM` of config.h.
+ * This file forwards the three QMK hooks to both, in the order that their
+ * interaction needs, and holds no behaviour of its own.
+ *
+ * The unit tests build this file in two ways:
+ *
+ * - tests/target_layer_smart_mod/ builds this very file, with layout.h, and
+ *   so tests both state machines as they are wired here.
+ * - tests/smart_mod/test_glue.c is a copy of the smart_mod part of this file,
+ *   without target_layer and without layout.h. The two must configure
+ *   smart_mod the same way. test_glue.h has its own copy of the keycodes and
+ *   layer numbers used here, under `TEST_LAYER_*` names for the layers. The
+ *   assertions below pin the numbers that the copy repeats.
+ *
+ * Both are built without Vial. Here, Vial's tap-hold settings decide whether
+ * a smart mod layer key or a holding key is tapped or held, and the tapping
+ * term of the double tap of `SMT_MOD` is the one set in Vial, not the
+ * `TAPPING_TERM` of config.h.
  */
 
 #include "hydeik_vial.h"
 
 #include "features/firmware_default.h"
 #include "features/smart_mod.h"
+#include "users/hydeik_common/features/target_layer.h"
 
 /*
  * Keymaps stored by Vial hold these numbers, and vial.json names the custom
@@ -94,19 +107,73 @@ bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
 }
 
 /*****************************************************************************
+ * Told to target_layer
+ *****************************************************************************/
+
+/*
+ * The table of entries: `TAB_SYM` and the trigger key `MO(_NAV)` switch to
+ * NAV, and a quick release of `TAB_SYM` locks it. `ENT_NUM` and the trigger
+ * key `MO(_FUN)` switch to FUN, and a quick release of `ENT_NUM` leaves it
+ * pending.
+ */
+const target_layer_entry_t target_layer_entries[] = {
+    {TAB_SYM, _NAV, TARGET_LAYER_QUICK_RELEASE_LOCKED},
+    {ENT_NUM, _FUN, TARGET_LAYER_QUICK_RELEASE_PENDING},
+};
+
+const uint8_t target_layer_entry_count = sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
+
+/* The Layer Lock key locks the highest layer that is on. */
+_Static_assert(_NAV > _SYM && _FUN > _NUM, "a target layer must lie above its holding layer");
+
+/*
+ * A one-shot mod key press is that of a one-shot mod key, or a tap of
+ * `SMT_MOD`, which makes Shift pending, cancels the pending one-shot mods or
+ * turns Caps Word on, and sends nothing.
+ */
+bool target_layer_is_one_shot_mod_key(uint16_t keycode, const keyrecord_t *record) {
+    if (smart_mod_one_shot_mod_bits(keycode) != 0) {
+        return true;
+    }
+    return smart_mod_is_layer_key(keycode) && smart_mod_layer_key_taps_shift(keycode) && record->tap.count != 0;
+}
+
+/*
+ * Latched one-shot mods have no timeout, so a pending target layer has none
+ * either while a smart mod layer key is held.
+ */
+bool target_layer_is_pending_timeout_suspended(void) {
+    return smart_mod_is_layer_key_held();
+}
+
+/*****************************************************************************
  * QMK hooks
  *****************************************************************************/
 
+/*
+ * Both state machines see every key event, also those that the other one
+ * handles: target_layer needs the one-shot mod keys and the smart mod layer
+ * keys, which smart_mod keeps from QMK, and smart_mod needs the press of a
+ * trigger key, which target_layer keeps from QMK. target_layer comes first.
+ */
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    return smart_mod_process_record(keycode, record);
+    const bool target_layer_passes = target_layer_process_record(keycode, record);
+    const bool smart_mod_passes    = smart_mod_process_record(keycode, record);
+    return target_layer_passes && smart_mod_passes;
 }
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     smart_mod_post_process_record(keycode, record);
+    target_layer_post_process_record(keycode, record);
 }
 
+/*
+ * smart_mod comes first, so that the pending one-shot mods end before a
+ * pending target layer when both timeouts end in the same scan loop.
+ */
 void housekeeping_task_user(void) {
     smart_mod_housekeeping_task();
+    target_layer_housekeeping_task();
 }
 
 /*
