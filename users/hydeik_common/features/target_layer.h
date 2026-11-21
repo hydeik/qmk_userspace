@@ -83,6 +83,44 @@ typedef struct {
 extern const target_layer_entry_t target_layer_entries[];
 extern const uint8_t              target_layer_entry_count;
 
+/*
+ * Return whether the key press in `record`, of the key `keycode`, is that of
+ * a one-shot mod key. The caller must define it: which keys are one-shot mod
+ * keys differs per keymap family.
+ *
+ * A one-shot mod key is not a typed key, and its press restarts the timeout
+ * of a pending target layer. It is asked for key presses only.
+ */
+bool target_layer_is_one_shot_mod_key(uint16_t keycode, const keyrecord_t *record);
+
+/*
+ * Return whether the timeout of a pending target layer is suspended now. The
+ * caller must define it. It is asked in every scan loop while a target layer
+ * is pending; the timeout starts anew when the suspension ends.
+ */
+bool target_layer_is_pending_timeout_suspended(void);
+
+/****************************************************************************
+ * Timing, overridable in config.h
+ ****************************************************************************/
+
+/*
+ * The One Shot Term, in ms: a release of the last holding key is a quick
+ * release if it comes less than this long after the press of the trigger
+ * key, with no key typed in between.
+ */
+#ifndef TARGET_LAYER_ONE_SHOT_TERM
+#    define TARGET_LAYER_ONE_SHOT_TERM 200
+#endif
+
+/*
+ * How long a pending target layer lasts, in ms, counted from the release of
+ * the holding key or from the last press of a one-shot mod key.
+ */
+#ifndef TARGET_LAYER_PENDING_TIMEOUT
+#    define TARGET_LAYER_PENDING_TIMEOUT 2000
+#endif
+
 /****************************************************************************
  * Hooks
  ****************************************************************************/
