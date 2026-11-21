@@ -127,9 +127,9 @@ const uint8_t target_layer_entry_count = sizeof(target_layer_entries) / sizeof(t
 _Static_assert(_NAV > _SYM && _FUN > _NUM, "a target layer must lie above its holding layer");
 
 /*
- * A one-shot mod key press is that of a one-shot mod key, or a tap of
- * `SMT_MOD`, which makes Shift pending, cancels the pending one-shot mods or
- * turns Caps Word on, and sends nothing.
+ * The key event of a one-shot mod key is the press or the release of a
+ * one-shot mod key, or of a tap of `SMT_MOD`, which makes Shift pending,
+ * cancels the pending one-shot mods or turns Caps Word on, and sends nothing.
  */
 bool target_layer_is_one_shot_mod_key(uint16_t keycode, const keyrecord_t *record) {
     if (smart_mod_one_shot_mod_bits(keycode) != 0) {

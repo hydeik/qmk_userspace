@@ -573,25 +573,107 @@ TEST_F(TargetLayerQuickRelease, Rule15_OrdinaryModifierDoesNotExtendTheTimeout) 
 
 /*
  * Rule 15 as amended by issue #41: the press of a one-shot mod key restarts
- * the timeout of a pending target layer. The layer is still on just before
- * the timeout ends, counted from that press.
+ * the timeout of a pending target layer. Here the one-shot mod key stays
+ * down, and the layer is still on after the timeout would have ended,
+ * counted from the release of the holding key.
  */
 TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_OneShotModKeyPressRestartsTheTimeout) {
     TestDriver driver;
     EXPECT_ANY_REPORT(driver).Times(AnyNumber());
 
     quick_gesture(key_ent_num, key_pen);
-    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 2);
-    tap(key_one_shot_ctrl);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT / 2);
+    key_one_shot_ctrl.press();
 
-    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 2);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 500);
+    expect_layers_on({TEST_LAYER_PEN});
+
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
+    expect_layers_on({});
+
+    let_go(key_one_shot_ctrl);
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 15 as amended again by issue #41: the release of a one-shot mod key
+ * restarts the timeout of a pending target layer too. Here the one-shot mod
+ * key is held for a while, as an ordinary modifier, and the layer is still on
+ * just before the timeout ends, counted from the release.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_OneShotModKeyReleaseRestartsTheTimeout) {
+    TestDriver driver;
+    EXPECT_ANY_REPORT(driver).Times(AnyNumber());
+
+    quick_gesture(key_ent_num, key_pen);
+    hold(key_one_shot_ctrl);
+    idle_for(500);
+    let_go(key_one_shot_ctrl);
+
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT - 1);
     expect_layers_on({TEST_LAYER_PEN});
 
     run_one_scan_loop();
     expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
 
+/*
+ * Rule 15 as amended again by issue #41: a pending target layer does not end
+ * before a one-shot mod of QMK's own `OSM()` key that was tapped slowly. QMK
+ * handles the press of such a tap only at its release and starts
+ * `ONESHOT_TIMEOUT` then, so a timeout counted from the press would end the
+ * layer first, and the next key would be a key of BASE with the modifier.
+ * Here the tap takes 150 ms, and the key comes 50 ms before the one-shot mod
+ * ends.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerDoesNotEndBeforeAOneShotModOfQmkThatWasTappedSlowly) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_ent_num, key_pen);
+    key_one_shot_ctrl.press();
+    idle_for(150);
+    key_one_shot_ctrl.release();
+    run_one_scan_loop();
+
+    idle_for(ONESHOT_TIMEOUT - 50);
+    expect_layers_on({TEST_LAYER_PEN});
+    VERIFY_AND_CLEAR(driver);
+
+    {
+        InSequence s;
+        EXPECT_REPORT(driver, (KC_LCTL, KC_F1));
+        EXPECT_REPORT(driver, (KC_F1)).Times(AnyNumber());
+        EXPECT_EMPTY_REPORT(driver);
+    }
     tap(key_typed);
     VERIFY_AND_CLEAR(driver);
+    expect_layers_on({});
+}
+
+/*
+ * Rule 15 as amended again by issue #41: at the moment at which the one-shot
+ * mod of QMK's own `OSM()` key times out, the pending target layer has not
+ * ended before it. The key is that of the target layer without the modifier,
+ * never a key of BASE with it.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerIsStillOnWhenAOneShotModOfQmkTimesOut) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_ent_num, key_pen);
+    key_one_shot_ctrl.press();
+    idle_for(150);
+    key_one_shot_ctrl.release();
+    run_one_scan_loop();
+
+    /* One scan loop has passed since QMK made the one-shot mod pending. */
+    idle_for(ONESHOT_TIMEOUT - 1);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_F1);
+    expect_layers_on({});
 }
 
 /*

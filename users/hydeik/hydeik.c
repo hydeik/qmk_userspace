@@ -24,7 +24,10 @@ const target_layer_entry_t target_layer_entries[] = {
 const uint8_t target_layer_entry_count =
     sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
 
-/* The one-shot mod keys of this keymap family are QMK's own `OSM()` keys. */
+/*
+ * The one-shot mod keys of this keymap family are QMK's own `OSM()` keys,
+ * pressed or released.
+ */
 bool target_layer_is_one_shot_mod_key(uint16_t keycode,
                                       const keyrecord_t *record) {
     return IS_QK_ONE_SHOT_MOD(keycode);

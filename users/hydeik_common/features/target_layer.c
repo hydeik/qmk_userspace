@@ -382,16 +382,20 @@ static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t t
 }
 
 /*
- * A key that is neither a trigger key nor a held holding key was pressed.
+ * The key event of a key that is neither a trigger key nor a held holding
+ * key.
  */
-static void other_key_pressed(uint16_t keycode, const keyrecord_t *record) {
+static void other_key_event(uint16_t keycode, const keyrecord_t *record) {
     if (target_layer_is_one_shot_mod_key(keycode, record)) {
         /*
          * Not a typed key. The timeout of a pending target layer starts
-         * anew, so that it does not end before the pending one-shot mod.
+         * anew at its press and at its release, so that it does not end
+         * before the pending one-shot mod. It counts from now, not from the
+         * time of the key event: QMK may hand over the press of a tap only
+         * at its release, and its own one-shot mods count from then.
          */
-        state.pending_since = record->event.time;
-    } else if (is_key_typed(keycode, record)) {
+        state.pending_since = timer_read();
+    } else if (record->event.pressed && is_key_typed(keycode, record)) {
         /*
          * A key is typed: the release of the holding key is not quick any
          * more, and a pending target layer is used.
@@ -421,9 +425,7 @@ bool target_layer_process_record(uint16_t keycode, keyrecord_t *record) {
         }
         /* Tapped, it is a typed key like any other. */
     }
-    if (record->event.pressed) {
-        other_key_pressed(keycode, record);
-    }
+    other_key_event(keycode, record);
     return true;
 }
 

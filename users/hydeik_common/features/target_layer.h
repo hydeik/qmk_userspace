@@ -107,12 +107,14 @@ extern const target_layer_entry_t target_layer_entries[];
 extern const uint8_t              target_layer_entry_count;
 
 /*
- * Return whether the key press in `record`, of the key `keycode`, is that of
- * a one-shot mod key. The caller must define it: which keys are one-shot mod
- * keys differs per keymap family.
+ * Return whether the key event in `record`, of the key `keycode`, is the
+ * press or the release of a one-shot mod key. The caller must define it:
+ * which keys are one-shot mod keys differs per keymap family.
  *
- * A one-shot mod key is not a typed key, and its press restarts the timeout
- * of a pending target layer. It is asked for key presses only.
+ * A one-shot mod key is not a typed key, and its press and its release each
+ * restart the timeout of a pending target layer. It is asked for the presses
+ * and the releases of every key but the trigger keys and the held holding
+ * keys.
  */
 bool target_layer_is_one_shot_mod_key(uint16_t keycode, const keyrecord_t *record);
 
@@ -138,7 +140,9 @@ bool target_layer_is_pending_timeout_suspended(void);
 
 /*
  * How long a pending target layer lasts, in ms, counted from the release of
- * the holding key or from the last press of a one-shot mod key.
+ * the holding key or from the last press or release of a one-shot mod key.
+ * It must not be shorter than the timeout of the caller's pending one-shot
+ * mods.
  */
 #ifndef TARGET_LAYER_PENDING_TIMEOUT
 #    define TARGET_LAYER_PENDING_TIMEOUT 2000
