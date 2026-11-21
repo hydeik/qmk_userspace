@@ -406,9 +406,9 @@ TEST_F(TargetLayer, Rule1_EachHoldingKeyOfATargetLayerMakesItsTriggerKeyWork) {
 }
 
 /*
- * Rule 1: the holding keys of an activation are those held when the trigger
- * key is pressed. A holding key that is held only afterwards does not keep
- * the target layer on.
+ * Rule 1: the holding keys that keep a target layer on are those held when
+ * the trigger key is pressed. A holding key that is held only afterwards does
+ * not keep the target layer on.
  */
 TEST_F(TargetLayer, Rule1_HoldingKeyHeldAfterTheTriggerPressDoesNotKeepTheTargetLayerOn) {
     TestDriver driver;

@@ -10,11 +10,11 @@
  *
  * A holding key is a thumb key that keeps its holding layer on while it is
  * held. A trigger key, pressed while one of its holding keys is held,
- * switches its target layer on. The target layer stays on until the last
- * holding key of that activation is released; the trigger key may be released
- * at any time. Pressing the trigger key again switches the target layer off,
- * and the trigger key of another target layer replaces it: at most one target
- * layer is on at a time, besides the locked ones.
+ * switches its target layer on. The target layer stays on until the last of
+ * its holding keys that were held at that press is released; the trigger key
+ * may be released at any time. Pressing the trigger key again switches the
+ * target layer off, and the trigger key of another target layer replaces it:
+ * at most one target layer is on at a time, besides the locked ones.
  *
  * A quick release of the last holding key, less than the One Shot Term after
  * the press of the trigger key and with no key typed in between, does what

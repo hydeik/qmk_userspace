@@ -11,7 +11,7 @@ How the repository is organised, and how to build and flash, is described in the
 - [Caps Word](https://docs.qmk.fm/features/caps_word), turned on by pressing both Shift keys or by double-tapping Shift.
 - [Layer Lock](https://docs.qmk.fm/features/layer_lock), on a key in every layer except BASE.
 - [Repeat Key](https://docs.qmk.fm/features/repeat_key) and Alternate Repeat Key, on the NAV layer. The Alternate Repeat Key is context-aware: for example it types `=` after an arithmetic operator, and completes `.` to `../`.
-- One-shot Shift on a thumb key, and one-shot modifiers on the home row of the NAV layer.
+- A one-shot mod for Shift on a thumb key, and one-shot mods on the home row of the NAV layer.
 
 ## Layers
 
@@ -38,7 +38,7 @@ MOU and FUN are target layers, switched by the `target_layer` state machine of t
 - The target layer stays on until the holding key is released; the trigger key itself may be released at once. Pressing the trigger key again switches the target layer off.
 - A quick release is a release of the holding key within the One Shot Term (`TARGET_LAYER_ONE_SHOT_TERM`, 200 ms) after the press of the trigger key, with no key typed in between.
 - After a quick release, MOU is locked and both hands are free. Leave it with the trigger key at the same position, with Layer Lock, or by the idle timeout of Layer Lock (60 s). While MOU is locked, a tap of the left thumb keys still sends Tab or Space.
-- After a quick release, FUN stays on for the next typed key only. A one-shot modifier does not use it up, so the one-shot Shift followed by `F5` sends Shift+`F5`. A pending FUN ends by itself after `TARGET_LAYER_PENDING_TIMEOUT` (2 s).
+- After a quick release, FUN stays on for the next typed key only. A one-shot mod does not use it up, so the one-shot mod for Shift followed by `F5` sends Shift+`F5`. A pending FUN ends by itself after `TARGET_LAYER_PENDING_TIMEOUT` (2 s).
 - A trigger key is the ordinary keycode `MO()` of its target layer, but it is no momentary layer key: without its holding key held it does nothing.
 - The SYM and NUM thumb keys held together no longer give FUN; they give NUM, the higher layer.
 

@@ -50,8 +50,8 @@ typedef struct {
     uint16_t keycode;
     keypos_t position;
     /*
-     * Whether this key is a holding key of the activation: it was held when
-     * the trigger key switched the target layer on, and keeps it on.
+     * Whether this key keeps the target layer on: it is one of its holding
+     * keys and was held when the trigger key switched the target layer on.
      */
     bool keeps_target_layer_on;
 } held_holding_key_t;
@@ -232,8 +232,8 @@ static void sync_with_layer_lock(void) {
 
 /*
  * Switch the target layer `layer` on, for a trigger key pressed at the
- * key-event time `time`. The holding keys of `layer` that are held now are
- * the holding keys of this activation.
+ * key-event time `time`. The holding keys of `layer` that are held now keep
+ * it on.
  */
 static void switch_on(uint8_t layer, uint16_t time) {
     for (uint8_t i = 0; i < state.holding_keys_held; i++) {
@@ -369,9 +369,9 @@ static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t t
         }
     }
     /*
-     * The last holding key of the activation is up. If its release is quick,
-     * the entry of this holding key says what becomes of the target layer;
-     * it kept the target layer on, so it has such an entry.
+     * The last holding key that kept the target layer on is up. If this is
+     * a quick release, the entry of this holding key says what becomes of
+     * the target layer; it kept the target layer on, so it has such an entry.
      */
     uint8_t quick_release = TARGET_LAYER_QUICK_RELEASE_NOTHING;
     if (state.release_is_quick && TIMER_DIFF_16(time, state.trigger_pressed_at) < TARGET_LAYER_ONE_SHOT_TERM) {
