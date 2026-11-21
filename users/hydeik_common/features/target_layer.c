@@ -87,7 +87,8 @@ static struct {
     /*
      * The locked target layers, one bit per layer: the target layers that
      * were locked while they were on through this module, and not unlocked
-     * since. The trigger key of such a layer unlocks it. They are apart from
+     * since. The trigger key of such a layer unlocks it, as it does for a
+     * target layer that Layer Lock holds for any other reason. They are apart from
      * `phase`: the trigger key of another target layer works meanwhile.
      */
     layer_state_t locked_target_layers;
@@ -177,8 +178,24 @@ static void lock(void) {
 #endif
 }
 
+/*
+ * Whether the target layer `layer` is locked: by this module, or by Layer
+ * Lock, whichever way the layer came on before it was locked.
+ */
+static bool is_locked(uint8_t layer) {
+#ifdef LAYER_LOCK_ENABLE
+    if (is_layer_locked(layer)) {
+        return true;
+    }
+#endif
+    return (state.locked_target_layers & layer_bit(layer)) != 0;
+}
+
 /* Unlock the locked target layer `layer` and switch it off. */
 static void unlock(uint8_t layer) {
+    if (state.phase != PHASE_OFF && state.target_layer == layer) {
+        state.phase = PHASE_OFF;
+    }
     state.locked_target_layers &= ~layer_bit(layer);
 #ifdef LAYER_LOCK_ENABLE
     layer_lock_off(layer);
@@ -232,7 +249,7 @@ static void switch_on(uint8_t layer, uint16_t time) {
  * time `time`.
  */
 static void trigger_pressed(uint8_t layer, uint16_t time) {
-    if (state.locked_target_layers & layer_bit(layer)) {
+    if (is_locked(layer)) {
         /* Leave the locked target layer. */
         unlock(layer);
         return;
@@ -243,10 +260,7 @@ static void trigger_pressed(uint8_t layer, uint16_t time) {
         return;
     }
     if (layer_state_is(layer)) {
-        /*
-         * On for another reason, which includes a Layer Lock that did not
-         * lock it while it was on through this module: not ours to touch.
-         */
+        /* On for another reason than this module or Layer Lock: not ours to touch. */
         return;
     }
     if (!is_holding_key_held_of(layer)) {

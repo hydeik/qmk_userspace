@@ -347,21 +347,38 @@ TEST_F(TargetLayer, Rule16_ReplacementLeavesATargetLayerOnForAnotherReasonOn) {
 }
 
 /*
- * Rule 18: while its target layer is locked by Layer Lock, a trigger key
- * does nothing, and the release of the holding key leaves the lock alone.
+ * Rule 18, as amended by the hydeik_vial transitions ticket: while its
+ * target layer is locked by Layer Lock, a trigger key unlocks it and
+ * switches it off, also when the layer was not on through this module when
+ * it was locked. The press does not switch the target layer on again.
  */
-TEST_F(TargetLayer, Rule18_TriggerKeyDoesNothingWhileItsTargetLayerIsLocked) {
+TEST_F(TargetLayer, Rule18_Amendment39_TriggerKeyUnlocksATargetLayerLockedBehindTheModule) {
     TestDriver driver;
     EXPECT_NO_REPORT(driver);
 
     layer_lock_on(TEST_LAYER_NAV);
     hold(key_tab_sym);
     tap(key_nav);
-    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_NAV));
+    expect_layers_on({TEST_LAYER_SYM});
 
     let_go(key_tab_sym);
-    expect_layers_on({TEST_LAYER_NAV});
-    EXPECT_TRUE(is_layer_locked(TEST_LAYER_NAV));
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 18, as amended: no holding key has to be held to leave a locked
+ * target layer.
+ */
+TEST_F(TargetLayer, Rule18_Amendment39_TriggerKeyAloneUnlocksATargetLayerLockedBehindTheModule) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    layer_lock_on(TEST_LAYER_NAV);
+    tap(key_nav);
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_NAV));
+    expect_layers_on({});
     VERIFY_AND_CLEAR(driver);
 }
 

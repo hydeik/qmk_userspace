@@ -23,8 +23,24 @@ There are six layers:
 | SYM | Symbols and brackets | Holding the Tab thumb key |
 | NUM | Numbers and arithmetic operators | Holding the Backspace thumb key |
 | NAV | Arrow keys, navigation, undo/cut/copy/paste, Repeat Key | Holding the Space thumb key |
-| MOU | Mouse movement, wheel and buttons | Holding the key at the `G` position on NAV |
-| FUN | Function keys, volume, brightness, media controls, bootloader | Holding the SYM and NUM thumb keys together |
+| MOU | Mouse movement, wheel and buttons | Holding the Space thumb key and pressing the trigger key at the `G` position |
+| FUN | Function keys, volume, brightness, media controls, bootloader | Holding the Backspace thumb key and pressing the trigger key at the bottom-right corner |
+
+### Reaching MOU and FUN
+
+MOU and FUN are target layers, switched by the `target_layer` state machine of the common core (`users/hydeik_common/features/target_layer.h`). A target layer is switched on by its trigger key, pressed while its holding key is held:
+
+| Holding key | Trigger key | Target layer | Quick release of the holding key |
+| --- | --- | --- | --- |
+| Space thumb key (`NAV_SPC`) | `MO(_MOU)` at the `G` position | MOU | MOU becomes a locked target layer |
+| Backspace thumb key (`NUM_ENT`) | `MO(_FUN)` at the bottom-right corner | FUN | FUN becomes a pending target layer |
+
+- The target layer stays on until the holding key is released; the trigger key itself may be released at once. Pressing the trigger key again switches the target layer off.
+- A quick release is a release of the holding key within the One Shot Term (`TARGET_LAYER_ONE_SHOT_TERM`, 200 ms) after the press of the trigger key, with no key typed in between.
+- After a quick release, MOU is locked and both hands are free. Leave it with the trigger key at the same position, with Layer Lock, or by the idle timeout of Layer Lock (60 s). While MOU is locked, a tap of the left thumb keys still sends Tab or Space.
+- After a quick release, FUN stays on for the next typed key only. A one-shot modifier does not use it up, so the one-shot Shift followed by `F5` sends Shift+`F5`. A pending FUN ends by itself after `TARGET_LAYER_PENDING_TIMEOUT` (2 s).
+- A trigger key is the ordinary keycode `MO()` of its target layer, but it is no momentary layer key: without its holding key held it does nothing.
+- The SYM and NUM thumb keys held together no longer give FUN; they give NUM, the higher layer.
 
 The layers are defined in `hydeik.h`. The finger keys of the SYM, NUM and FUN layers come from the common core (`users/hydeik_common/layers.h`), which `hydeik_vial` builds its layers from too; `hydeik.h` supplies the home-row mods and the thumb keys.
 
@@ -33,5 +49,5 @@ The layers are defined in `hydeik.h`. The finger keys of the SYM, NUM and FUN la
 | File | Contents |
 | --- | --- |
 | `hydeik.h` | Layer numbers, custom keycodes, mod-tap aliases and the layer definitions. |
-| `hydeik.c` | Tap-hold tuning, the Alternate Repeat Key rules and their macros, and the SYM + NUM → FUN tri-layer. |
+| `hydeik.c` | Tap-hold tuning, the Alternate Repeat Key rules and their macros, and the wiring of `target_layer`: its table of entries and the three hooks forwarded to it. |
 | `config.h`, `rules.mk` | The settings specific to this keymap family. Settings that do not depend on the keymap family are in the common core. |
