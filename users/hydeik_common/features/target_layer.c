@@ -10,8 +10,17 @@
 
 #include "target_layer.h"
 
+#include <stddef.h>
+
 #include "action_layer.h"
 #include "quantum_keycodes.h"
+#include "timer.h"
+
+#include "key_typed.h"
+
+#ifdef LAYER_LOCK_ENABLE
+#    include "layer_lock.h"
+#endif
 
 /*
  * How many holding keys can be held at once. One more is ignored: it makes
@@ -25,6 +34,11 @@ enum phase_t {
     PHASE_OFF,
     /* This module switched the target layer on, and a holding key keeps it on. */
     PHASE_HELD,
+    /*
+     * A pending target layer: this module switched it on, and it stays on
+     * for the next typed key after a quick release of the holding key.
+     */
+    PHASE_PENDING,
 };
 
 /*
@@ -54,11 +68,35 @@ static struct {
      */
     uint8_t phase;
     uint8_t target_layer;
+    /*
+     * While PHASE_HELD: whether a release of the last holding key would be a
+     * quick release now. No key was typed since the trigger press, at the
+     * key-event time `trigger_pressed_at`, and the One Shot Term has not
+     * ended.
+     */
+    bool     release_is_quick;
+    uint16_t trigger_pressed_at;
+    /*
+     * While PHASE_PENDING: whether a typed key has used the pending target
+     * layer, which is switched off once the report of that key is sent.
+     * Otherwise it times out, counted from `pending_since`. Both are
+     * written in other phases too, and set when the phase begins.
+     */
+    bool     pending_used;
+    uint16_t pending_since;
+    /*
+     * The locked target layers, one bit per layer: the target layers that
+     * were locked while they were on through this module, and not unlocked
+     * since. The trigger key of such a layer unlocks it. They are apart from
+     * `phase`: the trigger key of another target layer works meanwhile.
+     */
+    layer_state_t locked_target_layers;
 } state;
 
 void target_layer_reset(void) {
-    state.holding_keys_held = 0;
-    state.phase             = PHASE_OFF;
+    state.holding_keys_held    = 0;
+    state.phase                = PHASE_OFF;
+    state.locked_target_layers = 0;
 }
 
 /* Return whether the table lists `layer` as a target layer. */
@@ -81,14 +119,22 @@ static bool is_holding_key(uint16_t keycode) {
     return false;
 }
 
-/* Return whether `keycode` is a holding key of the target layer `layer`. */
-static bool is_holding_key_of(uint16_t keycode, uint8_t layer) {
+/*
+ * Return the entry of the holding key `keycode` and the target layer
+ * `layer`, or NULL if `keycode` is no holding key of `layer`.
+ */
+static const target_layer_entry_t *find_entry(uint16_t keycode, uint8_t layer) {
     for (uint8_t i = 0; i < target_layer_entry_count; i++) {
         if (target_layer_entries[i].holding_key == keycode && target_layer_entries[i].target_layer == layer) {
-            return true;
+            return &target_layer_entries[i];
         }
     }
-    return false;
+    return NULL;
+}
+
+/* Return whether `keycode` is a holding key of the target layer `layer`. */
+static bool is_holding_key_of(uint16_t keycode, uint8_t layer) {
+    return find_entry(keycode, layer) != NULL;
 }
 
 /* Return whether a holding key of the target layer `layer` is held. */
@@ -101,9 +147,14 @@ static bool is_holding_key_held_of(uint8_t layer) {
     return false;
 }
 
+/* Return the bit of `layer` in a set of layers. */
+static layer_state_t layer_bit(uint8_t layer) {
+    return (layer_state_t)1 << layer;
+}
+
 /*
- * Switch off the target layer that this module switched on, if any. The held
- * holding keys stay held.
+ * Switch off the target layer that this module switched on, held or pending,
+ * if any. The held holding keys stay held.
  */
 static void switch_off(void) {
     if (state.phase == PHASE_OFF) {
@@ -114,28 +165,88 @@ static void switch_off(void) {
 }
 
 /*
- * Switch the target layer `layer` on. The holding keys of `layer` that are
- * held now are the holding keys of this activation.
+ * Make the target layer that is on through this module a locked target
+ * layer. It is locked as by the Layer Lock key, and no longer held or
+ * pending.
  */
-static void switch_on(uint8_t layer) {
+static void lock(void) {
+    state.phase = PHASE_OFF;
+    state.locked_target_layers |= layer_bit(state.target_layer);
+#ifdef LAYER_LOCK_ENABLE
+    layer_lock_on(state.target_layer);
+#endif
+}
+
+/* Unlock the locked target layer `layer` and switch it off. */
+static void unlock(uint8_t layer) {
+    state.locked_target_layers &= ~layer_bit(layer);
+#ifdef LAYER_LOCK_ENABLE
+    layer_lock_off(layer);
+#else
+    layer_off(layer);
+#endif
+}
+
+/*
+ * Take over what Layer Lock did behind this module. QMK handles the Layer
+ * Lock key after the key-event hook, so this module finds out afterwards.
+ *
+ * - A target layer that Layer Lock locked while it was on through this
+ *   module, held or pending, is a locked target layer from then on.
+ * - A locked target layer that is locked no longer, unlocked by the Layer
+ *   Lock key or by the idle timeout of Layer Lock, is forgotten.
+ */
+static void sync_with_layer_lock(void) {
+#ifdef LAYER_LOCK_ENABLE
+    if (state.phase != PHASE_OFF && is_layer_locked(state.target_layer)) {
+        lock();
+    }
+    for (uint8_t i = 0; state.locked_target_layers && i < target_layer_entry_count; i++) {
+        const uint8_t layer = target_layer_entries[i].target_layer;
+        if (!is_layer_locked(layer)) {
+            state.locked_target_layers &= ~layer_bit(layer);
+        }
+    }
+#endif
+}
+
+/*
+ * Switch the target layer `layer` on, for a trigger key pressed at the
+ * key-event time `time`. The holding keys of `layer` that are held now are
+ * the holding keys of this activation.
+ */
+static void switch_on(uint8_t layer, uint16_t time) {
     for (uint8_t i = 0; i < state.holding_keys_held; i++) {
         held_holding_key_t *key    = &state.held_holding_keys[i];
         key->keeps_target_layer_on = is_holding_key_of(key->keycode, layer);
     }
-    state.phase        = PHASE_HELD;
-    state.target_layer = layer;
+    state.phase              = PHASE_HELD;
+    state.target_layer       = layer;
+    state.release_is_quick   = true;
+    state.trigger_pressed_at = time;
     layer_on(layer);
 }
 
-/* The trigger key of the target layer `layer` was pressed. */
-static void trigger_pressed(uint8_t layer) {
+/*
+ * The trigger key of the target layer `layer` was pressed, at the key-event
+ * time `time`.
+ */
+static void trigger_pressed(uint8_t layer, uint16_t time) {
+    if (state.locked_target_layers & layer_bit(layer)) {
+        /* Leave the locked target layer. */
+        unlock(layer);
+        return;
+    }
     if (state.phase != PHASE_OFF && state.target_layer == layer) {
-        /* Cancel: back to the holding layer. */
+        /* Cancel: back to the holding layer, or off the pending target layer. */
         switch_off();
         return;
     }
     if (layer_state_is(layer)) {
-        /* On for another reason, Layer Lock included: not ours to touch. */
+        /*
+         * On for another reason, which includes a Layer Lock that did not
+         * lock it while it was on through this module: not ours to touch.
+         */
         return;
     }
     if (!is_holding_key_held_of(layer)) {
@@ -143,11 +254,51 @@ static void trigger_pressed(uint8_t layer) {
     }
     /* At most one target layer is on through this module. */
     switch_off();
-    switch_on(layer);
+    switch_on(layer, time);
+}
+
+/*
+ * Make the target layer that a holding key kept on a pending target layer,
+ * at the key-event time `time` of the release of that holding key.
+ */
+static void make_pending(uint16_t time) {
+    state.phase         = PHASE_PENDING;
+    state.pending_used  = false;
+    state.pending_since = time;
+}
+
+/*
+ * Switch off the pending target layer that a typed key has used; that key
+ * has been sent.
+ */
+static void switch_off_used(void) {
+    if (state.phase == PHASE_PENDING && state.pending_used) {
+        switch_off();
+    }
+}
+
+/*
+ * Switch off the pending target layer if its timeout has ended. While the
+ * caller suspends the timeout, it does not run at all: it starts anew when
+ * the suspension ends.
+ */
+static void expire_pending(void) {
+    if (state.phase != PHASE_PENDING) {
+        return;
+    }
+    if (target_layer_is_pending_timeout_suspended()) {
+        state.pending_since = timer_read();
+    } else if (timer_elapsed(state.pending_since) >= TARGET_LAYER_PENDING_TIMEOUT) {
+        switch_off();
+    }
 }
 
 /* The holding key `keycode` at `position` was pressed and is held. */
 static void holding_key_held(uint16_t keycode, keypos_t position) {
+    if (state.phase == PHASE_PENDING) {
+        /* A new gesture starts. */
+        switch_off();
+    }
     if (state.holding_keys_held == MAX_HOLDING_KEYS_HELD) {
         return;
     }
@@ -158,10 +309,21 @@ static void holding_key_held(uint16_t keycode, keypos_t position) {
 }
 
 /*
- * The holding key `keycode` at `position` was released. Does nothing if it
- * was not held: its press was a tap.
+ * End the wait for a quick release if the One Shot Term has ended. The
+ * release finds that out too, but only as long as the 16-bit time of the key
+ * events has not wrapped around since the trigger press.
  */
-static void holding_key_released(uint16_t keycode, keypos_t position) {
+static void expire_quick_release(void) {
+    if (state.phase == PHASE_HELD && state.release_is_quick && timer_elapsed(state.trigger_pressed_at) >= TARGET_LAYER_ONE_SHOT_TERM) {
+        state.release_is_quick = false;
+    }
+}
+
+/*
+ * The holding key `keycode` at `position` was released, at the key-event
+ * time `time`. Does nothing if it was not held: its press was a tap.
+ */
+static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t time) {
     uint8_t released = 0;
     for (;; released++) {
         if (released == state.holding_keys_held) {
@@ -175,7 +337,7 @@ static void holding_key_released(uint16_t keycode, keypos_t position) {
     const bool kept_target_layer_on = state.held_holding_keys[released].keeps_target_layer_on;
     /* Forget it: the key remembered last takes its place. */
     state.held_holding_keys[released] = state.held_holding_keys[--state.holding_keys_held];
-    if (!kept_target_layer_on) {
+    if (!kept_target_layer_on || state.phase != PHASE_HELD) {
         return;
     }
     for (uint8_t i = 0; i < state.holding_keys_held; i++) {
@@ -183,28 +345,85 @@ static void holding_key_released(uint16_t keycode, keypos_t position) {
             return;
         }
     }
-    /* The last holding key of the activation is up. */
-    switch_off();
+    /*
+     * The last holding key of the activation is up. If its release is quick,
+     * the entry of this holding key says what becomes of the target layer;
+     * it kept the target layer on, so it has such an entry.
+     */
+    uint8_t quick_release = TARGET_LAYER_QUICK_RELEASE_NOTHING;
+    if (state.release_is_quick && TIMER_DIFF_16(time, state.trigger_pressed_at) < TARGET_LAYER_ONE_SHOT_TERM) {
+        quick_release = find_entry(keycode, state.target_layer)->quick_release;
+    }
+    switch (quick_release) {
+        case TARGET_LAYER_QUICK_RELEASE_PENDING:
+            make_pending(time);
+            break;
+        case TARGET_LAYER_QUICK_RELEASE_LOCKED:
+            lock();
+            break;
+        default:
+            switch_off();
+            break;
+    }
+}
+
+/*
+ * A key that is neither a trigger key nor a held holding key was pressed.
+ */
+static void other_key_pressed(uint16_t keycode, const keyrecord_t *record) {
+    if (target_layer_is_one_shot_mod_key(keycode, record)) {
+        /*
+         * Not a typed key. The timeout of a pending target layer starts
+         * anew, so that it does not end before the pending one-shot mod.
+         */
+        state.pending_since = record->event.time;
+    } else if (is_key_typed(keycode, record)) {
+        /*
+         * A key is typed: the release of the holding key is not quick any
+         * more, and a pending target layer is used.
+         */
+        state.release_is_quick = false;
+        state.pending_used     = true;
+    }
 }
 
 bool target_layer_process_record(uint16_t keycode, keyrecord_t *record) {
+    sync_with_layer_lock();
     if (IS_QK_MOMENTARY(keycode) && is_target_layer(QK_MOMENTARY_GET_LAYER(keycode))) {
         /* A trigger key. Its release means nothing. */
         if (record->event.pressed) {
-            trigger_pressed(QK_MOMENTARY_GET_LAYER(keycode));
+            trigger_pressed(QK_MOMENTARY_GET_LAYER(keycode), record->event.time);
         }
         return false;
     }
     if (is_holding_key(keycode)) {
         if (!record->event.pressed) {
-            holding_key_released(keycode, record->event.key);
-        } else if (record->tap.count == 0) {
-            holding_key_held(keycode, record->event.key);
+            holding_key_released(keycode, record->event.key, record->event.time);
+            return true;
         }
+        if (record->tap.count == 0) {
+            holding_key_held(keycode, record->event.key);
+            return true;
+        }
+        /* Tapped, it is a typed key like any other. */
+    }
+    if (record->event.pressed) {
+        other_key_pressed(keycode, record);
     }
     return true;
 }
 
-void target_layer_post_process_record(uint16_t keycode, keyrecord_t *record) {}
+void target_layer_post_process_record(uint16_t keycode, keyrecord_t *record) {
+    switch_off_used();
+}
 
-void target_layer_housekeeping_task(void) {}
+void target_layer_housekeeping_task(void) {
+    /*
+     * QMK skips the after-report hook for a key that one of its features
+     * handled completely, so the switch-off is caught up on here.
+     */
+    switch_off_used();
+    sync_with_layer_lock();
+    expire_quick_release();
+    expire_pending();
+}
