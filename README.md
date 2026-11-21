@@ -19,7 +19,7 @@ A keymap family is a complete typing design that can be applied to more than one
 | --- | --- |
 | `users/hydeik/` | The `hydeik` keymap family: its layers, keycodes and behaviour. |
 | `users/hydeik_vial/` | The `hydeik_vial` keymap family. Its [unit tests](#unit-tests) are in `tests/`. |
-| `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), one layout adapter per keyboard (`keyboards/`), and its [unit tests](#unit-tests) (`tests/`). |
+| `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), what counts as a key typed and the layer-switching state machine (`features/`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), one layout adapter per keyboard (`keyboards/`), and its [unit tests](#unit-tests) (`tests/`). |
 | `keyboards/<keyboard>/keymaps/<keymap family>/` | One keymap: a keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
 | `firmware_sources.json` | The firmware source of each keymap family, pinned to a commit. |
@@ -98,7 +98,7 @@ Building with `qmk compile` or `qmk flash` is not supported: they build against 
 
 Unit tests drive key events through the unit-test framework of a firmware source and check the keyboard reports sent to the host. There are two kinds:
 
-* Tests of the common core, in `users/hydeik_common/tests/`. They run on the unit-test frameworks of both firmware sources, upstream QMK and vial-qmk.
+* Tests of the common core, in `users/hydeik_common/tests/`: its `target_layer` state machine (`users/hydeik_common/features/target_layer.c`), which switches to a target layer. They run on the unit-test frameworks of both firmware sources, upstream QMK and vial-qmk.
 * Tests of the `hydeik_vial` keymap family, in `users/hydeik_vial/tests/`: its `smart_mod` state machine (`users/hydeik_vial/features/smart_mod.c`), which holds its one-shot mods and its smart mod layer. They run on vial-qmk only.
 
 Run them all with:
