@@ -1,6 +1,13 @@
 #include QMK_KEYBOARD_H
 
 #include "hydeik.h"
+#include "split_probe.h"
+
+const split_probe_entry_t split_probe_entries[] = {
+    {NAV_SPC, TRG_MOU, _MOU},
+    {NUM_ENT, TRG_FUN, _FUN},
+};
+const uint8_t split_probe_entry_count = ARRAY_SIZE(split_probe_entries);
 
 /*****************************************************************************
  * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
@@ -225,6 +232,9 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
         break
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!split_probe_process_record(keycode, record)) {
+        return false;
+    }
     switch(keycode) {
         CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
         CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
@@ -266,10 +276,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 #undef CASE_MT_NON_BASIC_KEYCODE
 
-/*
- * Custom behavior for layers
- */
-layer_state_t layer_state_set_user(layer_state_t state) {
-    return update_tri_layer_state(state, _SYM, _NUM, _FUN);
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    split_probe_post_process_record(keycode, record);
 }
-

@@ -28,6 +28,8 @@ enum custom_keycodes {
     M_MKGRVS,
     M_UPDIR,
     M_NOOP,
+    TRG_MOU,
+    TRG_FUN,
 };
 
 enum keycode_aliases {
@@ -155,7 +157,7 @@ enum keycode_aliases {
  */
 
 #define NUM_LAYER \
-    NUM_GRID(HOME_ROW_MOD, XXXXXXX), \
+    NUM_GRID(HOME_ROW_MOD, TRG_FUN), \
                                _______, KC_SPC,  _______, _______
 
 /*
@@ -174,7 +176,7 @@ enum keycode_aliases {
 
 #define NAV_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_INS,  \
-    OS_LCTL, OS_LALT, OS_LGUI, OS_LSFT, MO(_MOU), KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC, \
+    OS_LCTL, OS_LALT, OS_LGUI, OS_LSFT, TRG_MOU,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC, \
     M_UNDO,  M_CUT,   M_COPY,  M_PSTE,  QK_LLCK,  XXXXXXX, KC_ENT,  QK_REP,  QK_AREP, KC_DEL,  \
                                _______, _______,  _______, _______
 
@@ -194,7 +196,7 @@ enum keycode_aliases {
 
 #define MOUSE_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
-    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
+    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, TRG_MOU, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, \
                                _______, _______, MS_BTN1, MS_BTN2
 
@@ -213,7 +215,7 @@ enum keycode_aliases {
  */
 
 #define FUN_LAYER \
-    FUN_GRID(HELD_MOD, XXXXXXX), \
+    FUN_GRID(HELD_MOD, TRG_FUN), \
                                _______, _______, _______, _______
 
 /* clang-format on */

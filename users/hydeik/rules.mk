@@ -1,3 +1,3 @@
 include $(QMK_USERSPACE)/users/hydeik_common/common.mk
 
-SRC += hydeik.c
+SRC += hydeik.c split_probe.c
