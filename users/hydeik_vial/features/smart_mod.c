@@ -112,6 +112,10 @@ void smart_mod_reset(void) {
     state.shift_tapped              = false;
 }
 
+bool smart_mod_is_layer_key_held(void) {
+    return state.smart_mod_layer_keys_held != 0;
+}
+
 /* Drop the consumed one-shot mods; the key they applied to has been sent. */
 static void drop_consumed(void) {
     if (state.consumed) {
