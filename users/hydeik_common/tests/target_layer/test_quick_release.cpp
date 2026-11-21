@@ -38,14 +38,14 @@ using testing::InSequence;
  * transparent key. PEN is the target layer that a quick release leaves
  * pending, LCK the one that it locks.
  *
- * | Column | 0       | 1       | 2       | 3    | 4     | 5       | 6       | 7         | 8    | 9       |
- * | ------ | ------- | ------- | ------- | ---- | ----- | ------- | ------- | --------- | ---- | ------- |
- * | BASE   | TAB_SYM | ENT_NUM | A       | B    | C     | D       | QK_LLCK | OSM(LCTL) | LSFT | E       |
- * | SYM    |         |         | MO(LCK) | 1    |       | MO(PEN) |         |           |      |         |
- * | NUM    |         |         | MO(LCK) | 2    |       | MO(PEN) |         |           |      | MO(FUN) |
- * | FUN    |         |         |         | F12  |       |         |         |           |      | MO(FUN) |
- * | PEN    |         |         |         | F1   | F2    | MO(PEN) |         |           |      |         |
- * | LCK    |         |         | MO(LCK) | LEFT | RIGHT |         |         |           |      | MS_BTN1 |
+ * | Column | 0       | 1       | 2       | 3    | 4       | 5       | 6       | 7         | 8    | 9       |
+ * | ------ | ------- | ------- | ------- | ---- | ------- | ------- | ------- | --------- | ---- | ------- |
+ * | BASE   | TAB_SYM | ENT_NUM | A       | B    | C       | D       | QK_LLCK | OSM(LCTL) | LSFT | E       |
+ * | SYM    |         |         | MO(LCK) | 1    |         | MO(PEN) |         |           |      |         |
+ * | NUM    |         |         | MO(LCK) | 2    |         | MO(PEN) |         |           |      | MO(FUN) |
+ * | FUN    |         |         |         | F12  |         |         |         |           |      | MO(FUN) |
+ * | PEN    |         |         |         | F1   | F2      | MO(PEN) |         |           |      |         |
+ * | LCK    |         |         | MO(LCK) | LEFT | MS_BTN1 |         |         |           |      |         |
  *
  * `key_lck`, `key_pen` and `key_fun` are the positions of the trigger keys.
  * The quick release of FUN does nothing.
@@ -92,8 +92,7 @@ class TargetLayerQuickRelease : public TestFixture {
                  KeymapKey{TEST_LAYER_PEN, 5, 0, MO(TEST_LAYER_PEN)},
                  KeymapKey{TEST_LAYER_LCK, 2, 0, MO(TEST_LAYER_LCK)},
                  KeymapKey{TEST_LAYER_LCK, 3, 0, KC_LEFT},
-                 KeymapKey{TEST_LAYER_LCK, 4, 0, KC_RIGHT},
-                 KeymapKey{TEST_LAYER_LCK, 9, 0, MS_BTN1},
+                 KeymapKey{TEST_LAYER_LCK, 4, 0, MS_BTN1},
              }) {
             add_key(key);
         }
@@ -618,4 +617,231 @@ TEST_F(TargetLayerQuickRelease, Amendment41_Rule15_PendingTargetLayerDoesNotTime
     expect_layers_on({});
 
     expect_typed(driver, KC_B);
+}
+
+/*
+ * Amendment of issue #39: for an entry that says so, a quick release makes
+ * the target layer a locked target layer, as if Layer Lock had been pressed.
+ * It stays on for every key that follows.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_QuickReleaseLocksTheTargetLayer) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_tab_sym, key_lck);
+    expect_layers_on({TEST_LAYER_LCK});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_LEFT);
+    expect_typed(driver, KC_LEFT);
+    expect_layers_on({TEST_LAYER_LCK});
+}
+
+/*
+ * Amendment of issue #39, under the condition of rule 10: a release at the
+ * deadline of the One Shot Term does not lock the target layer.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_ReleaseJustAfterTheOneShotTermDoesNotLock) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_tab_sym);
+    tap_and_let_go_after(key_lck, key_tab_sym, TARGET_LAYER_ONE_SHOT_TERM);
+
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Amendment of issue #39: a release just before the deadline of the One Shot
+ * Term locks the target layer.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_ReleaseJustBeforeTheOneShotTermLocks) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_tab_sym);
+    tap_and_let_go_after(key_lck, key_tab_sym, TARGET_LAYER_ONE_SHOT_TERM - 1);
+
+    expect_layers_on({TEST_LAYER_LCK});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 11, issue #40: a mouse key is a typed key. Pressed on the target
+ * layer before the release of the holding key, it prevents the lock.
+ */
+TEST_F(TargetLayerQuickRelease, Rule11_Issue40_MouseKeyIsAKeyTyped) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_tab_sym);
+    tap(key_lck);
+    tap(key_typed_next);
+    let_go(key_tab_sym);
+
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 1 and the amendment of issue #39: with several holding keys held, the
+ * quick release does what the entry of the holding key released last says.
+ * The entry of `TAB_SYM` locks LCK; that of `ENT_NUM` does nothing.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_QuickReleaseDoesWhatTheEntryOfTheLastHoldingKeySays) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_tab_sym);
+    hold(key_ent_num);
+    tap(key_lck);
+    let_go(key_ent_num);
+    let_go(key_tab_sym);
+    expect_layers_on({TEST_LAYER_LCK});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_LCK));
+
+    tap(key_lck);
+    expect_layers_on({});
+
+    hold(key_tab_sym);
+    hold(key_ent_num);
+    tap(key_lck);
+    let_go(key_tab_sym);
+    let_go(key_ent_num);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 18 as amended by issue #39: the trigger key pressed while its target
+ * layer is locked unlocks it and switches it off. No holding key is held
+ * then, and nothing is sent.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_Rule18_TriggerKeyUnlocksItsLockedTargetLayer) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_tab_sym, key_lck);
+    expect_layers_on({TEST_LAYER_LCK});
+
+    key_lck.press();
+    run_one_scan_loop();
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+
+    key_lck.release();
+    run_one_scan_loop();
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_B);
+}
+
+/*
+ * Rule 18 as amended by issue #39: with a holding key held again above the
+ * locked target layer, the trigger key unlocks the target layer and leaves
+ * the user on the holding layer. Pressed once more, it switches the target
+ * layer on again.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_Rule18_TriggerKeyUnlocksWhileAHoldingKeyIsHeld) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_tab_sym, key_lck);
+    hold(key_tab_sym);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_LCK});
+
+    tap(key_lck);
+    expect_layers_on({TEST_LAYER_SYM});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+    expect_typed(driver, KC_1);
+
+    EXPECT_NO_REPORT(driver);
+    tap(key_lck);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_LCK});
+    idle_for(TARGET_LAYER_ONE_SHOT_TERM);
+    let_go(key_tab_sym);
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Amendment of issue #39: the Layer Lock key unlocks a locked target layer,
+ * and the gesture works again afterwards.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_LayerLockKeyUnlocksALockedTargetLayer) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_tab_sym, key_lck);
+    tap(key_layer_lock);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_LCK));
+
+    hold(key_tab_sym);
+    tap(key_lck);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_LCK});
+    idle_for(TARGET_LAYER_ONE_SHOT_TERM);
+    let_go(key_tab_sym);
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Amendment of issue #39: nothing but its trigger key and Layer Lock leaves
+ * a locked target layer. Not typed keys, the timeout of a pending target
+ * layer, a holding key held, tapped or released, or the gesture of another
+ * target layer, pending or not.
+ */
+TEST_F(TargetLayerQuickRelease, Amendment39_NothingElseLeavesALockedTargetLayer) {
+    TestDriver driver;
+
+    quick_gesture(key_tab_sym, key_lck);
+
+    expect_typed(driver, KC_LEFT);
+    idle_for(2 * TARGET_LAYER_PENDING_TIMEOUT);
+    expect_layers_on({TEST_LAYER_LCK});
+
+    EXPECT_NO_REPORT(driver);
+    hold(key_tab_sym);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_LCK});
+    let_go(key_tab_sym);
+    expect_layers_on({TEST_LAYER_LCK});
+    VERIFY_AND_CLEAR(driver);
+
+    EXPECT_REPORT(driver, (KC_TAB));
+    EXPECT_EMPTY_REPORT(driver);
+    tap(key_tab_sym);
+    expect_layers_on({TEST_LAYER_LCK});
+    VERIFY_AND_CLEAR(driver);
+
+    /* The gesture of FUN, whose quick release does nothing. */
+    EXPECT_NO_REPORT(driver);
+    hold(key_ent_num);
+    tap(key_fun);
+    expect_layers_on({TEST_LAYER_NUM, TEST_LAYER_FUN, TEST_LAYER_LCK});
+    let_go(key_ent_num);
+    expect_layers_on({TEST_LAYER_LCK});
+
+    /* The gesture of PEN, left pending and then cancelled by its trigger key. */
+    quick_gesture(key_ent_num, key_pen);
+    expect_layers_on({TEST_LAYER_PEN, TEST_LAYER_LCK});
+    tap(key_pen);
+    expect_layers_on({TEST_LAYER_LCK});
+
+    /* The gesture of PEN, left pending and timed out. */
+    quick_gesture(key_ent_num, key_pen);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
+    expect_layers_on({TEST_LAYER_LCK});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_LCK));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_LEFT);
 }

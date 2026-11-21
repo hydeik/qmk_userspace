@@ -16,6 +16,10 @@
 
 #include "key_typed.h"
 
+#ifdef LAYER_LOCK_ENABLE
+#    include "layer_lock.h"
+#endif
+
 /*
  * How many holding keys can be held at once. One more is ignored: it makes
  * no trigger key work.
@@ -77,11 +81,18 @@ static struct {
      */
     bool     pending_used;
     uint16_t pending_since;
+    /*
+     * The locked target layers, one bit per layer: the target layers that
+     * were locked while they were on through this module, and not unlocked
+     * since. The trigger key of such a layer unlocks it.
+     */
+    layer_state_t locked_target_layers;
 } state;
 
 void target_layer_reset(void) {
     state.holding_keys_held = 0;
-    state.phase             = PHASE_OFF;
+    state.phase                = PHASE_OFF;
+    state.locked_target_layers = 0;
 }
 
 /* Return whether the table lists `layer` as a target layer. */
@@ -137,6 +148,45 @@ static void switch_off(void) {
 }
 
 /*
+ * Make the target layer that is on through this module a locked target
+ * layer. It is locked as by the Layer Lock key, and no longer held or
+ * pending.
+ */
+static void lock(void) {
+    state.phase = PHASE_OFF;
+    state.locked_target_layers |= (layer_state_t)1 << state.target_layer;
+#ifdef LAYER_LOCK_ENABLE
+    layer_lock_on(state.target_layer);
+#endif
+}
+
+/* Unlock the locked target layer `layer` and switch it off. */
+static void unlock(uint8_t layer) {
+    state.locked_target_layers &= ~((layer_state_t)1 << layer);
+#ifdef LAYER_LOCK_ENABLE
+    layer_lock_off(layer);
+#else
+    layer_off(layer);
+#endif
+}
+
+/*
+ * Take over what Layer Lock did behind this module: forget the locked target
+ * layers that are locked no longer, unlocked by the Layer Lock key or by the
+ * idle timeout of Layer Lock.
+ */
+static void sync_with_layer_lock(void) {
+#ifdef LAYER_LOCK_ENABLE
+    for (uint8_t i = 0; state.locked_target_layers && i < target_layer_entry_count; i++) {
+        const uint8_t layer = target_layer_entries[i].target_layer;
+        if (!is_layer_locked(layer)) {
+            state.locked_target_layers &= ~((layer_state_t)1 << layer);
+        }
+    }
+#endif
+}
+
+/*
  * Return what a quick release of the holding key `keycode` does to the
  * target layer `layer`.
  */
@@ -171,6 +221,10 @@ static void switch_on(uint8_t layer, uint16_t time) {
  * time `time`.
  */
 static void trigger_pressed(uint8_t layer, uint16_t time) {
+    if (state.locked_target_layers & ((layer_state_t)1 << layer)) {
+        unlock(layer);
+        return;
+    }
     if (state.phase != PHASE_OFF && state.target_layer == layer) {
         /* Cancel: back to the holding layer. */
         switch_off();
@@ -267,17 +321,21 @@ static void holding_key_released(uint16_t keycode, keypos_t position, uint16_t t
         }
     }
     /* The last holding key of the activation is up. */
-    const bool quick = state.release_is_quick && TIMER_DIFF_16(time, state.trigger_pressed_at) < TARGET_LAYER_ONE_SHOT_TERM;
-    if (quick && quick_release_of(keycode, state.target_layer) == TARGET_LAYER_QUICK_RELEASE_PENDING) {
+    const bool    quick         = state.release_is_quick && TIMER_DIFF_16(time, state.trigger_pressed_at) < TARGET_LAYER_ONE_SHOT_TERM;
+    const uint8_t quick_release = quick ? quick_release_of(keycode, state.target_layer) : TARGET_LAYER_QUICK_RELEASE_NOTHING;
+    if (quick_release == TARGET_LAYER_QUICK_RELEASE_PENDING) {
         state.phase         = PHASE_PENDING;
         state.pending_used  = false;
         state.pending_since = time;
+    } else if (quick_release == TARGET_LAYER_QUICK_RELEASE_LOCKED) {
+        lock();
     } else {
         switch_off();
     }
 }
 
 bool target_layer_process_record(uint16_t keycode, keyrecord_t *record) {
+    sync_with_layer_lock();
     if (IS_QK_MOMENTARY(keycode) && is_target_layer(QK_MOMENTARY_GET_LAYER(keycode))) {
         /* A trigger key. Its release means nothing. */
         if (record->event.pressed) {
@@ -319,6 +377,7 @@ void target_layer_housekeeping_task(void) {
      * handled completely, so the switch-off is caught up on here.
      */
     switch_off_used();
+    sync_with_layer_lock();
     expire_quick_release();
     expire_pending();
 }
