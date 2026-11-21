@@ -16,16 +16,33 @@ Commands (run from the repository root):
     locate FAMILY    Print the path of the firmware checkout of FAMILY. Fail
                      if it, or one of its submodules, is missing or not at
                      the pinned commit.
-    source FAMILY    Print the firmware source of FAMILY as `repo=<repo>` and
-                     `ref=<ref>` lines.
+    tests [FAMILY]   Print one `<keymap family> <test directory>` line per
+                     unit test and firmware source it runs on, the firmware
+                     source being named by its keymap family. With FAMILY,
+                     print only the runs on the firmware source of FAMILY.
+                     Fail if there is none.
+    test-matrix      Print the CI test matrix as a `test_matrix=<json>` line,
+                     with one entry per firmware source that unit tests run
+                     on.
 
-`matrix`, `select` and `source` are used by CI, `fetch` and `locate` by the
-Makefile for local builds and unit tests.
+`matrix`, `select` and `test-matrix` are used by CI, `fetch`, `locate` and
+`tests` by the Makefile for local builds and unit tests.
+
+A unit test is a directory users/<owner>/tests/<test>/ with a test.mk, where
+<owner> is a keymap family or the common core. Its test.mk names the firmware
+sources it runs on, each by the keymap family that declares it:
+
+    TEST_FIRMWARE_SOURCES = hydeik hydeik_vial
+
+The line is read as text, not evaluated by make. A test of a keymap family
+may leave it out and then runs on the firmware source of that family; any
+other test must have it.
 
 Every command fails if firmware_sources.json is malformed. `matrix` and
 `select` also fail if any build target's keymap has no entry in it.
 """
 
+import glob
 import json
 import os
 import re
@@ -35,6 +52,12 @@ import sys
 SOURCES_FILE = "firmware_sources.json"
 TARGETS_FILE = "qmk.json"
 FIRMWARE_DIR = ".firmware"
+
+TEST_MAKEFILES = "users/*/tests/*/test.mk"
+TEST_SOURCES_VARIABLE = "TEST_FIRMWARE_SOURCES"
+TEST_SOURCES_LINE = re.compile(
+    rf"^[ \t]*{TEST_SOURCES_VARIABLE}[ \t]*(?:::?|\?|\+)?=([^#\n]*)", re.MULTILINE
+)
 
 REQUIRED_KEYS = ("repo", "branch", "ref")
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
@@ -227,12 +250,6 @@ def declared_source(family):
     return sources[family]
 
 
-def cmd_source(family):
-    source = declared_source(family)
-    print(f"repo={source['repo']}")
-    print(f"ref={source['ref']}")
-
-
 def cmd_locate(family):
     checkout = firmware_checkout(family)
     ref = declared_source(family)["ref"]
@@ -256,6 +273,81 @@ def cmd_locate(family):
     print(checkout)
 
 
+def test_sources(test_makefile, sources):
+    """Return the keymap families whose firmware sources a unit test runs on."""
+    owner = test_makefile.split("/")[1]
+    with open(test_makefile) as f:
+        lines = TEST_SOURCES_LINE.findall(f.read())
+
+    if len(lines) > 1:
+        raise SystemExit(
+            f"{test_makefile}: `{TEST_SOURCES_VARIABLE}` is set more than once"
+        )
+    if not lines:
+        if owner not in sources:
+            raise SystemExit(
+                f"{test_makefile}: `{TEST_SOURCES_VARIABLE}` is not set, and "
+                f"`{owner}` is not a keymap family whose firmware source it "
+                f"could default to (declared: {', '.join(sources)})"
+            )
+        return [owner]
+
+    families = lines[0].split()
+    if not families:
+        raise SystemExit(f"{test_makefile}: `{TEST_SOURCES_VARIABLE}` is empty")
+    for family in families:
+        if family not in sources:
+            raise SystemExit(
+                f"{test_makefile}: `{TEST_SOURCES_VARIABLE}` names `{family}`, "
+                f"which is not a keymap family declared in {SOURCES_FILE} "
+                f"(declared: {', '.join(sources)})"
+            )
+    return families
+
+
+def test_runs(sources):
+    """Return (keymap family, test directory) for every run of a unit test.
+
+    The runs are ordered by firmware source, as declared, then by directory.
+    """
+    tests = [
+        (os.path.dirname(test_makefile), test_sources(test_makefile, sources))
+        for test_makefile in sorted(glob.glob(TEST_MAKEFILES))
+    ]
+    return [
+        (family, test_dir)
+        for family in sources
+        for test_dir, families in tests
+        if family in families
+    ]
+
+
+def cmd_tests(family=None):
+    sources = load_sources()
+    runs = test_runs(sources)
+    if family is not None:
+        declared_source(family)
+        runs = [run for run in runs if run[0] == family]
+    if not runs:
+        on = f" that run on the firmware source of `{family}`" if family else ""
+        raise SystemExit(f"No unit tests{on} found in {TEST_MAKEFILES}.")
+    for run_family, test_dir in runs:
+        print(run_family, os.path.realpath(test_dir))
+
+
+def cmd_test_matrix():
+    sources = load_sources()
+    used = {family for family, _ in test_runs(sources)}
+    include = [
+        {"family": family, "repo": source["repo"], "ref": source["ref"]}
+        for family, source in sources.items()
+        if family in used
+    ]
+    if not include:
+        raise SystemExit(f"No unit tests found in {TEST_MAKEFILES}.")
+    print("test_matrix=" + json.dumps({"include": include}, separators=(",", ":")))
+
+
 def main(argv):
     if argv == ["matrix"]:
         cmd_matrix()
@@ -265,8 +357,10 @@ def main(argv):
         cmd_fetch()
     elif len(argv) == 2 and argv[0] == "locate":
         cmd_locate(argv[1])
-    elif len(argv) == 2 and argv[0] == "source":
-        cmd_source(argv[1])
+    elif len(argv) in (1, 2) and argv[0] == "tests":
+        cmd_tests(*argv[1:])
+    elif argv == ["test-matrix"]:
+        cmd_test_matrix()
     else:
         raise SystemExit(__doc__)
 
