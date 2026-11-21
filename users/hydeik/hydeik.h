@@ -36,6 +36,15 @@ enum keycode_aliases {
     NAV_SPC = LT(_NAV, KC_SPC),
     OSM_SFT = OSM(MOD_LSFT),
     NUM_ENT = LT(_NUM, KC_BSPC),
+    /*
+     * Trigger keys of the target layers MOU and FUN. `MO()` of a target layer
+     * is no momentary layer key: `target_layer` of the common core intercepts
+     * it. It switches its target layer on only while the holding key of that
+     * layer is held (NAV_SPC for MOU, NUM_ENT for FUN), and does nothing
+     * alone. See the table of entries in hydeik.c.
+     */
+    TRG_MOU = MO(_MOU),
+    TRG_FUN = MO(_FUN),
     /* for home-row mods (BASE layer) */
     HM_A = LCTL_T(KC_A),
     HM_S = LALT_T(KC_S),
@@ -132,7 +141,7 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _SYM_   | SPC     |   | ESC     | -FUN-   |
+ *                               | _SYM_   | SPC     |   | ESC     |         |
  *                               +---------+---------+   +---------+---------+
  */
 
@@ -148,14 +157,18 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | 0 / CTL | 1 / ALT | 2 / GUI | 3 / SFT | DEL     |   | BSPC    | ' / SFT | _ / GUI | = / ALT | * / CTL |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       |         |
+ * | ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | >FUN<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | -FUN-   | SPC     |   |         | _NUM_   |
+ *                               |         | SPC     |   |         | _NUM_   |
  *                               +---------+---------+   +---------+---------+
+ *
+ * >FUN< is the trigger key of FUN: pressed while NUM_ENT is held, it switches
+ * FUN on until NUM_ENT is released. After a quick release of NUM_ENT, FUN
+ * stays on for the next typed key only.
  */
 
 #define NUM_LAYER \
-    NUM_GRID(HOME_ROW_MOD, XXXXXXX), \
+    NUM_GRID(HOME_ROW_MOD, TRG_FUN), \
                                _______, KC_SPC,  _______, _______
 
 /*
@@ -164,17 +177,21 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     | INS     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL*    | ALT*    | GUI*    | SFT*    | -MOU-   |   | LEFT    | DOWN    | UP      | RGHT    | BSPC    |
+ * | CTL*    | ALT*    | GUI*    | SFT*    | >MOU<   |   | LEFT    | DOWN    | UP      | RGHT    | BSPC    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | UNDO    | CUT     | COPY    | PASTE   | LLCK    |   |         | ENT     | REP     | AREP    | DEL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               |         | _NAV_   |   | ESC     |         |
+ *                               |         | _NAV_   |   |         |         |
  *                               +---------+---------+   +---------+---------+
+ *
+ * >MOU< is the trigger key of MOU: pressed while NAV_SPC is held, it switches
+ * MOU on until NAV_SPC is released. After a quick release of NAV_SPC, MOU
+ * stays locked.
  */
 
 #define NAV_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,  KC_HOME, KC_PGDN, KC_PGUP, KC_END,  KC_INS,  \
-    OS_LCTL, OS_LALT, OS_LGUI, OS_LSFT, MO(_MOU), KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC, \
+    OS_LCTL, OS_LALT, OS_LGUI, OS_LSFT, TRG_MOU,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_BSPC, \
     M_UNDO,  M_CUT,   M_COPY,  M_PSTE,  QK_LLCK,  XXXXXXX, KC_ENT,  QK_REP,  QK_AREP, KC_DEL,  \
                                _______, _______,  _______, _______
 
@@ -184,17 +201,22 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   | MS_WHLL | MS_WHLD | MS_WHLU | MS_WHLR |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL*    | ALT*    | GUI*    | SFT*    | _MOU_   |   | MS_LEFT | MS_DOWN | MS_UP   | MS_RGHT | BTN3    |
+ * | CTL     | ALT     | GUI     | SFT     | >MOU<   |   | MS_LEFT | MS_DOWN | MS_UP   | MS_RGHT | BTN3    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         |         |         |         |         |   | LLCK    |         |         |         |         |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               |         | _NAV_   |   | BTN1    | BTN2    |
+ *                               |         |         |   | BTN1    | BTN2    |
  *                               +---------+---------+   +---------+---------+
+ *
+ * The trigger key of MOU lies here as the key itself, not as a transparent
+ * key: NAV is off while MOU is locked, and the trigger key at the same
+ * position must still leave MOU. The left thumb keys fall through, to
+ * NAV_SPC while it is held and to BASE while MOU is locked.
  */
 
 #define MOUSE_LAYER \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, XXXXXXX, \
-    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
+    KC_LCTL, KC_LALT, KC_LGUI, KC_LSFT, TRG_MOU, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, MS_BTN3, \
     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, QK_LLCK, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, \
                                _______, _______, MS_BTN1, MS_BTN2
 
@@ -206,14 +228,18 @@ enum keycode_aliases {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * |         | F3      | F2      | F1      | F11     |   |         | SFT     | GUI     | ALT     | CTL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    |         |
+ * |         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | >FUN<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- *                               | _FUN_   |         |   |         | _FUN_   |
+ *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
+ *
+ * The trigger key of FUN lies here as the key itself, not as a transparent
+ * key: NUM is off while FUN is pending or locked. The four thumb keys fall
+ * through.
  */
 
 #define FUN_LAYER \
-    FUN_GRID(HELD_MOD, XXXXXXX), \
+    FUN_GRID(HELD_MOD, TRG_FUN), \
                                _______, _______, _______, _______
 
 /* clang-format on */
