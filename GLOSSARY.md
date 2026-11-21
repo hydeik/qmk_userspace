@@ -42,3 +42,27 @@ _Avoid_: Layer key, mod key
 **Latched one-shot mod**:
 A one-shot mod chosen on the smart mod layer that stays active, visible to the host, for as long as a smart mod layer key is held.
 _Avoid_: Used mod, locked mod, sticky mod
+
+**Holding key**:
+A thumb key that keeps a layer on while it is held and, for that time, makes its trigger keys work.
+_Avoid_: Layer key, hold key, suppressor
+
+**Holding layer**:
+The layer that a holding key keeps on while it is held.
+_Avoid_: Secondary layer
+
+**Trigger key**:
+A key that, tapped while one of its holding keys is held, switches to its target layer. Without a held holding key it does nothing.
+_Avoid_: Layer switch key, `TO` key
+
+**Target layer**:
+The layer that a trigger key switches to. It stays on for as long as the holding key is held.
+_Avoid_: Tertiary layer
+
+**Pending target layer**:
+A target layer left on after its holding key was released quickly, with no key typed. It applies to the next key press only.
+_Avoid_: One-shot layer, QMK's built-in one-shot layers (a different mechanism)
+
+**Locked target layer**:
+A target layer that stays on after its holding key was released quickly, with no key typed, until it is left on purpose. Which target layers lock and which become pending is chosen per trigger key.
+_Avoid_: Sticky layer, toggled layer
