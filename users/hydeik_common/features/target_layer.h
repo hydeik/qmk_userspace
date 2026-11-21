@@ -41,10 +41,12 @@
  * as a tap. This module does not switch the holding layer: QMK does, as for
  * any layer-tap key.
  *
- * The module switches off only a target layer that it switched on itself. A
- * trigger key does nothing while its target layer is on for another reason,
- * which includes a Layer Lock that did not lock it while it was on through
- * this module. A target layer should lie above its holding layers, as the
+ * The module switches off only a target layer that it switched on itself,
+ * with one exception: a trigger key unlocks and switches off its target layer
+ * whenever Layer Lock holds it, whichever way the layer came on. A trigger
+ * key does nothing while its target layer is on for any other reason than
+ * this module or Layer Lock. A target layer should lie above its holding
+ * layers, as the
  * Layer Lock key locks the highest layer that is on.
  *
  * Without Layer Lock in the build (`LAYER_LOCK_ENABLE`), a locked target
