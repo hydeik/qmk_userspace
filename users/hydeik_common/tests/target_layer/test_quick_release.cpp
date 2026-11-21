@@ -845,3 +845,207 @@ TEST_F(TargetLayerQuickRelease, Amendment39_NothingElseLeavesALockedTargetLayer)
 
     expect_typed(driver, KC_LEFT);
 }
+
+/*
+ * Rule 17: Layer Lock pressed on a target layer while the holding key is
+ * held locks it. Releasing the holding key then leaves the target layer on,
+ * and the holding layer goes off. The Layer Lock key unlocks it.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_LayerLockOnAHeldTargetLayerLocksIt) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_ent_num);
+    tap(key_pen);
+    tap(key_layer_lock);
+    idle_for(TARGET_LAYER_ONE_SHOT_TERM);
+    let_go(key_ent_num);
+    expect_layers_on({TEST_LAYER_PEN});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_PEN));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_F1);
+    expect_typed(driver, KC_F1);
+
+    EXPECT_NO_REPORT(driver);
+    tap(key_layer_lock);
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 17: the same for an entry whose quick release does nothing, and with
+ * a quick release of the holding key.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_LayerLockLocksATargetLayerWhoseQuickReleaseDoesNothing) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_ent_num);
+    tap(key_fun);
+    tap(key_layer_lock);
+    let_go(key_ent_num);
+    expect_layers_on({TEST_LAYER_FUN});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_FUN));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_F12);
+    expect_typed(driver, KC_F12);
+}
+
+/*
+ * Rules 10 and 17: a target layer locked by Layer Lock does not become
+ * pending by a quick release of the holding key. It stays on after the next
+ * typed key and after the timeout of a pending target layer.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_QuickReleaseLeavesATargetLayerLockedByLayerLockLocked) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_ent_num);
+    tap(key_pen);
+    tap(key_layer_lock);
+    let_go(key_ent_num);
+    expect_layers_on({TEST_LAYER_PEN});
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_F1);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
+    expect_typed(driver, KC_F1);
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_PEN));
+}
+
+/*
+ * Rule 17: Layer Lock pressed again while the holding key is still held
+ * unlocks the target layer, and the user is back on the holding layer.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_LayerLockPressedAgainUnlocksWhileTheHoldingKeyIsHeld) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_ent_num);
+    tap(key_pen);
+    tap(key_layer_lock);
+    tap(key_layer_lock);
+    expect_layers_on({TEST_LAYER_NUM});
+    VERIFY_AND_CLEAR(driver);
+    expect_typed(driver, KC_2);
+
+    EXPECT_NO_REPORT(driver);
+    let_go(key_ent_num);
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Rule 17: Layer Lock pressed while a target layer is pending locks it and
+ * ends the pending state. Neither the next typed key nor the timeout
+ * switches it off.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_LayerLockOnAPendingTargetLayerLocksIt) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    quick_gesture(key_ent_num, key_pen);
+    tap(key_layer_lock);
+    expect_layers_on({TEST_LAYER_PEN});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_PEN));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_F1);
+    expect_typed(driver, KC_F1);
+    idle_for(TARGET_LAYER_PENDING_TIMEOUT);
+    expect_typed(driver, KC_F1);
+
+    EXPECT_NO_REPORT(driver);
+    tap(key_layer_lock);
+    expect_layers_on({});
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_B);
+}
+
+/*
+ * Rule 17 and rule 18 as amended by issue #39: a target layer that Layer
+ * Lock locked while it was on through the trigger key is a locked target
+ * layer, so its trigger key unlocks it.
+ */
+TEST_F(TargetLayerQuickRelease, Rule17_Amendment39_Rule18_TriggerKeyUnlocksATargetLayerLockedByLayerLock) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_ent_num);
+    tap(key_pen);
+    tap(key_layer_lock);
+    idle_for(TARGET_LAYER_ONE_SHOT_TERM);
+    let_go(key_ent_num);
+    expect_layers_on({TEST_LAYER_PEN});
+
+    tap(key_pen);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_PEN));
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_B);
+}
+
+/*
+ * Issue #40: a trigger key does not use up a pending one-shot mod of QMK's
+ * own one-shot mod keys. `OSM(MOD_LCTL)`, then the trigger key, then a key:
+ * that key comes from the target layer with Ctrl.
+ */
+TEST_F(TargetLayerQuickRelease, Issue40_TriggerKeyDoesNotUseUpAPendingOneShotModOfQmk) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    hold(key_tab_sym);
+    tap(key_one_shot_ctrl);
+    tap(key_lck);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_LCK});
+    VERIFY_AND_CLEAR(driver);
+
+    {
+        InSequence s;
+        EXPECT_REPORT(driver, (KC_LCTL, KC_LEFT));
+        EXPECT_REPORT(driver, (KC_LEFT)).Times(AnyNumber());
+        EXPECT_EMPTY_REPORT(driver);
+    }
+    tap(key_typed);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_LEFT);
+
+    EXPECT_NO_REPORT(driver);
+    let_go(key_tab_sym);
+    VERIFY_AND_CLEAR(driver);
+}
+
+/*
+ * Issue #40: the same with the whole gesture after the one-shot mod key, and
+ * a quick release that locks the target layer. Neither the trigger key nor
+ * the unlocking trigger key uses up the pending one-shot mod.
+ */
+TEST_F(TargetLayerQuickRelease, Issue40_TriggerGestureDoesNotUseUpAPendingOneShotModOfQmk) {
+    TestDriver driver;
+    EXPECT_NO_REPORT(driver);
+
+    tap(key_one_shot_ctrl);
+    quick_gesture(key_tab_sym, key_lck);
+    expect_layers_on({TEST_LAYER_LCK});
+    tap(key_lck);
+    expect_layers_on({});
+    quick_gesture(key_tab_sym, key_lck);
+    expect_layers_on({TEST_LAYER_LCK});
+    VERIFY_AND_CLEAR(driver);
+
+    {
+        InSequence s;
+        EXPECT_REPORT(driver, (KC_LCTL, KC_LEFT));
+        EXPECT_REPORT(driver, (KC_LEFT)).Times(AnyNumber());
+        EXPECT_EMPTY_REPORT(driver);
+    }
+    tap(key_typed);
+    VERIFY_AND_CLEAR(driver);
+
+    expect_typed(driver, KC_LEFT);
+}

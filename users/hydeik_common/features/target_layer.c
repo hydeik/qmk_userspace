@@ -171,12 +171,19 @@ static void unlock(uint8_t layer) {
 }
 
 /*
- * Take over what Layer Lock did behind this module: forget the locked target
- * layers that are locked no longer, unlocked by the Layer Lock key or by the
- * idle timeout of Layer Lock.
+ * Take over what Layer Lock did behind this module. QMK handles the Layer
+ * Lock key after the key-event hook, so this module finds out afterwards.
+ *
+ * - A target layer that Layer Lock locked while it was on through this
+ *   module, held or pending, is a locked target layer from then on.
+ * - A locked target layer that is locked no longer, unlocked by the Layer
+ *   Lock key or by the idle timeout of Layer Lock, is forgotten.
  */
 static void sync_with_layer_lock(void) {
 #ifdef LAYER_LOCK_ENABLE
+    if (state.phase != PHASE_OFF && is_layer_locked(state.target_layer)) {
+        lock();
+    }
     for (uint8_t i = 0; state.locked_target_layers && i < target_layer_entry_count; i++) {
         const uint8_t layer = target_layer_entries[i].target_layer;
         if (!is_layer_locked(layer)) {
