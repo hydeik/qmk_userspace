@@ -10,7 +10,7 @@ A keymap family is a complete typing design that can be applied to more than one
 
 | Keymap family | Design | Layers |
 | --- | --- | --- |
-| `hydeik` | No home-row mods; custom one-shot mods on a smart mod layer, and layer switching with holding keys and trigger keys. | BASE, SYM, NUM, NAV, FUN, MOD |
+| `hydeik` | No home-row mods; custom one-shot mods on a smart mod layer, and layer switching with holding keys and trigger keys. | BASE, SYM, NUM, NAV, MOU, FUN, MOD |
 
 A keymap is the keymap family applied to one keyboard, either with or without Vial. The keymap with Vial is named `hydeik_vial` and is built against [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial`; it adds Vial's GUI for remapping and tap-hold settings. The keymap without Vial is named `hydeik` and is built against upstream [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master`.
 
