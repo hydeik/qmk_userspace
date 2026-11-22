@@ -11,6 +11,7 @@ _Static_assert((int)TEST_LAYER_BASE == (int)_BASE, "TEST_LAYER_BASE must be the 
 _Static_assert((int)TEST_LAYER_SYM == (int)_SYM, "TEST_LAYER_SYM must be the SYM layer of layout.h");
 _Static_assert((int)TEST_LAYER_NUM == (int)_NUM, "TEST_LAYER_NUM must be the NUM layer of layout.h");
 _Static_assert((int)TEST_LAYER_NAV == (int)_NAV, "TEST_LAYER_NAV must be the NAV layer of layout.h");
+_Static_assert((int)TEST_LAYER_MOU == (int)_MOU, "TEST_LAYER_MOU must be the MOU layer of layout.h");
 _Static_assert((int)TEST_LAYER_FUN == (int)_FUN, "TEST_LAYER_FUN must be the FUN layer of layout.h");
 _Static_assert((int)TEST_LAYER_MOD == (int)_MOD, "TEST_LAYER_MOD must be the MOD layer of layout.h");
 
@@ -20,6 +21,7 @@ const uint16_t test_layout[TEST_LAYER_COUNT][TEST_LAYOUT_KEYS] = {
     [_SYM]  = {SYM_LAYER},
     [_NUM]  = {NUM_LAYER},
     [_NAV]  = {NAV_LAYER},
+    [_MOU]  = {MOU_LAYER},
     [_FUN]  = {FUN_LAYER},
     [_MOD]  = {MOD_LAYER},
 };

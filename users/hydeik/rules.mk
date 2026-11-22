@@ -13,6 +13,8 @@ SRC += features/target_layer.c
 
 EXTRAKEY_ENABLE = yes
 LTO_ENABLE = yes
+# The MOU layer holds mouse keys. Not every keyboard enables them by itself.
+MOUSEKEY_ENABLE = yes
 REPEAT_KEY_ENABLE = yes
 UNICODE_ENABLE = no
 UCIS_ENABLE = no

@@ -55,13 +55,20 @@
 #include "features/target_layer.h"
 
 /*
- * Keymaps stored by Vial hold these numbers, and vial.json names the custom
- * keycodes by their position. tests/smart_mod/test_glue.c pins them too.
+ * The custom keycode numbers: vial.json names the custom keycodes by their
+ * position, and layout files saved from the Vial GUI hold the numbers.
+ *
+ * The number of the smart mod layer: tests/smart_mod/test_glue.h repeats the
+ * layer numbers, and this assertion and the one in its test_glue.c keep the
+ * copy in step. Layout files saved from the Vial GUI hold the number too, in
+ * the smart mod layer keys `LT(6, ...)`, so renumbering the layer has to be a
+ * deliberate act. A stored keymap is no reason: the first boot of every
+ * newly built firmware with Vial resets it to the firmware keymap.
  */
 _Static_assert((int)COS_MOD == (int)QK_KB_0, "COS_MOD must stay the reserved slot at QK_KB_0");
 _Static_assert((int)COS_LCTL == (int)QK_KB_0 + 1, "the one-shot mod keys must start at QK_KB_0 + 1");
 _Static_assert((int)COS_RGUI == (int)QK_KB_0 + 8, "the one-shot mod keys must end at QK_KB_0 + 8");
-_Static_assert(_MOD == 5, "the smart mod layer must stay layer 5");
+_Static_assert(_MOD == 6, "the smart mod layer must stay layer 6");
 
 /*****************************************************************************
  * Told to smart_mod
@@ -122,20 +129,22 @@ bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
  *****************************************************************************/
 
 /*
- * The table of entries: `TAB_SYM` and the trigger key `MO(_NAV)` switch to
- * NAV, and a quick release of `TAB_SYM` locks it. `ENT_NUM` and the trigger
- * key `MO(_FUN)` switch to FUN, and a quick release of `ENT_NUM` leaves it
- * pending.
+ * The table of entries: `TAB_SYM` is the holding key of two target layers.
+ * With the trigger key `MO(_NAV)` it switches to NAV and with the trigger
+ * key `MO(_MOU)` to MOU, and a quick release of `TAB_SYM` locks either.
+ * `ENT_NUM` and the trigger key `MO(_FUN)` switch to FUN, and a quick release
+ * of `ENT_NUM` leaves it pending.
  */
 const target_layer_entry_t target_layer_entries[] = {
     {TAB_SYM, _NAV, TARGET_LAYER_QUICK_RELEASE_LOCKED},
+    {TAB_SYM, _MOU, TARGET_LAYER_QUICK_RELEASE_LOCKED},
     {ENT_NUM, _FUN, TARGET_LAYER_QUICK_RELEASE_PENDING},
 };
 
 const uint8_t target_layer_entry_count = sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
 
 /* The Layer Lock key locks the highest layer that is on. */
-_Static_assert(_NAV > _SYM && _FUN > _NUM, "a target layer must lie above its holding layer");
+_Static_assert(_NAV > _SYM && _MOU > _SYM && _FUN > _NUM, "a target layer must lie above its holding layer");
 
 /*
  * The key event of a one-shot mod key is the press or the release of a

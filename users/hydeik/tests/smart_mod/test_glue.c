@@ -8,11 +8,16 @@
 #include "quantum.h"
 #include "smart_mod.h"
 
-/* The numbers that users/hydeik/hydeik.c pins too. */
+/*
+ * The numbers that users/hydeik/hydeik.c pins too. The two assertions on the
+ * number of the smart mod layer keep `TEST_LAYER_*` of test_glue.h in step
+ * with the layer numbers of users/hydeik/layout.h, which this test build
+ * does not include.
+ */
 _Static_assert((int)COS_MOD == (int)QK_KB_0, "COS_MOD must stay the reserved slot at QK_KB_0");
 _Static_assert((int)COS_LCTL == (int)QK_KB_0 + 1, "the one-shot mod keys must start at QK_KB_0 + 1");
 _Static_assert((int)COS_RGUI == (int)QK_KB_0 + 8, "the one-shot mod keys must end at QK_KB_0 + 8");
-_Static_assert(TEST_LAYER_MOD == 5, "the smart mod layer must stay layer 5");
+_Static_assert(TEST_LAYER_MOD == 6, "the smart mod layer must stay layer 6");
 
 uint8_t smart_mod_one_shot_mod_bits(uint16_t keycode) {
     switch (keycode) {

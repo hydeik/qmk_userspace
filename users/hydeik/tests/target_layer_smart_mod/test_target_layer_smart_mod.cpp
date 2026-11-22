@@ -12,7 +12,9 @@
  * sit?". The tests named `Issue41_...` are the points of the resolution of
  * issue #41, "How does layer switching interact with the smart mod layer and
  * the one-shot mods of hydeik_vial?"; the second part of such a name is the
- * section of that resolution:
+ * section of that resolution, listed below. The tests named `Mou_...` are
+ * the transitions and the keys of the MOU layer, by the resolution of issue
+ * #55, "How is the MOU layer reached and what does it hold?".
  *
  * - `TriggerKey`: a trigger key is a layer-switching key to `smart_mod`.
  * - `OneShotModKeys`: one-shot mod keys on a pending target layer.
@@ -27,6 +29,7 @@
 
 #include "keyboard_report_util.hpp"
 #include "keycode.h"
+#include "mouse_report_util.hpp"
 #include "test_common.hpp"
 #include "test_fixture.hpp"
 #include "test_keymap_key.hpp"
@@ -51,22 +54,25 @@ using testing::InSequence;
  * (an empty cell is a transparent key, `-` a key that does nothing, `Ctl*`
  * and `Sft*` one-shot mod keys):
  *
- * | Key            | BASE    | SYM     | NUM     | NAV     | FUN     | MOD  |
- * | -------------- | ------- | ------- | ------- | ------- | ------- | ---- |
- * | `tab_sym`      | TAB_SYM |         | Esc     |         |         |      |
- * | `smt_mod`      | SMT_MOD |         |         |         |         |      |
- * | `spc_mod`      | SPC_MOD |         |         |         |         |      |
- * | `ent_num`      | ENT_NUM | Esc     |         |         |         |      |
- * | `corner`       | /       | MO(NAV) | MO(FUN) | MO(NAV) | MO(FUN) |      |
- * | `left_pinky`   | A       | *       | 0       | Ctl*    | -       | Ctl* |
- * | `left_index`   | F       | :       | 3       | Sft*    | F1      | Sft* |
- * | `right_index`  | J       | "       | '       | Left    | Sft*    | Sft* |
- * | `right_pinky`  | ;       | ;       | *       | PgDn    | Ctl*    | Ctl* |
- * | `left_middle`  | C       | @       | 8       | -       | F5      |      |
- * | `layer_lock`   | N       | -       | LLCK    | LLCK    | LLCK    |      |
+ * | Key            | BASE    | SYM     | NUM     | NAV     | MOU     | FUN     | MOD  |
+ * | -------------- | ------- | ------- | ------- | ------- | ------- | ------- | ---- |
+ * | `tab_sym`      | TAB_SYM |         | Esc     |         |         |         |      |
+ * | `smt_mod`      | SMT_MOD |         |         |         |         |         |      |
+ * | `spc_mod`      | SPC_MOD |         |         |         | Btn1    |         |      |
+ * | `ent_num`      | ENT_NUM | Esc     |         |         | Btn2    |         |      |
+ * | `corner`       | /       | MO(NAV) | MO(FUN) | MO(NAV) | MO(NAV) | MO(FUN) |      |
+ * | `left_corner`  | Z       | MO(MOU) | ~       | MO(MOU) | MO(MOU) | -       |      |
+ * | `left_pinky`   | A       | *       | 0       | Ctl*    | Ctl*    | -       | Ctl* |
+ * | `left_index`   | F       | :       | 3       | Sft*    | Sft*    | F1      | Sft* |
+ * | `right_index`  | J       | "       | '       | Left    | MsDown  | Sft*    | Sft* |
+ * | `right_pinky`  | ;       | ;       | *       | PgDn    | Btn3    | Ctl*    | Ctl* |
+ * | `left_middle`  | C       | @       | 8       | -       | -       | F5      |      |
+ * | `layer_lock`   | N       | -       | LLCK    | LLCK    | LLCK    | LLCK    |      |
  *
  * `left_middle` and `layer_lock` are on the bottom row, the others of the
- * fingers on the home row. `corner` is the bottom-right corner.
+ * fingers on the home row. `corner` is the bottom-right corner and
+ * `left_corner` the bottom-left one. `Btn1` to `Btn3` are the mouse buttons
+ * and `MsDown` moves the pointer down.
  *
  * The tests are built with QMK's stock tap-hold behaviour, so a holding key
  * or a smart mod layer key is held only once the tapping term has passed.
@@ -99,6 +105,7 @@ class TargetLayerSmartMod : public TestFixture {
     KeymapKey spc_mod     = layout_key(TEST_LAYER_BASE, 32);
     KeymapKey ent_num     = layout_key(TEST_LAYER_BASE, 33);
     KeymapKey corner      = layout_key(TEST_LAYER_BASE, 29);
+    KeymapKey left_corner = layout_key(TEST_LAYER_BASE, 20);
     KeymapKey left_pinky  = layout_key(TEST_LAYER_BASE, 10);
     KeymapKey left_index  = layout_key(TEST_LAYER_BASE, 13);
     KeymapKey right_index = layout_key(TEST_LAYER_BASE, 16);
@@ -218,6 +225,34 @@ class TargetLayerSmartMod : public TestFixture {
         let_go(ent_num);
         VERIFY_AND_CLEAR(driver);
         expect_layers_on({TEST_LAYER_FUN});
+    }
+
+    /*
+     * The quick gesture of the left thumb with the left corner key: hold
+     * `TAB_SYM`, tap the left corner key, release `TAB_SYM` at once. MOU is a
+     * locked target layer then.
+     */
+    void lock_mou(TestDriver &driver) {
+        EXPECT_NO_REPORT(driver);
+        hold(tab_sym);
+        tap(left_corner);
+        let_go(tab_sym);
+        VERIFY_AND_CLEAR(driver);
+        expect_layers_on({TEST_LAYER_MOU});
+    }
+
+    /*
+     * Tap `key`, a mouse button with the bit `button` in the mouse report,
+     * and expect a click: the button down and then up, with the pointer and
+     * the wheel at rest, and nothing sent as a keyboard.
+     */
+    void expect_click(TestDriver &driver, KeymapKey &key, uint8_t button) {
+        InSequence sequence;
+        EXPECT_NO_REPORT(driver);
+        EXPECT_MOUSE_REPORT(driver, (0, 0, 0, 0, button));
+        EXPECT_EMPTY_MOUSE_REPORT(driver);
+        tap(key);
+        VERIFY_AND_CLEAR(driver);
     }
 
     /* Tap `key`, which sends `code`, and expect that no modifier applies. */
@@ -412,6 +447,169 @@ TEST_F(TargetLayerSmartMod, Keymap_CornerKeyPressedAgainGoesBackToTheHoldingLaye
     expect_layers_on({TEST_LAYER_NUM});
     let_go_silently(driver, ent_num);
     expect_layers_on({});
+}
+
+/****************************************************************************
+ * The MOU layer (issue #55)
+ ****************************************************************************/
+
+/*
+ * `TAB_SYM` and the left corner key reach MOU, which stays on while `TAB_SYM`
+ * is held. A release that is no quick release switches it off.
+ */
+TEST_F(TargetLayerSmartMod, Mou_TabSymAndTheLeftCornerKeyReachMouWhileHeld) {
+    TestDriver driver;
+
+    hold_silently(driver, tab_sym);
+    tap_silently(driver, left_corner);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_MOU});
+
+    EXPECT_NO_REPORT(driver);
+    idle_for(TARGET_LAYER_ONE_SHOT_TERM);
+    VERIFY_AND_CLEAR(driver);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_MOU});
+
+    let_go_silently(driver, tab_sym);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_MOU));
+}
+
+/*
+ * A quick release of `TAB_SYM` locks MOU, and the left corner key, its
+ * trigger key, leaves it. The right thumb keys of a locked MOU are the left
+ * and the right mouse button, and the right pinky is the middle one.
+ */
+TEST_F(TargetLayerSmartMod, Mou_QuickReleaseOfTabSymLocksMouAndTheLeftCornerKeyLeavesIt) {
+    TestDriver driver;
+
+    lock_mou(driver);
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_MOU));
+
+    /* Locked, it is no pending target layer: it outlives a typed key. */
+    expect_click(driver, spc_mod, MOUSE_BTN1);
+    expect_click(driver, ent_num, MOUSE_BTN2);
+    expect_click(driver, right_pinky, MOUSE_BTN3);
+    expect_layers_on({TEST_LAYER_MOU});
+
+    tap_silently(driver, left_corner);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_MOU));
+    expect_unmodified_tap(driver, spc_mod, KC_SPC);
+}
+
+/* The Layer Lock key leaves a locked MOU too. */
+TEST_F(TargetLayerSmartMod, Mou_LayerLockKeyLeavesALockedMou) {
+    TestDriver driver;
+
+    lock_mou(driver);
+
+    tap_silently(driver, layer_lock);
+    expect_layers_on({});
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_MOU));
+    expect_unmodified_tap(driver, spc_mod, KC_SPC);
+}
+
+/*
+ * The two corners mean the same on SYM, NAV and MOU. While `TAB_SYM` stays
+ * held, the corner key, the trigger key of NAV, replaces MOU with NAV, and
+ * the left corner key, the trigger key of MOU, replaces NAV with MOU.
+ */
+TEST_F(TargetLayerSmartMod, Mou_CornerKeysSwapMouAndNavWhileTabSymStaysHeld) {
+    TestDriver driver;
+
+    hold_silently(driver, tab_sym);
+    tap_silently(driver, left_corner);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_MOU});
+
+    tap_silently(driver, corner);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
+    expect_unmodified_tap(driver, right_index, KC_LEFT);
+
+    tap_silently(driver, left_corner);
+    expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_MOU});
+    expect_click(driver, spc_mod, MOUSE_BTN1);
+
+    let_go_silently(driver, tab_sym);
+    expect_layers_on({});
+}
+
+/*
+ * A quick release of `TAB_SYM` after the swap locks the target layer that is
+ * on, not the one it replaced, in either direction.
+ */
+TEST_F(TargetLayerSmartMod, Mou_QuickReleaseAfterASwapLocksTheTargetLayerThatIsOn) {
+    TestDriver driver;
+
+    EXPECT_NO_REPORT(driver);
+    hold(tab_sym);
+    tap(left_corner);
+    tap(corner);
+    let_go(tab_sym);
+    VERIFY_AND_CLEAR(driver);
+    expect_layers_on({TEST_LAYER_NAV});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_NAV));
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_MOU));
+
+    tap_silently(driver, corner);
+    expect_layers_on({});
+
+    EXPECT_NO_REPORT(driver);
+    hold(tab_sym);
+    tap(corner);
+    tap(left_corner);
+    let_go(tab_sym);
+    VERIFY_AND_CLEAR(driver);
+    expect_layers_on({TEST_LAYER_MOU});
+    EXPECT_TRUE(is_layer_locked(TEST_LAYER_MOU));
+    EXPECT_FALSE(is_layer_locked(TEST_LAYER_NAV));
+}
+
+/*
+ * A mouse button is a typed key: a click consumes a pending one-shot mod. The
+ * modifier is registered before the button goes down and dropped once the
+ * button has been sent, and the next click is a plain one.
+ */
+TEST_F(TargetLayerSmartMod, Mou_MouseButtonConsumesAPendingOneShotMod) {
+    TestDriver driver;
+
+    lock_mou(driver);
+    tap_one_shot_mod_key(driver, left_pinky, KC_LCTL);
+
+    {
+        InSequence sequence;
+        EXPECT_REPORT(driver, (KC_LCTL));
+        EXPECT_MOUSE_REPORT(driver, (0, 0, 0, 0, MOUSE_BTN1));
+        EXPECT_EMPTY_REPORT(driver);
+        EXPECT_EMPTY_MOUSE_REPORT(driver);
+        tap(spc_mod);
+        VERIFY_AND_CLEAR(driver);
+    }
+
+    expect_click(driver, spc_mod, MOUSE_BTN1);
+    expect_layers_on({TEST_LAYER_MOU});
+}
+
+/*
+ * A one-shot mod key of MOU that is held is an ordinary modifier: it applies
+ * to the click, and nothing is pending once it is released.
+ */
+TEST_F(TargetLayerSmartMod, Mou_HeldOneShotModKeyModifiesAClick) {
+    TestDriver driver;
+
+    lock_mou(driver);
+
+    EXPECT_REPORT(driver, (KC_LSFT));
+    left_index.press();
+    run_one_scan_loop();
+    VERIFY_AND_CLEAR(driver);
+
+    /* Shift stays registered while the button goes down and up. */
+    expect_click(driver, spc_mod, MOUSE_BTN1);
+
+    let_go_leaving_no_modifier(driver, left_index);
+
+    expect_click(driver, spc_mod, MOUSE_BTN1);
+    expect_layers_on({TEST_LAYER_MOU});
 }
 
 /****************************************************************************
