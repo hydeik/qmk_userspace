@@ -26,6 +26,13 @@
 #define TAP_CODE_DELAY 5
 #define TAPPING_TOGGLE 1
 #define TAPPING_TERM 200
+/*
+ * A holding key or a smart mod layer key is a hold as soon as another key is
+ * pressed. This is the tap-hold setting of a keymap without Vial. A keymap
+ * with Vial ignores it in favour of its own per-key setting, which is a Vial
+ * setting; features/firmware_default.c sets its default to the same value.
+ */
+#define HOLD_ON_OTHER_KEY_PRESS
 
 /* Configure One Shot Key */
 #define ONESHOT_TIMEOUT 2000
