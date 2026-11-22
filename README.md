@@ -4,7 +4,7 @@ My keyboard firmware configuration, as a [QMK userspace](https://github.com/qmk/
 
 The terms used here (keymap family, keymap, layout, firmware source, build target) are defined in [`GLOSSARY.md`](GLOSSARY.md). Why the repository is organised this way is recorded in [`docs/adr/`](docs/adr/).
 
-## Keymap families
+## Keymap family
 
 A keymap family is a complete typing design that can be applied to more than one keyboard. There is one:
 

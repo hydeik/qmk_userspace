@@ -183,14 +183,14 @@ The rules in full are in [`features/smart_mod.h`](features/smart_mod.h).
 The keymap `hydeik` is the keymap family without Vial and `hydeik_vial` the keymap family with Vial. Both have the layers and the behaviour described above. The keymap with Vial has in addition:
 
 - **Remapping in the Vial GUI.** The GUI edits the stored keymap, which starts as a copy of the firmware keymap. It has eight layers, one more than the firmware keymap fills. The one-shot mod keys are offered there as custom keycodes, which the `vial.json` of the keymap names.
-- **Tap-hold settings in the Vial GUI.** They are Vial settings, and the `HOLD_ON_OTHER_KEY_PRESS` and `TAPPING_TERM` of [`config.h`](config.h) do not apply. After a settings reset at boot, `firmware_default` switches Hold On Other Key Press back on, because layer switching needs it. A reset asked for from the host while the keyboard runs leaves it off; see [`features/firmware_default.h`](features/firmware_default.h).
+- **Tap-hold settings in the Vial GUI.** They are Vial settings. The `TAPPING_TERM` of [`config.h`](config.h) is only the value a settings reset gives the tapping term, and the `HOLD_ON_OTHER_KEY_PRESS` of `config.h` is ignored. After a settings reset at boot, `firmware_default` switches Hold On Other Key Press back on, because layer switching needs it. A reset asked for from the host while the keyboard runs leaves it off; see [`features/firmware_default.h`](features/firmware_default.h).
 - **Combos and tap dances**, for use from the Vial GUI. The firmware defines none.
 
 The stored keymap does not outlive a build: on its first boot, every newly built firmware resets the stored keymap to the firmware keymap, and the Vial settings with it. What was edited in the Vial GUI is lost whenever a new build is flashed, so a change that is meant to last belongs in `layout.h`.
 
 A keymap without Vial types with the firmware keymap. It has no stored keymap, no combos and no tap dances, and its tap-hold settings are those of `config.h`.
 
-What exists only with Vial is chosen in `rules.mk`, by `VIAL_ENABLE`. No C source branches on Vial.
+What exists only with Vial is chosen in `rules.mk`, by whether the keymap enables Vial. No C source branches on Vial.
 
 ## Files
 

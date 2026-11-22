@@ -26,7 +26,7 @@ FIRMWARE_SOURCES := python3 .github/scripts/firmware_sources.py
 USAGE := Usage: make firmware | make test [FIRMWARE_SOURCE=qmk|vial-qmk] | make <keyboard>:<keymap>[:flash]
 
 # The keymap name of the goal being built.
-keymap =$(word 2,$(subst :, ,$@))
+keymap = $(word 2,$(subst :, ,$@))
 
 .PHONY: help firmware test FORCE
 

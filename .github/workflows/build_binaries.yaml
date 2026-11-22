@@ -116,8 +116,9 @@ jobs:
   # a local run, limited to the tests that run on that firmware source. A unit
   # test names the firmware sources it runs on in its test.mk. The firmware
   # source goes where `make firmware` puts it, at its pinned commit, so the
-  # Makefile's check of the checkout passes. The tests are built natively; the container provides gcc and make,
-  # as it does for the unit tests of the firmware source itself.
+  # Makefile's check of the checkout passes. The tests are built natively; the
+  # container provides gcc and make, as it does for the unit tests of the
+  # firmware source itself.
   test:
     name: Test (${{ matrix.firmware_source }})
     needs: firmware-sources
