@@ -6,37 +6,33 @@ The terms used here (keymap family, common core, layout, firmware source, build 
 
 ## Keymap families
 
-A keymap family is a complete typing design that can be applied to more than one keyboard. There are two, and each is built against exactly one firmware source:
+A keymap family is a complete typing design that can be applied to more than one keyboard. There is one, and it is built against exactly one firmware source:
 
 | Keymap family | Firmware source | Design | Layers |
 | --- | --- | --- | --- |
-| `hydeik` | [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master` | Home-row mods with tuned tap-hold behaviour. See [`users/hydeik/README.md`](users/hydeik/README.md). | BASE, SYM, NUM, NAV, MOU, FUN |
 | `hydeik_vial` | [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial` | No home-row mods; custom one-shot mods on a smart mod layer, and Vial's GUI for remapping and tap-hold settings. | BASE, SYM, NUM, NAV, FUN, MOD |
 
 ## Repository structure
 
 | Path | Contents |
 | --- | --- |
-| `users/hydeik/` | The `hydeik` keymap family: its layers, keycodes and behaviour. |
-| `users/hydeik_vial/` | The `hydeik_vial` keymap family. Its [unit tests](#unit-tests) are in `tests/`. |
+| `users/hydeik_vial/` | The `hydeik_vial` keymap family: its layers, keycodes and behaviour. Its [unit tests](#unit-tests) are in `tests/`. |
 | `users/hydeik_common/` | The common core: everything that does not depend on the keymap family. Settings (`common_config.h`, `common.mk`), the Caps Word and Repeat Key rules (`common.c`), what counts as a key typed and the layer-switching state machine (`features/`), the finger keys of the SYM, NUM and FUN layers (`layers.h`), one layout adapter per keyboard (`keyboards/`), and its [unit tests](#unit-tests) (`tests/`). |
 | `keyboards/<keyboard>/keymaps/<keymap family>/` | One keymap: a keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
 | `firmware_sources.json` | The firmware sources, each pinned to a commit and listing the keymaps built against it. |
 
-Each keymap family includes the common core by its full path from the repository root. The common core never refers to a keymap family and never branches on the keymap family or the firmware source.
+The keymap family includes the common core by its full path from the repository root. The common core never refers to a keymap family and never branches on the keymap family or the firmware source.
 
 ## Build targets
 
-A build target is one keyboard paired with one keymap, and produces one firmware binary. `qmk.json` is the complete list:
+A build target is one keyboard paired with one keymap, and produces one firmware binary. `qmk.json` is the complete list, and today it holds one:
 
 | Keyboard | Keymap |
 | --- | --- |
-| `crkbd/rev4_1/mini` | `hydeik` |
 | `crkbd/rev4_1/mini` | `hydeik_vial` |
-| `mothwing` | `hydeik` |
 
-A build target's keymap name is its keymap family. Every keymap directory under `keyboards/` must be a build target; not every keymap family exists on every keyboard.
+A build target's keymap name is its keymap family. Every keymap directory under `keyboards/` must be a build target.
 
 To add a build target, create `keyboards/<keyboard>/keymaps/<keymap family>/` and add `["<keyboard>", "<keymap family>"]` to `build_targets` in `qmk.json`. If the keyboard is new, also add its layout adapter to `users/hydeik_common/keyboards/`.
 
@@ -48,9 +44,9 @@ This is the official build route. Every push is built by `.github/workflows/buil
 1. Wait for the actions run to complete.
 1. Download the firmware:
     * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded and the [unit tests](#unit-tests) passed, so a failed build or a failed test never removes previously published firmware.
-    * From the `firmware-<firmware source>` artifacts of the actions run (`firmware-qmk` and `firmware-vial-qmk`), for other branches.
+    * From the `firmware-<firmware source>` artifacts of the actions run, for other branches. Today there is one, `firmware-vial-qmk`.
 
-The workflow runs one `Build` job and one `Test` job per firmware source: `Build (qmk)`, `Build (vial-qmk)`, `Test (qmk)` and `Test (vial-qmk)`. It fails if the keymap of any build target in `qmk.json` is listed by no firmware source in `firmware_sources.json`, or by more than one.
+The workflow runs one `Build` job per firmware source that has build targets, and one `Test` job per firmware source that unit tests run on: `Build (vial-qmk)`, `Test (qmk)` and `Test (vial-qmk)`. It fails if the keymap of any build target in `qmk.json` is listed by no firmware source in `firmware_sources.json`, or by more than one.
 
 ## Firmware sources and pins
 
@@ -61,7 +57,7 @@ The workflow runs one `Build` job and one `Test` job per firmware source: `Build
 * `ref`: the pin, a full commit SHA. Every build checks out exactly this commit, so the same commit of this repository always builds against the same firmware source.
 * `keymaps`: the names of the keymaps that are built against this firmware source.
 
-The keymap name of a build target, matched exactly, selects its firmware source: the one whose `keymaps` list holds it. Today `qmk` lists `hydeik` and `vial-qmk` lists `hydeik_vial`. A keymap that no firmware source lists, or that more than one lists, is an error. Nothing is inferred from the form of the name, and there is no default firmware source, so a keymap with a new name must be added to one `keymaps` list before it can be built.
+The keymap name of a build target, matched exactly, selects its firmware source: the one whose `keymaps` list holds it. Today `vial-qmk` lists `hydeik_vial`, and the list of `qmk` is empty: no build target is built against it, and only the [unit tests](#unit-tests) run on it. A keymap that no firmware source lists, or that more than one lists, is an error. Nothing is inferred from the form of the name, and there is no default firmware source, so a keymap with a new name must be added to one `keymaps` list before it can be built.
 
 A firmware source only changes when its pin is moved on purpose. To bump a pin:
 
@@ -89,7 +85,7 @@ The toolchain is not managed by this repository. Install the QMK CLI and compile
 1. Build a build target, or build and flash it:
 
     ```
-    make crkbd/rev4_1/mini:hydeik
+    make crkbd/rev4_1/mini:hydeik_vial
     make crkbd/rev4_1/mini:hydeik_vial:flash
     ```
 
