@@ -50,7 +50,7 @@ using testing::InSequence;
  * | `ent_num`     | ENT_NUM | Esc     |         |         | Btn2    |         |      |
  * | `corner`      | /       | MO(NAV) | MO(FUN) | MO(NAV) | MO(NAV) | MO(FUN) |      |
  * | `left_index`  | F       | :       | 3       | Sft*    | Sft*    | F1      | Sft* |
- * | `right_index` | J       | "       | '       | Left    | MsDown  | Sft*    | Sft* |
+ * | `right_index` | J       | "       | '       | Down    | MsDown  | Sft*    | Sft* |
  *
  * A scan loop handles the key events at the current time and then advances
  * the time by 1 ms. `press()` / `release()` take effect in the next scan
@@ -144,7 +144,7 @@ TEST_F(HoldOnOtherKeyPress, QuickGestureInsideTheTappingTermEntersNavLocked) {
 
     expect_layers_on({TEST_LAYER_NAV});
     EXPECT_TRUE(is_layer_locked(TEST_LAYER_NAV));
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
 }
 
 /*

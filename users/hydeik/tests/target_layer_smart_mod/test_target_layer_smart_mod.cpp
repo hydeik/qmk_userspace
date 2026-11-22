@@ -64,8 +64,8 @@ using testing::InSequence;
  * | `left_corner`  | Z       | MO(MOU) | ~       | MO(MOU) | MO(MOU) | -       |      |
  * | `left_pinky`   | A       | *       | 0       | Ctl*    | Ctl*    | -       | Ctl* |
  * | `left_index`   | F       | :       | 3       | Sft*    | Sft*    | F1      | Sft* |
- * | `right_index`  | J       | "       | '       | Left    | MsDown  | Sft*    | Sft* |
- * | `right_pinky`  | ;       | ;       | *       | PgDn    | Btn3    | Ctl*    | Ctl* |
+ * | `right_index`  | J       | "       | '       | Down    | MsDown  | Sft*    | Sft* |
+ * | `right_pinky`  | ;       | ;       | *       | Bspc    | Btn3    | Ctl*    | Ctl* |
  * | `left_middle`  | C       | @       | 8       | -       | -       | F5      |      |
  * | `layer_lock`   | N       | -       | LLCK    | LLCK    | LLCK    | LLCK    |      |
  *
@@ -337,7 +337,7 @@ TEST_F(TargetLayerSmartMod, Keymap_TabSymAndTheCornerKeyReachNavWhileHeld) {
     tap_silently(driver, corner);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
 
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
 
     let_go_silently(driver, tab_sym);
     expect_layers_on({});
@@ -351,8 +351,8 @@ TEST_F(TargetLayerSmartMod, Keymap_QuickReleaseOfTabSymLocksNavAndTheCornerKeyLe
     EXPECT_TRUE(is_layer_locked(TEST_LAYER_NAV));
 
     /* Locked, it is no pending target layer: it outlives a typed key. */
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
     expect_layers_on({TEST_LAYER_NAV});
 
     tap_silently(driver, corner);
@@ -523,7 +523,7 @@ TEST_F(TargetLayerSmartMod, Mou_CornerKeysSwapMouAndNavWhileTabSymStaysHeld) {
 
     tap_silently(driver, corner);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
 
     tap_silently(driver, left_corner);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_MOU});
@@ -662,7 +662,7 @@ TEST_F(TargetLayerSmartMod, Issue41_TriggerKey_TriggerGestureDoesNotConsumeAPend
     tap_silently(driver, corner);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
 
-    expect_tap_consuming(driver, right_index, KC_LEFT, KC_LSFT);
+    expect_tap_consuming(driver, right_index, KC_DOWN, KC_LSFT);
     let_go_silently(driver, tab_sym);
 }
 
@@ -681,8 +681,8 @@ TEST_F(TargetLayerSmartMod, Issue41_TriggerKey_LatchedOneShotModsStayLatchedAcro
     tap_silently(driver, corner);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
 
-    expect_tap_with_registered(driver, right_index, KC_LEFT, KC_LCTL);
-    expect_tap_with_registered(driver, right_index, KC_LEFT, KC_LCTL);
+    expect_tap_with_registered(driver, right_index, KC_DOWN, KC_LCTL);
+    expect_tap_with_registered(driver, right_index, KC_DOWN, KC_LCTL);
 
     let_go_silently(driver, tab_sym);
     expect_layers_on({});
@@ -707,8 +707,8 @@ TEST_F(TargetLayerSmartMod, Issue41_TriggerKey_ReleaseWindowStaysOpenAcrossTheTr
 
     let_go_leaving_no_modifier(driver, spc_mod);
 
-    expect_tap_consuming(driver, right_index, KC_LEFT, KC_LCTL);
-    expect_unmodified_tap(driver, right_index, KC_LEFT);
+    expect_tap_consuming(driver, right_index, KC_DOWN, KC_LCTL);
+    expect_unmodified_tap(driver, right_index, KC_DOWN);
     let_go_silently(driver, tab_sym);
 }
 
@@ -960,8 +960,8 @@ TEST_F(TargetLayerSmartMod, Issue41_SmartModLayer_WorksAboveALockedNav) {
     latch(driver, left_index, KC_LSFT);
     expect_layers_on({TEST_LAYER_NAV});
 
-    expect_tap_with_registered(driver, right_index, KC_LEFT, KC_LSFT);
-    expect_tap_with_registered(driver, right_index, KC_LEFT, KC_LSFT);
+    expect_tap_with_registered(driver, right_index, KC_DOWN, KC_LSFT);
+    expect_tap_with_registered(driver, right_index, KC_DOWN, KC_LSFT);
 
     let_go_leaving_no_modifier(driver, smt_mod);
     expect_layers_on({TEST_LAYER_NAV});
@@ -1007,7 +1007,7 @@ TEST_F(TargetLayerSmartMod, Issue41_SmartModLayer_WorksAboveAHeldNav) {
     latch(driver, left_index, KC_LSFT);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});
 
-    expect_tap_with_registered(driver, right_index, KC_LEFT, KC_LSFT);
+    expect_tap_with_registered(driver, right_index, KC_DOWN, KC_LSFT);
 
     let_go_leaving_no_modifier(driver, smt_mod);
     expect_layers_on({TEST_LAYER_SYM, TEST_LAYER_NAV});

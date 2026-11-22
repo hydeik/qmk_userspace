@@ -168,9 +168,9 @@ enum custom_keycode_t {
  * Navigation layer
  *
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | ESC     |         |         |         |         |   |         | HOME    | UP      | END     | PGUP    |
+ * | ESC     |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     | DEL     |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | LEFT    | DOWN    | RGHT    | PGDN    |
+ * | CTL*    | ALT*    | GUI*    | SFT*    |         |   | LEFT    | DOWN    | UP      | RGHT    | BSPC    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | >MOU<   |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
@@ -179,9 +179,9 @@ enum custom_keycode_t {
  */
 
 #define NAV_LAYER \
-    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  \
-    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
-    TRG_MOU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV,  \
+    KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   KC_HOME,  KC_PGDN,  KC_PGUP,  KC_END,   KC_DEL,  \
+    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, XXXXXXX,   KC_LEFT,  KC_DOWN,  KC_UP,    KC_RGHT,  KC_BSPC, \
+    TRG_MOU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV, \
                                   _______,  _______,   _______,  _______
 
 /*
