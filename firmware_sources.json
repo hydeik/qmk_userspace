@@ -3,7 +3,7 @@
         "repo": "qmk/qmk_firmware",
         "branch": "master",
         "ref": "80973aa0b5413e9a5bbbf9293507f39e870f9aa3",
-        "keymaps": ["hydeik"]
+        "keymaps": []
     },
     "vial-qmk": {
         "repo": "vial-kb/vial-qmk",
