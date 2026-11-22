@@ -1,7 +1,10 @@
 include $(QMK_USERSPACE)/users/hydeik_common/common.mk
 
 SRC += hydeik_vial.c
-SRC += features/firmware_default.c
+# Probe: firmware_default exists only with Vial.
+ifeq ($(strip $(VIAL_ENABLE)),yes)
+    SRC += features/firmware_default.c
+endif
 SRC += features/smart_mod.c
 
 COMBO_ENABLE ?= yes

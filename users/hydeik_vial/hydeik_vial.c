@@ -47,7 +47,9 @@
 
 #include "hydeik_vial.h"
 
-#include "features/firmware_default.h"
+#ifdef VIAL_ENABLE
+#    include "features/firmware_default.h"
+#endif
 #include "features/smart_mod.h"
 #include "users/hydeik_common/features/target_layer.h"
 
@@ -184,6 +186,9 @@ void housekeeping_task_user(void) {
     target_layer_housekeeping_task();
 }
 
+/* Probe: these hooks exist only with Vial. */
+#ifdef VIAL_ENABLE
+
 /*
  * The hooks of firmware_default, the firmware defaults of the Vial settings
  * (features/firmware_default.h). They are not part of test_glue.c: the unit
@@ -206,3 +211,5 @@ void eeconfig_init_user(void) {
 void keyboard_post_init_user(void) {
     firmware_default_keyboard_post_init();
 }
+
+#endif /* VIAL_ENABLE */
