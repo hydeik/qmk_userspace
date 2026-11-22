@@ -20,7 +20,7 @@ There are seven layers, defined in [`layout.h`](layout.h). The number is the lay
 
 ![Keymap image of the hydeik keymap family: the seven layers BASE, SYM, NUM, NAV, MOU, FUN and MOD, each with its 34 keys.](image/keymap.svg)
 
-The keymap image shows the firmware keymap. It is generated from `layout.h`, which is the source of the layers. Its footer explains the colours, which mark the one-shot mod keys, the holding keys, the trigger keys and the held keys; a held key is the key that keeps the layer on, and has no legend. `▽` is a transparent key, and a blank key does nothing. The comments of `layout.h` still hold a diagram of every layer. How to regenerate the keymap image is in the section [Keymap image](../../README.md#keymap-image) of the README of the repository.
+The keymap image shows the firmware keymap. It is generated from `layout.h`, which is the source of the layers. Its footer explains the colours, which mark the one-shot mod keys, the holding keys, the trigger keys and the held keys, which are the keys that keep the layer on and carry no legend. `▽` is a transparent key, and every other key without a legend does nothing. The comments of `layout.h` still hold a diagram of every layer. How to regenerate the keymap image is in the section [Keymap image](../../README.md#keymap-image) of the README of the repository.
 
 ### BASE
 

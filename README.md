@@ -107,7 +107,7 @@ To take a firmware source from a different repository or branch, edit `repo`, `b
 
 Local builds are a secondary route, for work that needs many flash-and-try rounds. They go through `make` only, which builds against the same pinned firmware sources as CI.
 
-The toolchain is not managed by this repository. Install the QMK CLI and compilers the [official QMK way](https://docs.qmk.fm/newbs_getting_started) for your OS; on macOS, `brew install qmk/qmk/qmk`. `make`, `git` and `python3` are also needed. The two targets of the [keymap image](#keymap-image), `make keymap-image` and `make keymap-image-test`, need none of these but `make`, and `uv` instead.
+The toolchain is not managed by this repository. Install the QMK CLI and compilers the [official QMK way](https://docs.qmk.fm/newbs_getting_started) for your OS; on macOS, `brew install qmk/qmk/qmk`. `make`, `git` and `python3` are also needed. The two targets of the [keymap image](#keymap-image), `make keymap-image` and `make keymap-image-test`, need only `make` and `uv`.
 
 1. Fetch the firmware sources:
 
@@ -190,9 +190,9 @@ make keymap-image-test
 
 One of them compares the committed keymap image with what the script writes, so they fail when the image is stale.
 
-In CI, the job `keymap-image` of the workflow, shown as `Keymap image`, runs these unit tests and then checks that the committed keymap image is the one `make keymap-image` writes; see [Building with GitHub Actions](#building-with-github-actions). When it fails because the image is stale, its check step says so, even when the unit tests failed first: run `make keymap-image` and commit `users/hydeik/image/keymap.svg`. The job does not regenerate the image. When only the unit tests fail, the fault is in the script or its configuration.
+In CI, the job `keymap-image` of the workflow, shown as `Keymap image`, runs these unit tests and then checks that the committed keymap image is the one `make keymap-image` writes; see [Building with GitHub Actions](#building-with-github-actions). Its check step runs even when the unit tests failed first, so a stale image is always reported as such: run `make keymap-image` and commit `users/hydeik/image/keymap.svg`. When the unit tests fail and the image is not stale, the fault is in the script, its tests or its configuration.
 
-The route from `layout.h` to the image is a script of our own and not `qmk c2json`, because `qmk c2json` needs the QMK CLI, a firmware checkout and a keyboard name, and cannot read `layout.h` itself: it needs a separate C file that places the layers and repeats the layer numbers as digits. A script is needed in any case, because keymap-drawer alone marks a trigger key as a held key and only one of the two smart mod layer keys, so the marks have to be set between its two steps.
+The route from `layout.h` to the image is a script of this repository and not `qmk c2json`, because `qmk c2json` needs the QMK CLI, a firmware checkout and a keyboard name, and cannot read `layout.h` itself: it needs a separate C file that places the layers and repeats the layer numbers as digits. A script is needed in any case, because keymap-drawer alone marks a trigger key as a held key and only one of the two smart mod layer keys, so the marks have to be set between its two steps.
 
 ## License
 
