@@ -137,6 +137,7 @@ Unit tests drive key events through the unit-test framework of a firmware source
 * `smart_mod`: the `smart_mod` state machine (`users/hydeik/features/smart_mod.c`), which holds the one-shot mods and the smart mod layer.
 * `target_layer_smart_mod`: `smart_mod` together with `target_layer`, wired as in the firmware and on the layers of the family.
 * `hold_on_other_key_press`: the same two, wired the same way, with Hold On Other Key Press: the gestures that need the setting, inside the tapping term.
+* `indicator`: the logic of the indicators (`users/hydeik/features/indicator.c`), which decides the indicator state of every key position from the state of the two state machines. It checks no keyboard report, and the logic is not part of any build target yet.
 * `firmware_default`: the firmware defaults of the Vial settings.
 
 All of them run on the unit-test frameworks of both firmware sources, `qmk` and `vial-qmk`, except `firmware_default`, which runs on `vial-qmk` only.
