@@ -1,4 +1,4 @@
-# Local builds against the pinned firmware sources.
+# Local builds against the pinned firmware sources, and the keymap image.
 #
 #   make firmware                         Fetch every firmware source into
 #                                         .firmware/<firmware source>/ at the commit
