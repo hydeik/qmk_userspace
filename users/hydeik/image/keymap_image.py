@@ -106,6 +106,10 @@ def read_layers(layout_h):
     layers = {}
     for name in names:
         line = re.search(rf'^"layer {name}"(.*)$', output, flags=re.MULTILINE)
+        if line is None:
+            raise KeymapImageError(
+                f"Layer {name}: the preprocessor did not expand `{name}_LAYER`."
+            )
         keys = _split_keys(line.group(1))
         if len(keys) != KEY_COUNT:
             raise KeymapImageError(
@@ -165,9 +169,13 @@ def derive_marks(layers):
     names = list(layers)
     base = names[0]
     marks = {name: {} for name in names}
-    holding_keys = {name: [] for name in names}  # holding layer -> positions on the base layer
+    holding_keys = {
+        name: [] for name in names
+    }  # holding layer -> positions on the base layer
     smart_mod_layer_keys = []
-    trigger_keys = {name: set() for name in names}  # target layer -> layers that hold its trigger key
+    trigger_keys = {
+        name: set() for name in names
+    }  # target layer -> layers that hold its trigger key
 
     for name, keycodes in layers.items():
         for position, keycode in enumerate(keycodes):
@@ -201,7 +209,9 @@ def derive_marks(layers):
                 )
         else:
             held = sorted(
-                position for holding_layer in trigger_keys[name] for position in holding_keys[holding_layer]
+                position
+                for holding_layer in trigger_keys[name]
+                for position in holding_keys[holding_layer]
             )
             reason = "the holding key of its holding layer"
             if not held:
@@ -233,12 +243,17 @@ def number_layers(config, names):
     numbers = {f"_{name}": str(number) for number, name in enumerate(names)}
 
     def numbered(keycode):
-        keycode = re.sub(r"\b_[A-Z0-9]+\b", lambda name: numbers.get(name.group(), name.group()), keycode)
+        keycode = re.sub(
+            r"\b_[A-Z0-9]+\b",
+            lambda name: numbers.get(name.group(), name.group()),
+            keycode,
+        )
         return "".join(keycode.split())
 
     parse_config = dict(config.get("parse_config", {}))
     parse_config["raw_binding_map"] = {
-        numbered(keycode): legend for keycode, legend in parse_config.get("raw_binding_map", {}).items()
+        numbered(keycode): legend
+        for keycode, legend in parse_config.get("raw_binding_map", {}).items()
     }
     return {**config, "parse_config": parse_config}
 
@@ -253,7 +268,8 @@ def _has_legend(keycode, parse_config):
     # A basic keycode: keymap-drawer removes the prefix and draws the rest, or
     # the entry of its own table for it.
     return keycode in parse_config["qmk_keycode_map"] or any(
-        keycode.startswith(prefix) for prefix in parse_config["qmk_remove_keycode_prefix"]
+        keycode.startswith(prefix)
+        for prefix in parse_config["qmk_remove_keycode_prefix"]
     )
 
 
@@ -312,10 +328,21 @@ IMAGE = HERE / "keymap.svg"
 def _keymap_drawer(*arguments):
     """Runs the `keymap` command of keymap-drawer and returns what it prints."""
     # keymap-drawer 0.23.0 calls a deprecated function of pydantic on every run.
-    command = [sys.executable, "-W", "ignore::DeprecationWarning", "-m", "keymap_drawer", *map(str, arguments)]
-    result = subprocess.run(command, stdout=subprocess.PIPE, encoding="utf-8", check=False)
+    command = [
+        sys.executable,
+        "-W",
+        "ignore::DeprecationWarning",
+        "-m",
+        "keymap_drawer",
+        *map(str, arguments),
+    ]
+    result = subprocess.run(
+        command, stdout=subprocess.PIPE, encoding="utf-8", check=False
+    )
     if result.returncode != 0:
-        raise KeymapImageError(f"keymap-drawer failed: `keymap {' '.join(map(str, arguments))}`.")
+        raise KeymapImageError(
+            f"keymap-drawer failed: `keymap {' '.join(map(str, arguments))}`."
+        )
     return result.stdout
 
 
@@ -328,21 +355,46 @@ def write_image(layout_h, image):
         work = pathlib.Path(directory)
 
         config = work / "keymap_drawer.yaml"
-        numbered = number_layers(yaml.safe_load(CONFIG.read_text(encoding="utf-8")), list(layers))
-        config.write_text(yaml.safe_dump(numbered, allow_unicode=True, sort_keys=False), encoding="utf-8")
-        parse_config = yaml.safe_load(_keymap_drawer("-c", config, "dump-config"))["parse_config"]
+        numbered = number_layers(
+            yaml.safe_load(CONFIG.read_text(encoding="utf-8")), list(layers)
+        )
+        config.write_text(
+            yaml.safe_dump(numbered, allow_unicode=True, sort_keys=False),
+            encoding="utf-8",
+        )
+        parse_config = yaml.safe_load(_keymap_drawer("-c", config, "dump-config"))[
+            "parse_config"
+        ]
         check_legends(layers, parse_config)
 
         qmk_keymap = work / "keymap.json"
-        qmk_keymap.write_text(json.dumps({"layers": list(layers.values())}), encoding="utf-8")
+        qmk_keymap.write_text(
+            json.dumps({"layers": list(layers.values())}), encoding="utf-8"
+        )
         parsed = work / "parsed.yaml"
-        _keymap_drawer("-c", config, "parse", "-q", qmk_keymap, "--layer-names", *layers, "-o", parsed)
+        _keymap_drawer(
+            "-c",
+            config,
+            "parse",
+            "-q",
+            qmk_keymap,
+            "--layer-names",
+            *layers,
+            "-o",
+            parsed,
+        )
 
         keymap = apply_marks(
-            yaml.safe_load(parsed.read_text(encoding="utf-8")), layers, marks, parse_config["trans_legend"]
+            yaml.safe_load(parsed.read_text(encoding="utf-8")),
+            layers,
+            marks,
+            parse_config["trans_legend"],
         )
         marked = work / "marked.yaml"
-        marked.write_text(yaml.safe_dump(keymap, allow_unicode=True, sort_keys=False), encoding="utf-8")
+        marked.write_text(
+            yaml.safe_dump(keymap, allow_unicode=True, sort_keys=False),
+            encoding="utf-8",
+        )
 
         drawn = work / "keymap.svg"
         _keymap_drawer("-c", config, "draw", "-j", PHYSICAL_LAYOUT, marked, "-o", drawn)
@@ -350,8 +402,16 @@ def write_image(layout_h, image):
 
 
 def main(arguments=None):
-    parser = argparse.ArgumentParser(description="Write the keymap image of the keymap family `hydeik`.")
-    parser.add_argument("-o", "--output", type=pathlib.Path, default=IMAGE, help="the SVG to write (default: %(default)s)")
+    parser = argparse.ArgumentParser(
+        description="Write the keymap image of the keymap family `hydeik`."
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=pathlib.Path,
+        default=IMAGE,
+        help="the SVG to write (default: %(default)s)",
+    )
     options = parser.parse_args(arguments)
     try:
         write_image(LAYOUT_H, options.output)
