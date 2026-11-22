@@ -12,3 +12,6 @@
 
 # Firmware sources fetched by `make firmware`
 .firmware/
+
+# Python bytecode written by the tests of the keymap image
+__pycache__/

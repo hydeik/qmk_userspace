@@ -30,6 +30,10 @@ _Avoid_: Default keymap, compiled keymap
 The keymap that Vial keeps on the keyboard and lets the owner edit while the keyboard runs. It starts as a copy of the firmware keymap and goes back to it on the first boot of every newly built firmware. Only build targets with Vial have one.
 _Avoid_: Dynamic keymap, EEPROM keymap, Vial keymap
 
+**Keymap image**:
+The picture of the firmware keymap of a keymap family: all its layers, drawn from the sources. It is not a picture of the keymap of one keyboard, nor of a stored keymap.
+_Avoid_: Rendered image, diagram (a diagram is the drawing of a layer in the comments of `layout.h`)
+
 **One-shot mod**:
 A modifier key that acts as an ordinary modifier while held and, when tapped, applies to the next key press only.
 _Avoid_: OSM, sticky key, COS key, one-shot modifier
