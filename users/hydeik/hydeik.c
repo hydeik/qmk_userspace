@@ -1,317 +1,197 @@
-#include QMK_KEYBOARD_H
+/*
+ * Copyright Hidekazu Ikeno <@hydeik>
+ * SPDX-License-Identifier: GPL-2.0+
+ */
+
+/*
+ * Glue between QMK and the two state machines of the hydeik keymap family:
+ *
+ * - smart_mod, the one-shot mods and the smart mod layer
+ *   (features/smart_mod.h describes the behaviour). This file tells it which
+ *   keycodes are one-shot mod keys, which keys are smart mod layer keys,
+ *   which of them has the Shift tap rule, and which layer is the smart mod
+ *   layer.
+ * - target_layer, the layer switching (features/target_layer.h describes the
+ *   behaviour). This file tells it the table of entries, which key events
+ *   are those of one-shot mod keys, and when the timeout of a pending target
+ *   layer is suspended.
+ *
+ * This file defines three QMK hooks, `process_record_user`,
+ * `post_process_record_user` and `housekeeping_task_user`. Each goes to both
+ * state machines, in the order that their interaction needs.
+ *
+ * This file is the same with and without Vial. The QMK hooks that exist only
+ * with Vial are in vial_hooks.c.
+ *
+ * The unit tests build this file in two ways:
+ *
+ * - tests/target_layer_smart_mod/ builds this very file, with layout.h, and
+ *   so tests both state machines as they are wired here.
+ * - tests/smart_mod/test_glue.c is a copy of the smart_mod part of this file,
+ *   without target_layer and without layout.h. The two must configure
+ *   smart_mod the same way. test_glue.h has its own copy of the keycodes and
+ *   layer numbers used here, under `TEST_LAYER_*` names for the layers. The
+ *   assertions below pin the numbers that the copy repeats.
+ *
+ * Both are built without Vial and with QMK's stock tap-hold behaviour. In the
+ * firmware, Hold On Other Key Press makes a smart mod layer key or a holding
+ * key a hold as soon as another key is pressed:
+ *
+ * - In a keymap without Vial it is the `HOLD_ON_OTHER_KEY_PRESS` of config.h,
+ *   and the tapping term is its `TAPPING_TERM`.
+ * - In a keymap with Vial it is one of Vial's tap-hold settings, which
+ *   features/firmware_default.c switches on by default. Those settings decide
+ *   whether such a key is tapped or held, and the tapping term of the double
+ *   tap of `SMT_MOD` is the one set in Vial, not the `TAPPING_TERM` of
+ *   config.h.
+ *
+ * tests/hold_on_other_key_press/ builds this very file a third time, with
+ * `HOLD_ON_OTHER_KEY_PRESS`, and tests what the setting is there for.
+ */
 
 #include "hydeik.h"
 
-#include "users/hydeik_common/features/target_layer.h"
-
-/*****************************************************************************
- * Layer switching (users/hydeik_common/features/target_layer.h)
- *****************************************************************************/
+#include "features/smart_mod.h"
+#include "features/target_layer.h"
 
 /*
- * The table of entries: while the holding key is held, the trigger key
- * `MO()` of the target layer switches that layer on.
+ * The custom keycode numbers: vial.json names the custom keycodes by their
+ * position, and layout files saved from the Vial GUI hold the numbers.
  *
- * - NAV_SPC + TRG_MOU: MOU. A quick release of NAV_SPC locks MOU.
- * - NUM_ENT + TRG_FUN: FUN. A quick release of NUM_ENT leaves FUN pending,
- *   that is, on for the next typed key only.
+ * The number of the smart mod layer: tests/smart_mod/test_glue.h repeats the
+ * layer numbers, and this assertion and the one in its test_glue.c keep the
+ * copy in step. Layout files saved from the Vial GUI hold the number too, in
+ * the smart mod layer keys `LT(6, ...)`, so renumbering the layer has to be a
+ * deliberate act. A stored keymap is no reason: the first boot of every
+ * newly built firmware with Vial resets it to the firmware keymap.
  */
-const target_layer_entry_t target_layer_entries[] = {
-    {NAV_SPC, _MOU, TARGET_LAYER_QUICK_RELEASE_LOCKED},
-    {NUM_ENT, _FUN, TARGET_LAYER_QUICK_RELEASE_PENDING},
-};
-
-const uint8_t target_layer_entry_count =
-    sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
-
-/*
- * The one-shot mod keys of this keymap family are QMK's own `OSM()` keys,
- * pressed or released.
- */
-bool target_layer_is_one_shot_mod_key(uint16_t keycode,
-                                      const keyrecord_t *record) {
-    return IS_QK_ONE_SHOT_MOD(keycode);
-}
-
-/* Nothing suspends the timeout of a pending target layer in this family. */
-bool target_layer_is_pending_timeout_suspended(void) {
-    return false;
-}
+_Static_assert((int)COS_MOD == (int)QK_KB_0, "COS_MOD must stay the reserved slot at QK_KB_0");
+_Static_assert((int)COS_LCTL == (int)QK_KB_0 + 1, "the one-shot mod keys must start at QK_KB_0 + 1");
+_Static_assert((int)COS_RGUI == (int)QK_KB_0 + 8, "the one-shot mod keys must end at QK_KB_0 + 8");
+_Static_assert(_MOD == 6, "the smart mod layer must stay layer 6");
 
 /*****************************************************************************
- * Tap-hold configuration (https://docs.qmk.fm/tap_hold)
+ * Told to smart_mod
  *****************************************************************************/
 
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
+/* The one-shot mod keys and their modifiers. */
+uint8_t smart_mod_one_shot_mod_bits(uint16_t keycode) {
     switch (keycode) {
-        case HM_D:
-        case HM_K:
-        case HM_F:
-        case HM_J:
-            return TAPPING_TERM - 50;
+        case COS_LCTL:
+            return MOD_BIT_LCTRL;
+        case COS_LSFT:
+            return MOD_BIT_LSHIFT;
+        case COS_LALT:
+            return MOD_BIT_LALT;
+        case COS_LGUI:
+            return MOD_BIT_LGUI;
+        case COS_RCTL:
+            return MOD_BIT_RCTRL;
+        case COS_RSFT:
+            return MOD_BIT_RSHIFT;
+        case COS_RALT:
+            return MOD_BIT_RALT;
+        case COS_RGUI:
+            return MOD_BIT_RGUI;
         default:
-            return TAPPING_TERM;
+            return 0;
     }
 }
 
-bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+/* The smart mod layer. Nothing but smart_mod switches it on or off. */
+uint8_t smart_mod_layer(void) {
+    return _MOD;
+}
+
+/* The smart mod layer keys. */
+bool smart_mod_is_layer_key(uint16_t keycode) {
     switch (keycode) {
-        /* Do not select the hold action when another key is pressed. */
-        case SYM_TAB:
-            return true;
-        case NAV_SPC:
-            return true;
-        case NUM_ENT:
+        case SMT_MOD:
+        case SPC_MOD:
+        case ENT_MOD:
             return true;
         default:
-            /* Do not select the hold action when another key is pressed. */
             return false;
     }
 }
 
-uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t* record) {
-    /*
-     * If you quickly hold a tap-hold key after tapping it, the tap action is
-     * repeated. Key repeating is useful e.g. for Vim navigation keys, but can
-     * lead to missed triggers in fast typing. Here, returning 0 means we
-     * instead want to "force hold" and disable key repeating.
-     */
-    switch (keycode) {
-        /* Repeating is useful for Vim/Emacs navigation keys. */
-        case HM_D:
-        case HM_F:
-        case HM_J:
-        case HM_K:
-        case HM_L:
-            return QUICK_TAP_TERM;  /* Enable key repeating. */
-        default:
-            return 0;  /* Otherwise, force hold and disable key repeating. */
-    }
+/*
+ * A tap of `SMT_MOD` makes Shift a pending one-shot mod, or cancels all
+ * pending one-shot mods, and a double tap turns Caps Word on. A tap of the
+ * other smart mod layer keys is their ordinary key.
+ */
+bool smart_mod_layer_key_taps_shift(uint16_t keycode) {
+    return keycode == SMT_MOD;
 }
 
-uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t* record,
-                           uint16_t prev_keycode) {
-    /* Only apply Flow Tap when following a letter key, not a hotkeys. */
-    if (get_tap_keycode(prev_keycode) <= KC_Z &&
-        (get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) == 0) {
-        switch (keycode) {
-            case HM_A:     /* LCTL */
-            case HM_S:     /* LALT */
-            case HM_L:     /* RALT */
-            case HM_SCLN:  /* RCTL */
-                return FLOW_TAP_TERM;
-            /* Shorter FLOW_TAP_TERM for strong fingers. */
-            case HM_D:     /* LGUI */
-            case HM_K:     /* RGUI */
-                return FLOW_TAP_TERM - 25;
-            /* Disable Flow Tap for shift keys. */
-        }
+/*****************************************************************************
+ * Told to target_layer
+ *****************************************************************************/
+
+/*
+ * The table of entries: `TAB_SYM` is the holding key of two target layers.
+ * With the trigger key `MO(_NAV)` it switches to NAV and with the trigger
+ * key `MO(_MOU)` to MOU, and a quick release of `TAB_SYM` locks either.
+ * `ENT_NUM` and the trigger key `MO(_FUN)` switch to FUN, and a quick release
+ * of `ENT_NUM` leaves it pending.
+ */
+const target_layer_entry_t target_layer_entries[] = {
+    {TAB_SYM, _NAV, TARGET_LAYER_QUICK_RELEASE_LOCKED},
+    {TAB_SYM, _MOU, TARGET_LAYER_QUICK_RELEASE_LOCKED},
+    {ENT_NUM, _FUN, TARGET_LAYER_QUICK_RELEASE_PENDING},
+};
+
+const uint8_t target_layer_entry_count = sizeof(target_layer_entries) / sizeof(target_layer_entries[0]);
+
+/* The Layer Lock key locks the highest layer that is on. */
+_Static_assert(_NAV > _SYM && _MOU > _SYM && _FUN > _NUM, "a target layer must lie above its holding layer");
+
+/*
+ * The key event of a one-shot mod key is the press or the release of a
+ * one-shot mod key, or of a tap of `SMT_MOD`, which makes Shift pending,
+ * cancels the pending one-shot mods or turns Caps Word on, and sends nothing.
+ */
+bool target_layer_is_one_shot_mod_key(uint16_t keycode, const keyrecord_t *record) {
+    if (smart_mod_one_shot_mod_bits(keycode) != 0) {
+        return true;
     }
-
-    return 0; /* Disable Flow Tap otherwise. */
-}
-
-#ifdef CHORDAL_HOLD
-bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record,
-                      uint16_t other_keycode, keyrecord_t* other_record) {
-    /*
-     * Exceptionally consider the following chords as holds, even though they
-     * are on the same hand in Magic Sturdy.
-     */
-    switch (tap_hold_keycode) {
-        case HM_A:
-            if (other_keycode == HM_D ||
-                other_keycode == KC_E ||
-                other_keycode == HM_F ||
-                other_keycode == KC_R) {
-                return true;
-            }
-            break;
-        case HM_D:
-            if (other_keycode == HM_A ||
-                other_keycode == HM_F ||
-                other_keycode == KC_V ||
-                other_keycode == KC_B) {
-                return true;
-            }
-            break;
-        case HM_K:
-            if (other_keycode == HM_J ||
-                other_keycode == HM_L ||
-                other_keycode == KC_Y ||
-                other_keycode == KC_U ||
-                other_keycode == KC_N ||
-                other_keycode == KC_M) {
-                return true;
-            }
-            break;
-        default:
-            break;
-    }
-    return get_chordal_hold_default(tap_hold_record, other_record);
-}
-#endif  /* CHORDAL_HOLD */
-
-/****************************************************************************
- * Repeat key (https://docs.qmk.fm/features/repeat_key)
- ****************************************************************************/
-#ifdef REPEAT_KEY_ENABLE
-
-uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
-    if (mods & MOD_MASK_CTRL) {
-        switch (keycode) {
-            case KC_A:                    /* Ctrl+A -> Ctrl+C */
-                return C(KC_C);
-            case KC_C:                    /* Ctrl+C -> Ctrl+V */
-                return C(KC_V);
-        }
-    } else if (mods & MOD_MASK_GUI) {
-        switch (keycode) {
-            case KC_A:                    /* Cmd+A -> Cmd+C */
-                return G(KC_C);
-            case KC_C:                    /* Cmd+C -> Cmd+V */
-                return G(KC_V);
-        }
-    } else if ((mods & ~MOD_MASK_SHIFT) == 0) {
-        switch (keycode) {
-            /*
-             * For navigating next/previous search results in Vim:
-             * N -> Shift + N, Shift + N -> N.
-             */
-            case KC_N:
-                if ((mods & MOD_MASK_SHIFT) == 0) {
-                    return S(KC_N);
-                }
-                return KC_N;
-            case KC_DOT:                    /* . -> ./ */
-                if ((mods & MOD_MASK_SHIFT) == 0) {
-                    return M_UPDIR;
-                }
-                return M_NOOP;
-            case KC_EQL:                    /* = -> == */
-                return M_EQEQ;
-            case KC_HASH:                   /* # -> include */
-                return M_INCLUDE;
-            case KC_QUOT:
-                if ((mods & MOD_MASK_SHIFT) != 0) {
-                    return M_DOCSTR;        /* " -> ""<cursor>""" */
-                }
-                return M_NOOP;
-            case KC_GRV:                    /* ` -> ``<cursor>``` (for Markdown code) */
-                return M_MKGRVS;
-            case KC_LABK:                   /* < -> - (for Haskell) */
-                return KC_MINS;
-
-            /* arithmetic operators, such as, +=, -=, *=, %= ... */
-            case KC_PLUS:
-            case KC_MINS:
-            case KC_ASTR:
-            case KC_PERC:
-            case KC_PIPE:
-            case KC_AMPR:
-            case KC_CIRC:
-            case KC_TILD:
-            case KC_EXLM:
-            case KC_RABK:
-                return KC_EQL;
-        }
-    }
-    return KC_TRNS;
+    return smart_mod_is_layer_key(keycode) && smart_mod_layer_key_taps_shift(keycode) && record->tap.count != 0;
 }
 
 /*
- * An enhanced version of SEND_STRING: if Caps Word is active, the Shift key is
- * held while sending the string. Additionally, the last key is set such that if
- * the Repeat Key is pressed next, it produces `repeat_keycode`. This helper is
- * used for several macros below in my process_record_user() function.
+ * Latched one-shot mods have no timeout, so a pending target layer has none
+ * either while a smart mod layer key is held.
  */
-#define MAGIC_STRING(str, repeat_keycode) \
-    magic_send_string_P(PSTR(str), (repeat_keycode))
-
-static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-    uint8_t saved_mods = 0;
-    /* If Caps Word is on, save the mods and hold Shift. */
-    if (is_caps_word_on()) {
-        saved_mods = get_mods();
-        register_mods(MOD_BIT(KC_LSFT));
-    }
-
-    send_string_P(str);  /* Send the string. */
-    set_last_keycode(repeat_keycode);
-
-    /* If Caps Word is on, restore the mods. */
-    if (is_caps_word_on()) {
-        set_mods(saved_mods);
-    }
+bool target_layer_is_pending_timeout_suspended(void) {
+    return smart_mod_is_layer_key_held();
 }
 
-#endif  /* REPEAT_KEY_ENABLE */
+/*****************************************************************************
+ * QMK hooks
+ *****************************************************************************/
 
 /*
- * Custom bahavior of keycodes
+ * Both state machines see every key event, also those that the other one
+ * handles: target_layer needs the one-shot mod keys and the smart mod layer
+ * keys, which smart_mod keeps from QMK, and smart_mod needs the press of a
+ * trigger key, which target_layer keeps from QMK. target_layer comes first.
  */
-#define CASE_MT_NON_BASIC_KEYCODE(macro_key, tap_key) \
-    case macro_key:                                   \
-        if (record->tap.count) {                      \
-            if (record->event.pressed) {              \
-                tap_code16(tap_key);                  \
-            }                                         \
-            return false;                             \
-        }                                             \
-        break
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    /* Layer switching sees every key event first; it keeps trigger keys. */
-    if (!target_layer_process_record(keycode, record)) {
-        return false;
-    }
-
-    switch(keycode) {
-        CASE_MT_NON_BASIC_KEYCODE(HM_ASTR, KC_ASTR);
-        CASE_MT_NON_BASIC_KEYCODE(HM_LPRN, KC_LPRN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_RPRN, KC_RPRN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_COLN, KC_COLN);
-        CASE_MT_NON_BASIC_KEYCODE(HM_DQUO, KC_DQUO);
-        CASE_MT_NON_BASIC_KEYCODE(HM_UNDS, KC_UNDS);
-    }
-
-    if (record->event.pressed) {
-        switch (keycode) {
-            case UPDIR:
-                SEND_STRING_DELAY("../", TAP_CODE_DELAY);
-                return false;
-#ifdef REPEAT_KEY_ENABLE
-            // Macros invoked through the MAGIC key.
-            case M_UPDIR:
-                MAGIC_STRING(/*.*/"./", UPDIR);
-                break;
-            case M_INCLUDE:
-                SEND_STRING_DELAY(/*#*/"include ", TAP_CODE_DELAY);
-                break;
-            case M_EQEQ:
-                SEND_STRING_DELAY(/*=*/"==", TAP_CODE_DELAY);
-                break;
-            case M_DOCSTR:
-                SEND_STRING_DELAY(/*"*/"\"\"\"\"\""
-                        SS_TAP(X_LEFT) SS_TAP(X_LEFT) SS_TAP(X_LEFT), TAP_CODE_DELAY);
-                break;
-            case M_MKGRVS:
-                SEND_STRING_DELAY(/*`*/"``\n\n```" SS_TAP(X_UP), TAP_CODE_DELAY);
-                break;
-#endif  /* REPEAT_KEY_ENABLE */
-        }
-    }
-
-    return true;
+    const bool target_layer_passes = target_layer_process_record(keycode, record);
+    const bool smart_mod_passes    = smart_mod_process_record(keycode, record);
+    return target_layer_passes && smart_mod_passes;
 }
-
-#undef CASE_MT_NON_BASIC_KEYCODE
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    smart_mod_post_process_record(keycode, record);
     target_layer_post_process_record(keycode, record);
 }
 
+/*
+ * smart_mod comes first, so that the pending one-shot mods end before a
+ * pending target layer when both timeouts end in the same scan loop.
+ */
 void housekeeping_task_user(void) {
+    smart_mod_housekeeping_task();
     target_layer_housekeeping_task();
 }
-

@@ -5,19 +5,18 @@ Personal keyboard firmware configuration: the keymaps, shared behaviour, and bui
 ## Language
 
 **Keymap family**:
-A complete typing design (its layers, modifier scheme, and custom key behaviour) that can be applied to more than one keyboard. There are two: `hydeik` and `hydeik_vial`.
+A complete typing design (its layers, modifier scheme, and custom key behaviour) that can be applied to more than one keyboard. There is one: `hydeik`.
 _Avoid_: Layout, keyboard layout, variant, flavour
 
-**Common core**:
-The definitions and behaviour that do not depend on the keymap family, held in one place that each family draws on. What both families use is deliberately kept identical.
-_Avoid_: Shared code, common, shared, base
+**Keymap**:
+A keymap family applied to one keyboard, either with or without Vial. `hydeik` is the keymap without Vial, `hydeik_vial` the keymap with Vial.
 
 **Layout**:
 The physical arrangement of keys on one keyboard, as exposed by that keyboard's `LAYOUT` macro.
 _Avoid_: Using "layout" for a keymap family
 
 **Firmware source**:
-The firmware repository and branch a build target is compiled against, either upstream QMK or vial-qmk. Each keymap family is built against exactly one.
+The firmware repository and branch a build target is compiled against, either upstream QMK or vial-qmk. Each build target is built against exactly one, chosen by its keymap.
 _Avoid_: Firmware, backend, fork
 
 **Build target**:
@@ -32,7 +31,7 @@ The keymap that Vial keeps on the keyboard and lets the owner edit while the key
 _Avoid_: Dynamic keymap, EEPROM keymap, Vial keymap
 
 **One-shot mod**:
-A modifier key that acts as an ordinary modifier while held and, when tapped, applies to the next key press only. It means the same in both keymap families, although each provides it in its own way.
+A modifier key that acts as an ordinary modifier while held and, when tapped, applies to the next key press only.
 _Avoid_: OSM, sticky key, COS key, one-shot modifier
 
 **Pending one-shot mod**:
