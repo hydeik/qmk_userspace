@@ -1,12 +1,14 @@
 {
-    "hydeik": {
+    "qmk": {
         "repo": "qmk/qmk_firmware",
         "branch": "master",
-        "ref": "80973aa0b5413e9a5bbbf9293507f39e870f9aa3"
+        "ref": "80973aa0b5413e9a5bbbf9293507f39e870f9aa3",
+        "keymaps": ["hydeik"]
     },
-    "hydeik_vial": {
+    "vial-qmk": {
         "repo": "vial-kb/vial-qmk",
         "branch": "vial",
-        "ref": "dd43959ae5c08d8a28d38a1acf7b04e86b14a344"
+        "ref": "dd43959ae5c08d8a28d38a1acf7b04e86b14a344",
+        "keymaps": ["hydeik_vial"]
     }
 }

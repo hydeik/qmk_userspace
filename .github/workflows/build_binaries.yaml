@@ -13,11 +13,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Each keymap family declares its firmware source, pinned to a commit, in
-  # firmware_sources.json. The build matrix has one entry per keymap family;
-  # this fails if a build target's keymap has no entry in that file. The test
-  # matrix has one entry per firmware source that unit tests run on, named by
-  # its keymap family.
+  # firmware_sources.json declares the firmware sources by name, each pinned to
+  # a commit and listing the keymaps built against it. The build matrix has
+  # one entry per firmware source that has build targets; this fails if the
+  # keymap of a build target is listed by no firmware source, or by more than
+  # one. The test matrix has one entry per firmware source that unit tests run
+  # on.
   firmware-sources:
     name: Read firmware sources
     runs-on: ubuntu-latest
@@ -38,7 +39,7 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
   build:
-    name: Build (${{ matrix.family }})
+    name: Build (${{ matrix.firmware_source }})
     needs: firmware-sources
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
@@ -68,11 +69,11 @@ jobs:
           qmk config user.qmk_home=$GITHUB_WORKSPACE/qmk_firmware
           qmk config user.overlay_dir=$GITHUB_WORKSPACE
 
-      # A build target's keymap name is its keymap family, matched exactly.
+      # Keeps the build targets whose keymap this firmware source lists.
       - name: Select build targets
         env:
-          FAMILY: ${{ matrix.family }}
-        run: python3 .github/scripts/firmware_sources.py select "$FAMILY"
+          FIRMWARE_SOURCE: ${{ matrix.firmware_source }}
+        run: python3 .github/scripts/firmware_sources.py select "$FIRMWARE_SOURCE"
 
       - name: Validate userspace
         run: qmk userspace-doctor
@@ -104,7 +105,7 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
-          name: firmware-${{ matrix.family }}
+          name: firmware-${{ matrix.firmware_source }}
           if-no-files-found: error
           path: |
             *.bin
@@ -113,13 +114,12 @@ jobs:
 
   # Runs the unit tests once per firmware source, with the same `make test` as
   # a local run, limited to the tests that run on that firmware source. A unit
-  # test names the firmware sources it runs on in its test.mk; a test of the
-  # common core runs on both. The firmware source goes where `make firmware`
-  # puts it, at its pinned commit, so the Makefile's check of the checkout
-  # passes. The tests are built natively; the container provides gcc and make,
+  # test names the firmware sources it runs on in its test.mk. The firmware
+  # source goes where `make firmware` puts it, at its pinned commit, so the
+  # Makefile's check of the checkout passes. The tests are built natively; the container provides gcc and make,
   # as it does for the unit tests of the firmware source itself.
   test:
-    name: Test (${{ matrix.family }})
+    name: Test (${{ matrix.firmware_source }})
     needs: firmware-sources
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
@@ -137,13 +137,13 @@ jobs:
         with:
           repository: ${{ matrix.repo }}
           ref: ${{ matrix.ref }}
-          path: .firmware/${{ matrix.family }}
+          path: .firmware/${{ matrix.firmware_source }}
           submodules: recursive
 
       - name: Run unit tests
         env:
-          FAMILY: ${{ matrix.family }}
-        run: make test FIRMWARE_SOURCE="$FAMILY"
+          FIRMWARE_SOURCE: ${{ matrix.firmware_source }}
+        run: make test FIRMWARE_SOURCE="$FIRMWARE_SOURCE"
 
   # Replaces the `latest` release, only from `main` and only when every build
   # target succeeded and the unit tests passed on every firmware source, so a
