@@ -2,13 +2,18 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 # Unit tests of target_layer together with smart_mod, as the hydeik_vial
-# keymap family wires them, on the unit-test framework of the firmware source
-# of that family. Run them with `make test` from the repository root.
+# keymap family wires them, on the unit-test frameworks of both firmware
+# sources. Run them with `make test` from the repository root.
 #
 # The test compiles the real hydeik_vial.c with the real layout.h, so the two
 # state machines are wired as in the firmware and the keymap of the tests is
 # the keymap of the family. Vial is not part of the test build: test_glue.c
 # stands in for firmware_default, the one module here that needs it.
+
+# The firmware sources this test runs on, by their names in
+# firmware_sources.json. `make test` reads this line itself, so keep it a
+# single assignment of literal names.
+TEST_FIRMWARE_SOURCES = qmk vial-qmk
 
 # This directory is outside the firmware checkout, so the sources found here
 # have absolute paths. Let make resolve them.

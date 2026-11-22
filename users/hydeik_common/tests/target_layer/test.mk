@@ -8,10 +8,10 @@
 # for the Repeat Key rule, and a test-only glue with a test-only table of
 # entries. No keymap family is part of the test build.
 
-# The firmware sources this test runs on, each named by the keymap family
-# that declares it in firmware_sources.json. `make test` reads this line
-# itself, so keep it a single assignment of literal names.
-TEST_FIRMWARE_SOURCES = hydeik hydeik_vial
+# The firmware sources this test runs on, by their names in
+# firmware_sources.json. `make test` reads this line itself, so keep it a
+# single assignment of literal names.
+TEST_FIRMWARE_SOURCES = qmk vial-qmk
 
 # This directory is outside the firmware checkout, so the sources found here
 # have absolute paths. Let make resolve them.

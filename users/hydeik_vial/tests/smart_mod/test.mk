@@ -1,12 +1,17 @@
 # Copyright Hidekazu Ikeno <@hydeik>
 # SPDX-License-Identifier: GPL-2.0+
 
-# Unit tests of the smart_mod state machine, on the unit-test framework of the
-# firmware source. Run them with `make test` from the repository root.
+# Unit tests of the smart_mod state machine, on the unit-test frameworks of
+# both firmware sources. Run them with `make test` from the repository root.
 #
 # The test compiles the real smart_mod.c, the common-core sources it uses and
 # a test-only glue. hydeik_vial.c and layout.h are not part of the test build,
 # and neither is Vial.
+
+# The firmware sources this test runs on, by their names in
+# firmware_sources.json. `make test` reads this line itself, so keep it a
+# single assignment of literal names.
+TEST_FIRMWARE_SOURCES = qmk vial-qmk
 
 # This directory is outside the firmware checkout, so the sources found here
 # have absolute paths. Let make resolve them.

@@ -10,6 +10,11 @@
 # part of the test build: fakes.c stands in for the stored settings and for
 # the EEPROM check of VIA.
 
+# The firmware sources this test runs on, by their names in
+# firmware_sources.json. `make test` reads this line itself, so keep it a
+# single assignment of literal names. Only vial-qmk has qmk_settings.c.
+TEST_FIRMWARE_SOURCES = vial-qmk
+
 # This directory is outside the firmware checkout, so the sources found here
 # have absolute paths. Let make resolve them.
 VPATH += /

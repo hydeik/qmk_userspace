@@ -1,18 +1,20 @@
 # Local builds against the pinned firmware sources.
 #
-#   make firmware                         Fetch the firmware source of every keymap family
-#                                         into .firmware/ at the commit pinned in
-#                                         firmware_sources.json.
+#   make firmware                         Fetch every firmware source into
+#                                         .firmware/<firmware source>/ at the commit
+#                                         pinned in firmware_sources.json.
 #   make <keyboard>:<keymap>              Build one build target.
 #   make <keyboard>:<keymap>:flash        Build and flash one build target.
 #   make test                             Build and run every unit test, each on the
 #                                         firmware sources it names.
-#   make test FIRMWARE_SOURCE=<family>    Build and run only the unit tests that run on
-#                                         the firmware source of one keymap family.
+#   make test FIRMWARE_SOURCE=<source>    Build and run only the unit tests that run on
+#                                         one firmware source, `qmk` or `vial-qmk`.
 #
-# The keymap name is the keymap family, which selects the firmware source. The
-# build stops if that firmware checkout is missing or not at its pinned commit.
-# The unit tests check every firmware checkout they run on the same way.
+# The keymap name of a build target selects its firmware source: the one that
+# lists the keymap under `keymaps` in firmware_sources.json. The build stops if
+# no firmware source lists the keymap, or more than one does, and if the
+# firmware checkout is missing or not at its pinned commit. The unit tests
+# check every firmware checkout they run on the same way.
 
 .SILENT:
 
@@ -21,10 +23,10 @@ MAKEFLAGS += --no-print-directory
 QMK_USERSPACE := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 FIRMWARE_SOURCES := python3 .github/scripts/firmware_sources.py
 
-USAGE := Usage: make firmware | make test [FIRMWARE_SOURCE=<family>] | make <keyboard>:<keymap>[:flash]
+USAGE := Usage: make firmware | make test [FIRMWARE_SOURCE=qmk|vial-qmk] | make <keyboard>:<keymap>[:flash]
 
-# The keymap name of the goal being built, which is its keymap family.
-keymap_family = $(word 2,$(subst :, ,$@))
+# The keymap name of the goal being built.
+keymap =$(word 2,$(subst :, ,$@))
 
 .PHONY: help firmware test FORCE
 
@@ -35,21 +37,19 @@ firmware:
 	cd "$(QMK_USERSPACE)" && $(FIRMWARE_SOURCES) fetch
 
 # Unit tests live in users/<owner>/tests/<test>/, one directory with a test.mk
-# per test, where <owner> is a keymap family or the common core
-# (hydeik_common). They run natively on this machine, on the unit-test
-# framework of a firmware source.
+# per test. They run natively on this machine, on the unit-test framework of a
+# firmware source.
 #
-# A test names the firmware sources it runs on in its test.mk, each by the
-# keymap family that declares it in firmware_sources.json:
+# Every test names the firmware sources it runs on in its test.mk, by their
+# names in firmware_sources.json:
 #
-#     TEST_FIRMWARE_SOURCES = hydeik hydeik_vial
+#     TEST_FIRMWARE_SOURCES = qmk vial-qmk
 #
-# A test of a keymap family may leave the line out, and then runs on the
-# firmware source of that family. A test of the common core must have it.
+# There is no default: a test.mk without the line fails the run.
 #
-# FIRMWARE_SOURCE, a keymap family, limits the run to the tests that run on
-# its firmware source, and then that firmware checkout is the only one needed.
-# CI uses it to run the tests once per firmware source.
+# FIRMWARE_SOURCE, the name of a firmware source, limits the run to the tests
+# that run on it, and then that firmware checkout is the only one needed. CI
+# uses it to run the tests once per firmware source.
 FIRMWARE_SOURCE :=
 
 # Apple clang, which is what `gcc` is on macOS, warns where gcc does not and
@@ -65,7 +65,7 @@ CLANG_TEST_FLAGS := ALLOW_WARNINGS=yes EXTRAFLAGS=-Wno-c++11-narrowing
 #
 # That test makefile puts the test directory on VPATH and in `include`, so the
 # path of this repository must not contain spaces. `runs` is a flat list of
-# <keymap family> <test directory> pairs for the same reason.
+# <firmware source> <test directory> pairs for the same reason.
 test:
 	cd "$(QMK_USERSPACE)" || exit 1; \
 	runs=$$($(FIRMWARE_SOURCES) tests $(FIRMWARE_SOURCE)) || exit 1; \
@@ -79,18 +79,18 @@ test:
 	failed=; \
 	set -- $$runs; \
 	while [ $$# -gt 0 ]; do \
-		family=$$1; test_dir=$$2; shift 2; \
-		checkout=$$($(FIRMWARE_SOURCES) locate "$$family") || exit 1; \
+		source=$$1; test_dir=$$2; shift 2; \
+		checkout=$$($(FIRMWARE_SOURCES) locate "$$source") || exit 1; \
 		name=$$(basename "$$test_dir"); \
 		owner=$$(basename "$$(dirname "$$(dirname "$$test_dir")")"); \
 		output="$${owner}_$$name"; \
-		echo "==> $$owner/$$name on the firmware source of $$family"; \
+		echo "==> $$owner/$$name on $$source"; \
 		$(MAKE) -r -R -C "$$checkout" -f builddefs/build_test.mk \
 			TEST="$$name" TEST_OUTPUT="$$output" TEST_PATH="$$test_dir" FULL_TESTS="$$name" \
 			SILENT=false $$flags || exit 1; \
 		binary="$$checkout/.build/test/$$output.elf"; \
 		if ! "$$binary" --gtest_list_tests | grep -q '^  '; then \
-			echo "$$owner/$$name on $$family: the test binary contains no tests." >&2; failed=1; \
+			echo "$$owner/$$name on $$source: the test binary contains no tests." >&2; failed=1; \
 		elif ! "$$binary"; then \
 			failed=1; \
 		fi; \
@@ -103,9 +103,11 @@ FORCE:
 Makefile: ;
 
 # Any other goal is <keyboard>:<keymap>[:<action>] and is handed to the make of
-# the firmware source of its keymap family. FORCE runs the rule even when a
+# the firmware source that lists its keymap. FORCE runs the rule even when a
 # file or directory with the name of the goal exists.
 %: FORCE
-	$(if $(keymap_family),,$(error Unknown target `$@`. $(USAGE)))
-	checkout=$$(cd "$(QMK_USERSPACE)" && $(FIRMWARE_SOURCES) locate "$(keymap_family)") || exit 1; \
+	$(if $(keymap),,$(error Unknown target `$@`. $(USAGE)))
+	cd "$(QMK_USERSPACE)" || exit 1; \
+	source=$$($(FIRMWARE_SOURCES) source-of "$(keymap)") || exit 1; \
+	checkout=$$($(FIRMWARE_SOURCES) locate "$$source") || exit 1; \
 	$(MAKE) -C "$$checkout" "$@" QMK_USERSPACE="$(QMK_USERSPACE)"
