@@ -106,3 +106,109 @@ def read_layers(layout_h):
             )
         layers[name] = keys
     return layers
+
+
+# The marks of a key. Each is the `type` of the key in the keymap-drawer YAML
+# and so a CSS class of the key in the image; keymap_drawer.yaml gives the
+# first three their colours, and keymap-drawer has its own colour for `held`.
+ONE_SHOT_MOD = "one-shot-mod"
+HOLDING = "holding"
+TRIGGER = "trigger"
+HELD = "held"
+
+# The name of the smart mod layer in `enum layer_t`, without the `_`. A
+# layer-tap key of this layer is a smart mod layer key; a layer-tap key of any
+# other layer is a holding key.
+SMART_MOD_LAYER = "MOD"
+
+TRANSPARENT = "KC_TRNS"
+
+_TRIGGER_KEY = re.compile(r"MO\((\d+)\)")
+_LAYER_TAP_KEY = re.compile(r"LT\((\d+),(.+)\)")
+_ONE_SHOT_MOD_KEY = re.compile(r"COS_\w+")
+
+
+def _layer_of(match, keycode, names):
+    number = int(match.group(1))
+    if number >= len(names):
+        raise KeymapImageError(
+            f"Cannot derive the marks: `{keycode}` names layer {number}, "
+            f"but there are only the layers 0 to {len(names) - 1}."
+        )
+    return names[number]
+
+
+def derive_marks(layers):
+    """The marks of the keys, derived from the keycodes: `{layer: {position: mark}}`.
+
+    `layers` is what `read_layers` returns; the first layer is the base layer.
+
+    - `COS_*` is a one-shot mod key and `MO(layer)` a trigger key, wherever
+      they are.
+    - `LT(layer, ...)` on the base layer is a holding key, or a smart mod
+      layer key if the layer is the smart mod layer.
+    - The held key of a holding layer is its holding key. The held key of a
+      target layer is the holding key of its holding layer: the holding layer
+      that holds the trigger key of the target layer. The held keys of the
+      smart mod layer are all smart mod layer keys.
+
+    A trigger key is never held. Raises KeymapImageError if the marks cannot be
+    derived.
+    """
+    names = list(layers)
+    base = names[0]
+    marks = {name: {} for name in names}
+    holding_keys = {name: [] for name in names}  # holding layer -> positions on the base layer
+    smart_mod_layer_keys = []
+    trigger_keys = {name: set() for name in names}  # target layer -> layers that hold its trigger key
+
+    for name, keycodes in layers.items():
+        for position, keycode in enumerate(keycodes):
+            if _ONE_SHOT_MOD_KEY.fullmatch(keycode):
+                marks[name][position] = ONE_SHOT_MOD
+            elif match := _TRIGGER_KEY.fullmatch(keycode):
+                trigger_keys[_layer_of(match, keycode, names)].add(name)
+                marks[name][position] = TRIGGER
+            elif match := _LAYER_TAP_KEY.fullmatch(keycode):
+                layer = _layer_of(match, keycode, names)
+                if name != base:
+                    raise KeymapImageError(
+                        f"Cannot derive the marks: layer {name} holds `{keycode}`, "
+                        f"but a holding key or smart mod layer key is expected on layer {base} only."
+                    )
+                if layer == SMART_MOD_LAYER:
+                    smart_mod_layer_keys.append(position)
+                else:
+                    holding_keys[layer].append(position)
+                    marks[name][position] = HOLDING
+
+    for name in names[1:]:
+        if holding_keys[name]:
+            held, reason = holding_keys[name], "its holding key"
+        elif name == SMART_MOD_LAYER:
+            held, reason = smart_mod_layer_keys, "a smart mod layer key"
+            if not held:
+                raise KeymapImageError(
+                    f"Cannot derive the held keys of layer {name}: "
+                    f"layer {base} holds no smart mod layer key `LT({names.index(name)}, ...)`."
+                )
+        else:
+            held = sorted(
+                position for holding_layer in trigger_keys[name] for position in holding_keys[holding_layer]
+            )
+            reason = "the holding key of its holding layer"
+            if not held:
+                raise KeymapImageError(
+                    f"Cannot derive the held key of layer {name}: no holding layer holds "
+                    f"its trigger key `MO({names.index(name)})`, and layer {base} holds "
+                    f"no holding key `LT({names.index(name)}, ...)`."
+                )
+        for position in held:
+            keycode = layers[name][position]
+            if keycode != TRANSPARENT:
+                raise KeymapImageError(
+                    f"Cannot derive the marks: position {position} of layer {name} is held "
+                    f"({reason}), but layer {name} holds `{keycode}` there instead of a transparent key."
+                )
+            marks[name][position] = HELD
+    return marks
