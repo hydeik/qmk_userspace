@@ -1,0 +1,61 @@
+# keymap-drawer configuration of the keymap image of the keymap family
+# `hydeik`. keymap_image.py passes it to `keymap parse` and `keymap draw`; run
+# `make keymap-image` after a change.
+
+parse_config:
+  # The legends of the keys that keymap-drawer does not know. A keycode is
+  # written as in layout.h after its macros are expanded, with the name of a
+  # layer where it has one; keymap_image.py puts the layer number in its
+  # place. A keycode that is neither here nor known to keymap-drawer stops
+  # the script.
+  #
+  # The colours of the keys are not set here: keymap_image.py derives the
+  # marks from the keycodes.
+  raw_binding_map:
+    # One-shot mod keys.
+    COS_LCTL: Ctrl
+    COS_LSFT: Shift
+    COS_LALT: Alt
+    COS_LGUI: Gui
+    COS_RCTL: Ctrl
+    COS_RSFT: Shift
+    COS_RALT: Alt
+    COS_RGUI: Gui
+    # SMT_MOD: tapped, it makes Shift a pending one-shot mod. Its tap keycode
+    # KC_KP_0 is never sent.
+    "LT(_MOD, KC_KP_0)": {t: Shift, h: MOD}
+    QK_LLCK: Lock
+    QK_BOOT: Boot
+    MS_WHLL: Wheel ←
+    MS_WHLD: Wheel ↓
+    MS_WHLU: Wheel ↑
+    MS_WHLR: Wheel →
+    MS_LEFT: Mouse ←
+    MS_DOWN: Mouse ↓
+    MS_UP: Mouse ↑
+    MS_RGHT: Mouse →
+    MS_BTN1: Button 1
+    MS_BTN2: Button 2
+    MS_BTN3: Button 3
+  # A transparent key. An empty key is blank.
+  trans_legend: {t: ▽, type: trans}
+
+draw_config:
+  # One file for the light and the dark theme: the image follows
+  # `prefers-color-scheme`.
+  dark_mode: auto
+  n_columns: 2
+  append_colon_to_layer_header: false
+  footer_text: "green: one-shot mod key · blue: holding key · amber: trigger key · red: held · ▽: transparent"
+  # The colours of the marks that keymap_image.py sets. keymap-drawer has its
+  # own colour for a held key. This style comes after the dark colours of
+  # keymap-drawer, so the dark theme needs a block of its own.
+  svg_extra_style: |
+    rect.one-shot-mod { fill: #dff3e4; }
+    rect.holding { fill: #dde7fb; }
+    rect.trigger { fill: #fde9c8; }
+    @media (prefers-color-scheme: dark) {
+      rect.one-shot-mod { fill: #2f5a3c; }
+      rect.holding { fill: #2c3f66; }
+      rect.trigger { fill: #6b4a12; }
+    }

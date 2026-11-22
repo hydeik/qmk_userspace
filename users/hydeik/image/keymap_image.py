@@ -24,10 +24,17 @@ keymap-drawer is called as a command, not as a library: the command line is
 its documented interface. The intermediate files go to a temporary directory.
 """
 
+import argparse
 import io
+import json
+import pathlib
 import re
+import subprocess
+import sys
+import tempfile
 
 import pcpp
+import yaml
 
 KEY_COUNT = 34
 
@@ -212,3 +219,147 @@ def derive_marks(layers):
                 )
             marks[name][position] = HELD
     return marks
+
+
+def number_layers(config, names):
+    """The keymap-drawer configuration with layer numbers in its keycodes.
+
+    The keycodes that `parse_config.raw_binding_map` gives a legend to are
+    written like in `layout.h`, with the name of a layer (`LT(_MOD, KC_KP_0)`).
+    keymap-drawer matches them against the keycodes of the QMK keymap JSON, so
+    they get the form that `read_layers` returns: the layer number of
+    `names`, and no whitespace.
+    """
+    numbers = {f"_{name}": str(number) for number, name in enumerate(names)}
+
+    def numbered(keycode):
+        keycode = re.sub(r"\b_[A-Z0-9]+\b", lambda name: numbers.get(name.group(), name.group()), keycode)
+        return "".join(keycode.split())
+
+    parse_config = dict(config.get("parse_config", {}))
+    parse_config["raw_binding_map"] = {
+        numbered(keycode): legend for keycode, legend in parse_config.get("raw_binding_map", {}).items()
+    }
+    return {**config, "parse_config": parse_config}
+
+
+def _has_legend(keycode, parse_config):
+    if keycode in parse_config["raw_binding_map"]:
+        return True
+    if _TRIGGER_KEY.fullmatch(keycode):
+        return True  # Its legend is the name of its target layer.
+    if match := _LAYER_TAP_KEY.fullmatch(keycode):
+        return _has_legend(match.group(2), parse_config)
+    # A basic keycode: keymap-drawer removes the prefix and draws the rest, or
+    # the entry of its own table for it.
+    return keycode in parse_config["qmk_keycode_map"] or any(
+        keycode.startswith(prefix) for prefix in parse_config["qmk_remove_keycode_prefix"]
+    )
+
+
+def check_legends(layers, parse_config):
+    """Stops with an error that names the first keycode without a legend.
+
+    `parse_config` is the `parse_config` that keymap-drawer works with, its
+    defaults included (`keymap dump-config`). A keycode has a legend if the
+    configuration gives it one in `raw_binding_map`, or if keymap-drawer
+    knows it: a basic keycode (`KC_*`) or an entry of its own table. For any
+    other keycode keymap-drawer would draw the raw text, such as `COS FOO`.
+    """
+    for name, keycodes in layers.items():
+        for keycode in keycodes:
+            if not _has_legend(keycode, parse_config):
+                raise KeymapImageError(
+                    f"Layer {name} holds `{keycode}`, which has no legend: keymap-drawer does not "
+                    "know it, and `parse_config.raw_binding_map` of keymap_drawer.yaml does not "
+                    "list it. Give it a legend there."
+                )
+
+
+def apply_marks(keymap, layers, marks, trans_legend):
+    """The keymap-drawer YAML of `keymap parse` with the marks set on its keys.
+
+    keymap-drawer marks keys as held by a guess of its own, which takes a
+    trigger key for a held momentary layer key; that guess is dropped and
+    `marks` decides. A held key has no legend. `trans_legend` is what
+    keymap-drawer writes for a transparent key.
+    """
+    marked_layers = {}
+    for name, parsed_keys in keymap["layers"].items():
+        marked_layers[name] = []
+        for position, parsed in enumerate(parsed_keys):
+            key = dict(parsed) if isinstance(parsed, dict) else {"t": parsed}
+            if key.get("type") == HELD:
+                del key["type"]
+                if layers[name][position] == TRANSPARENT:
+                    key = dict(trans_legend)
+            mark = marks[name].get(position)
+            if mark == HELD:
+                key = {"type": HELD}
+            elif mark:
+                key["type"] = mark
+            marked_layers[name].append(key["t"] if list(key) == ["t"] else key)
+    return {**keymap, "layers": marked_layers}
+
+
+HERE = pathlib.Path(__file__).resolve().parent
+LAYOUT_H = HERE.parent / "layout.h"
+CONFIG = HERE / "keymap_drawer.yaml"
+PHYSICAL_LAYOUT = HERE / "layout.json"
+IMAGE = HERE / "keymap.svg"
+
+
+def _keymap_drawer(*arguments):
+    """Runs the `keymap` command of keymap-drawer and returns what it prints."""
+    # keymap-drawer 0.23.0 calls a deprecated function of pydantic on every run.
+    command = [sys.executable, "-W", "ignore::DeprecationWarning", "-m", "keymap_drawer", *map(str, arguments)]
+    result = subprocess.run(command, stdout=subprocess.PIPE, encoding="utf-8", check=False)
+    if result.returncode != 0:
+        raise KeymapImageError(f"keymap-drawer failed: `keymap {' '.join(map(str, arguments))}`.")
+    return result.stdout
+
+
+def write_image(layout_h, image):
+    """Writes the keymap image of the layers in the file `layout_h` to the file `image`."""
+    layers = read_layers(layout_h.read_text(encoding="utf-8"))
+    marks = derive_marks(layers)
+
+    with tempfile.TemporaryDirectory() as directory:
+        work = pathlib.Path(directory)
+
+        config = work / "keymap_drawer.yaml"
+        numbered = number_layers(yaml.safe_load(CONFIG.read_text(encoding="utf-8")), list(layers))
+        config.write_text(yaml.safe_dump(numbered, allow_unicode=True, sort_keys=False), encoding="utf-8")
+        parse_config = yaml.safe_load(_keymap_drawer("-c", config, "dump-config"))["parse_config"]
+        check_legends(layers, parse_config)
+
+        qmk_keymap = work / "keymap.json"
+        qmk_keymap.write_text(json.dumps({"layers": list(layers.values())}), encoding="utf-8")
+        parsed = work / "parsed.yaml"
+        _keymap_drawer("-c", config, "parse", "-q", qmk_keymap, "--layer-names", *layers, "-o", parsed)
+
+        keymap = apply_marks(
+            yaml.safe_load(parsed.read_text(encoding="utf-8")), layers, marks, parse_config["trans_legend"]
+        )
+        marked = work / "marked.yaml"
+        marked.write_text(yaml.safe_dump(keymap, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+        drawn = work / "keymap.svg"
+        _keymap_drawer("-c", config, "draw", "-j", PHYSICAL_LAYOUT, marked, "-o", drawn)
+        image.write_bytes(drawn.read_bytes())
+
+
+def main(arguments=None):
+    parser = argparse.ArgumentParser(description="Write the keymap image of the keymap family `hydeik`.")
+    parser.add_argument("-o", "--output", type=pathlib.Path, default=IMAGE, help="the SVG to write (default: %(default)s)")
+    options = parser.parse_args(arguments)
+    try:
+        write_image(LAYOUT_H, options.output)
+    except KeymapImageError as error:
+        print(f"keymap_image: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

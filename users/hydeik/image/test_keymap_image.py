@@ -199,3 +199,114 @@ def test_a_layer_tap_key_off_the_base_layer_stops_the_script():
 
     with pytest.raises(KeymapImageError, match=r"SYM.*LT\(2,KC_A\)"):
         keymap_image.derive_marks(layers)
+
+
+# --- Legends ----------------------------------------------------------------
+
+
+def parse_config(raw_binding_map):
+    """The part of the keymap-drawer configuration that decides the legends."""
+    return {
+        "raw_binding_map": raw_binding_map,
+        "qmk_remove_keycode_prefix": ["KC_"],
+        "qmk_keycode_map": {"SCLN": ";"},
+    }
+
+
+def test_layer_names_in_the_configured_keycodes_become_layer_numbers():
+    config = {"parse_config": {"raw_binding_map": {"LT(_MOD, KC_KP_0)": "Shift", "QK_LLCK": "Lock"}}}
+
+    numbered = keymap_image.number_layers(config, ["BASE", "SYM", "MOD"])
+
+    assert numbered["parse_config"]["raw_binding_map"] == {"LT(2,KC_KP_0)": "Shift", "QK_LLCK": "Lock"}
+
+
+def test_keycodes_of_keymap_drawer_and_of_the_configuration_have_a_legend():
+    layers = {
+        "BASE": keycodes({0: "KC_SCLN", 1: "KC_TRNS", 2: "KC_NO", 3: "QK_LLCK", 30: "LT(1,KC_TAB)"}, fill="KC_A"),
+        "SYM": keycodes({0: "MO(0)", 1: "LT(1,KC_KP_0)"}),
+    }
+    config = parse_config({"QK_LLCK": "Lock", "LT(1,KC_KP_0)": "Shift"})
+
+    keymap_image.check_legends(layers, config)
+
+
+def test_a_keycode_without_a_legend_stops_the_script_and_is_named():
+    layers = {"BASE": keycodes({5: "COS_FOO"}, fill="KC_A")}
+
+    with pytest.raises(KeymapImageError, match="COS_FOO"):
+        keymap_image.check_legends(layers, parse_config({"COS_LCTL": "Ctrl"}))
+
+
+def test_a_tap_keycode_without_a_legend_stops_the_script_and_is_named():
+    layers = {"BASE": keycodes({30: "LT(1,MS_BTN1)"}, fill="KC_A")}
+
+    with pytest.raises(KeymapImageError, match="MS_BTN1"):
+        keymap_image.check_legends(layers, parse_config({}))
+
+
+# --- Setting the marks on the keymap-drawer YAML ------------------------------
+
+TRANS_LEGEND = {"t": "▽", "type": "trans"}
+
+
+def marked(parsed, keycode, mark):
+    """One key of the keymap-drawer YAML after the marks are set."""
+    keymap = keymap_image.apply_marks(
+        {"layers": {"NAV": [parsed]}},
+        {"NAV": [keycode]},
+        {"NAV": {0: mark} if mark else {}},
+        TRANS_LEGEND,
+    )
+    return keymap["layers"]["NAV"][0]
+
+
+def test_a_mark_becomes_the_type_of_the_key_and_keeps_its_legend():
+    assert marked("Ctrl", "COS_LCTL", "one-shot-mod") == {"t": "Ctrl", "type": "one-shot-mod"}
+    assert marked({"t": "TAB", "h": "SYM"}, "LT(1,KC_TAB)", "holding") == {
+        "t": "TAB",
+        "h": "SYM",
+        "type": "holding",
+    }
+
+
+def test_a_trigger_key_that_keymap_drawer_marked_as_held_is_a_trigger_key():
+    assert marked({"t": "NAV", "type": "held"}, "MO(3)", "trigger") == {"t": "NAV", "type": "trigger"}
+
+
+def test_a_held_key_has_no_legend():
+    assert marked(dict(TRANS_LEGEND), "KC_TRNS", "held") == {"type": "held"}
+
+
+def test_a_transparent_key_that_keymap_drawer_marked_as_held_is_transparent_again():
+    assert marked({"type": "held"}, "KC_TRNS", None) == TRANS_LEGEND
+
+
+def test_a_key_without_a_mark_stays_as_parsed():
+    assert marked("ESC", "KC_ESC", None) == "ESC"
+    assert marked("", "KC_NO", None) == ""
+    assert marked(dict(TRANS_LEGEND), "KC_TRNS", None) == TRANS_LEGEND
+
+
+# --- The whole route, with keymap-drawer --------------------------------------
+
+
+def test_the_committed_keymap_image_is_what_the_script_writes(tmp_path):
+    image = tmp_path / "keymap.svg"
+
+    assert keymap_image.main(["--output", str(image)]) == 0
+
+    assert image.read_bytes() == (HERE / "keymap.svg").read_bytes()
+
+
+def test_a_keycode_of_layout_h_without_a_legend_stops_the_script(tmp_path):
+    text = LAYOUT_H.read_text()
+    assert "QK_BOOT,  KC_F9" in text
+    layout_h = tmp_path / "layout.h"
+    layout_h.write_text(text.replace("QK_BOOT,  KC_F9", "QK_FOO,   KC_F9"))
+    image = tmp_path / "keymap.svg"
+
+    with pytest.raises(KeymapImageError, match="QK_FOO"):
+        keymap_image.write_image(layout_h, image)
+
+    assert not image.exists()
