@@ -17,11 +17,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "hydeik_vial.h"
+#include "hydeik.h"
 
-/* The two extra keys on the inner top row enter the bootloader. */
-#define HYDEIK_CRKBD_EXTRA_KEY QK_BOOT
-#include "users/hydeik_common/keyboards/crkbd_rev4_1_mini.h"
+#include "keyboards/crkbd_rev4_1_mini.h"
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_BASE] = LAYOUT_HYDEIK_34(BASE_LAYER),
