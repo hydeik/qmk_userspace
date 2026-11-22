@@ -33,10 +33,20 @@
  *   layer numbers used here, under `TEST_LAYER_*` names for the layers. The
  *   assertions below pin the numbers that the copy repeats.
  *
- * Both are built without Vial. In a keymap with Vial, Vial's tap-hold
- * settings decide whether a smart mod layer key or a holding key is tapped or
- * held, and the tapping term of the double tap of `SMT_MOD` is the one set in
- * Vial, not the `TAPPING_TERM` of config.h.
+ * Both are built without Vial and with QMK's stock tap-hold behaviour. In the
+ * firmware, Hold On Other Key Press makes a smart mod layer key or a holding
+ * key a hold as soon as another key is pressed:
+ *
+ * - In a keymap without Vial it is the `HOLD_ON_OTHER_KEY_PRESS` of config.h,
+ *   and the tapping term is its `TAPPING_TERM`.
+ * - In a keymap with Vial it is one of Vial's tap-hold settings, which
+ *   features/firmware_default.c switches on by default. Those settings decide
+ *   whether such a key is tapped or held, and the tapping term of the double
+ *   tap of `SMT_MOD` is the one set in Vial, not the `TAPPING_TERM` of
+ *   config.h.
+ *
+ * tests/hold_on_other_key_press/ builds this very file a third time, with
+ * `HOLD_ON_OTHER_KEY_PRESS`, and tests what the setting is there for.
  */
 
 #include "hydeik.h"

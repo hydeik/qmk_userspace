@@ -20,6 +20,9 @@
  * The tests are built without Vial, so with QMK's stock tap-hold behaviour:
  * a holding key or a smart mod layer key becomes a hold only once the
  * tapping term has passed. In the firmware, Hold On Other Key Press makes it
- * a hold as soon as another key is pressed.
+ * a hold as soon as another key is pressed: in a keymap without Vial it is
+ * the HOLD_ON_OTHER_KEY_PRESS of users/hydeik/config.h, and in a keymap with
+ * Vial it is a Vial setting, on by default (features/firmware_default.c).
+ * tests/hold_on_other_key_press/ covers the behaviour with it.
  */
 #define TAPPING_TERM 200
