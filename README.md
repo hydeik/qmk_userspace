@@ -12,7 +12,20 @@ A keymap family is a complete typing design that can be applied to more than one
 | --- | --- | --- |
 | `hydeik` | No home-row mods; custom one-shot mods on a smart mod layer, and layer switching with holding keys and trigger keys. | BASE, SYM, NUM, NAV, FUN, MOD |
 
-A keymap is the keymap family applied to one keyboard, either with or without Vial. The keymap with Vial is named `hydeik_vial` and is built against [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial`; it adds Vial's GUI for remapping and tap-hold settings. The keymap without Vial is named `hydeik`; no keyboard has one today.
+A keymap is the keymap family applied to one keyboard, either with or without Vial. The keymap with Vial is named `hydeik_vial` and is built against [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial`; it adds Vial's GUI for remapping and tap-hold settings. The keymap without Vial is named `hydeik` and is built against upstream [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master`.
+
+### With and without Vial
+
+Both keymaps have the same layers, key for key, and the same one-shot mods, smart mod layer and layer switching. They differ only in what Vial brings:
+
+| | `hydeik` (without Vial) | `hydeik_vial` (with Vial) |
+| --- | --- | --- |
+| Firmware source | `qmk` | `vial-qmk` |
+| Remapping | None. The keyboard types with the firmware keymap. | In the Vial GUI, which edits the stored keymap. |
+| Tap-hold settings | Fixed at build time in `users/hydeik/config.h`: a tapping term of 200 ms and Hold On Other Key Press. | Vial settings, changed in the Vial GUI. After a settings reset they are the same as without Vial: `firmware_default` switches Hold On Other Key Press on. The `HOLD_ON_OTHER_KEY_PRESS` of `config.h` is ignored. |
+| Combos and tap dances | Off. | On, for use from the Vial GUI. The firmware defines none. |
+
+Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an encoder map, and the keymaps `hydeik` have neither.
 
 ## Repository structure
 
@@ -35,11 +48,13 @@ What exists only with Vial is chosen in `users/hydeik/rules.mk`: it adds `vial_h
 
 ## Build targets
 
-A build target is one keyboard paired with one keymap, and produces one firmware binary. `qmk.json` is the complete list, and today it holds one:
+A build target is one keyboard paired with one keymap, and produces one firmware binary. `qmk.json` is the complete list, and today it holds three:
 
-| Keyboard | Keymap |
-| --- | --- |
-| `crkbd/rev4_1/mini` | `hydeik_vial` |
+| Keyboard | Keymap | Firmware source | Firmware binary |
+| --- | --- | --- | --- |
+| `crkbd/rev4_1/mini` | `hydeik` | `qmk` | `crkbd_rev4_1_mini_hydeik.uf2` |
+| `crkbd/rev4_1/mini` | `hydeik_vial` | `vial-qmk` | `crkbd_rev4_1_mini_hydeik_vial.uf2` |
+| `mothwing` | `hydeik` | `qmk` | `mothwing_hydeik.hex` |
 
 The keymap name of a build target says whether it is built with Vial, and selects its [firmware source](#firmware-sources-and-pins). Every keymap directory under `keyboards/` must be a build target.
 
@@ -53,9 +68,9 @@ This is the official build route. Every push is built by `.github/workflows/buil
 1. Wait for the actions run to complete.
 1. Download the firmware:
     * From the `latest` release on the Releases tab. It is replaced only by builds of `main` in which every build target succeeded and the [unit tests](#unit-tests) passed, so a failed build or a failed test never removes previously published firmware.
-    * From the `firmware-<firmware source>` artifacts of the actions run, for other branches. Today there is one, `firmware-vial-qmk`.
+    * From the `firmware-<firmware source>` artifacts of the actions run, for other branches. Today there are two, `firmware-qmk` and `firmware-vial-qmk`.
 
-The workflow runs one `Build` job per firmware source that has build targets, and one `Test` job per firmware source that unit tests run on: `Build (vial-qmk)`, `Test (qmk)` and `Test (vial-qmk)`. It fails if the keymap of any build target in `qmk.json` is listed by no firmware source in `firmware_sources.json`, or by more than one.
+The workflow runs one `Build` job per firmware source that has build targets, and one `Test` job per firmware source that unit tests run on: `Build (qmk)`, `Build (vial-qmk)`, `Test (qmk)` and `Test (vial-qmk)`. It fails if the keymap of any build target in `qmk.json` is listed by no firmware source in `firmware_sources.json`, or by more than one.
 
 ## Firmware sources and pins
 
@@ -66,7 +81,7 @@ The workflow runs one `Build` job per firmware source that has build targets, an
 * `ref`: the pin, a full commit SHA. Every build checks out exactly this commit, so the same commit of this repository always builds against the same firmware source.
 * `keymaps`: the names of the keymaps that are built against this firmware source.
 
-The keymap name of a build target, matched exactly, selects its firmware source: the one whose `keymaps` list holds it. Today `vial-qmk` lists `hydeik_vial`, and the list of `qmk` is empty: no build target is built against it, and only the [unit tests](#unit-tests) run on it. A keymap that no firmware source lists, or that more than one lists, is an error. Nothing is inferred from the form of the name, and there is no default firmware source, so a keymap with a new name must be added to one `keymaps` list before it can be built.
+The keymap name of a build target, matched exactly, selects its firmware source: the one whose `keymaps` list holds it. Today `qmk` lists `hydeik` and `vial-qmk` lists `hydeik_vial`. A keymap that no firmware source lists, or that more than one lists, is an error. Nothing is inferred from the form of the name, and there is no default firmware source, so a keymap with a new name must be added to one `keymaps` list before it can be built.
 
 A firmware source only changes when its pin is moved on purpose. To bump a pin:
 
@@ -96,6 +111,7 @@ The toolchain is not managed by this repository. Install the QMK CLI and compile
     ```
     make crkbd/rev4_1/mini:hydeik_vial
     make crkbd/rev4_1/mini:hydeik_vial:flash
+    make mothwing:hydeik
     ```
 
     The keymap name is looked up in the `keymaps` lists of `firmware_sources.json`, and the target is handed to the own `make` of the firmware source that lists it, with `QMK_USERSPACE` set to this repository. The build stops with a message that names the keymap if no firmware source lists it, or more than one does, and with a message to run `make firmware` if the checkout or one of its submodules is missing or not at its pinned commit.
@@ -109,6 +125,7 @@ Unit tests drive key events through the unit-test framework of a firmware source
 * `target_layer`: the `target_layer` state machine (`users/hydeik/features/target_layer.c`), which switches to a target layer.
 * `smart_mod`: the `smart_mod` state machine (`users/hydeik/features/smart_mod.c`), which holds the one-shot mods and the smart mod layer.
 * `target_layer_smart_mod`: `smart_mod` together with `target_layer`, wired as in the firmware and on the layers of the family.
+* `hold_on_other_key_press`: the same two, wired the same way, with Hold On Other Key Press: the gestures that need the setting, inside the tapping term.
 * `firmware_default`: the firmware defaults of the Vial settings.
 
 All of them run on the unit-test frameworks of both firmware sources, `qmk` and `vial-qmk`, except `firmware_default`, which runs on `vial-qmk` only.
@@ -121,7 +138,7 @@ make test
 
 This needs the firmware checkouts from `make firmware` and a native C/C++ compiler (`gcc`; on macOS the Xcode command line tools), but neither the QMK CLI nor a cross-compiler for the keyboard. The path of this repository must not contain spaces, which the test makefile of the firmware source cannot handle. Like a build, it stops with a message to run `make firmware` if a firmware checkout it needs is missing or not at its pinned commit, before anything is built. It fails if any test fails, or if a test binary contains no test.
 
-Each directory `users/hydeik/tests/<test>/` with a `test.mk` is one test binary, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial, so with QMK's stock tap-hold behaviour, and the `config.h` of a test mirrors the settings it depends on by hand. The one exception is `firmware_default`, which also compiles the module of vial-qmk that holds the Vial settings.
+Each directory `users/hydeik/tests/<test>/` with a `test.mk` is one test binary, and every `*.cpp` file in it is compiled into that binary. The test directory is handed to the test makefile of the firmware source; nothing is placed in the firmware checkout except its own `.build/` output. The tests are built without Vial and with QMK's stock tap-hold behaviour, and the `config.h` of a test mirrors the settings it depends on by hand. There are two exceptions: `hold_on_other_key_press` mirrors the `HOLD_ON_OTHER_KEY_PRESS` of `users/hydeik/config.h` as well, and `firmware_default` also compiles the module of vial-qmk that holds the Vial settings.
 
 Every test names the firmware sources it runs on with one line in its `test.mk`, by their names in `firmware_sources.json`:
 
