@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR 0004
 ---
 
 # Two keymap families share a common core on one branch
