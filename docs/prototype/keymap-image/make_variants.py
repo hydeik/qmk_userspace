@@ -16,7 +16,7 @@ import copy
 import pathlib
 import subprocess
 
-import yaml
+import yaml  # ty: ignore[import-not-found]  (provided by `uv run --with pyyaml` in run.sh)
 
 HERE = pathlib.Path(__file__).parent
 RESEARCH = HERE.parent.parent / "research" / "keymap-drawer-hydeik"
