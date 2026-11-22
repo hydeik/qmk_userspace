@@ -68,3 +68,37 @@
 /* When idle, turn off Layer Lock after 60 seconds. */
 #define LAYER_LOCK_IDLE_TIMEOUT 60000
 #endif  /* LAYER_LOCK_ENABLE */
+
+/****************************************************************************
+ * RGB Matrix and the indicators
+ *
+ * These settings are the same for every keymap of the family. They take
+ * effect only in a keymap that switches RGB Matrix on in its rules.mk.
+ ****************************************************************************/
+/*
+ * The keyboard starts with a black background: RGB Matrix on, so that the
+ * indicators are drawn, with a solid colour at brightness 0. A default is
+ * written only when the EEPROM is initialised.
+ */
+#define RGB_MATRIX_DEFAULT_ON true
+#define RGB_MATRIX_DEFAULT_MODE RGB_MATRIX_SOLID_COLOR
+#define RGB_MATRIX_DEFAULT_VAL 0
+
+/*
+ * Four effects that the keyboard enables are taken out of the build, because
+ * an indicator cannot be drawn right over them. The first three redraw only
+ * one LED now and then, so the colour of an indicator would stay behind
+ * after the indicator has gone. The last hides LEDs from the hook that draws
+ * the indicators.
+ */
+#undef ENABLE_RGB_MATRIX_RAINDROPS
+#undef ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS
+#undef ENABLE_RGB_MATRIX_PIXEL_RAIN
+#undef ENABLE_RGB_MATRIX_DIGITAL_RAIN
+
+/*
+ * `SPLIT_TRANSACTION_IDS_USER`, the split transaction that carries the view
+ * of the indicators to the other half, is not set here but in rules.mk, for
+ * a keymap with RGB Matrix only: set here, it would add the code of the
+ * custom split transactions to a split keyboard without LEDs as well.
+ */
