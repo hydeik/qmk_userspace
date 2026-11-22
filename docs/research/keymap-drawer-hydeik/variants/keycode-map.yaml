@@ -1,0 +1,112 @@
+layout: {qmk_keyboard: mothwing, layout_name: LAYOUT_HYDEIK_34}
+layers:
+  BASE:
+  - [Q, W, E, R, T, Y, U, I, O, P]
+  - [A, S, D, F, G, H, J, K, L, SCLN]
+  - [Z, X, C, V, B, N, M, COMM, DOT, SLSH]
+  - - {t: TAB, h: SYM}
+    - {t: Shift, h: MOD}
+    - {t: SPC, h: MOD}
+    - {t: ENT, h: NUM}
+  SYM:
+  - ['NO', BSLS, PERC, DLR, 'NO', 'NO', CIRC, LCBR, RCBR, 'NO']
+  - [ASTR, LPRN, RPRN, COLN, DEL, BSPC, DQUO, LBRC, RBRC, SCLN]
+  - [MOU, GRV, AT, AMPR, QK LLCK, 'NO', HASH, LT, GT, NAV]
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - ESC
+  NUM:
+  - ['NO', '4', '5', '6', 'NO', 'NO', PIPE, MINS, SLSH, 'NO']
+  - ['0', '1', '2', '3', DEL, BSPC, QUOT, UNDS, EQL, ASTR]
+  - [TILD, '7', '8', '9', DOT, QK LLCK, PLUS, QUES, EXLM, FUN]
+  - - ESC
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {type: held}
+  NAV:
+  - [ESC, 'NO', 'NO', 'NO', 'NO', HOME, PGDN, PGUP, END, DEL]
+  - [COS LCTL, COS LALT, COS LGUI, COS LSFT, 'NO', LEFT, DOWN, UP, RGHT, BSPC]
+  - - MOU
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - QK LLCK
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - {t: NAV, type: held}
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  MOU:
+  - ['NO', 'NO', 'NO', 'NO', 'NO', MS WHLL, MS WHLD, MS WHLU, MS WHLR, 'NO']
+  - [COS LCTL, COS LALT, COS LGUI, COS LSFT, 'NO', MS LEFT, MS DOWN, MS UP, MS RGHT, MS BTN3]
+  - - {t: MOU, type: held}
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - QK LLCK
+    - 'NO'
+    - 'NO'
+    - 'NO'
+    - NAV
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - MS BTN1
+    - MS BTN2
+  FUN:
+  - [QK BOOT, F9, F8, F7, F10, MUTE, VOLD, VOLU, BRID, BRIU]
+  - ['NO', F3, F2, F1, F11, 'NO', COS RSFT, COS RGUI, COS RALT, COS RCTL]
+  - - 'NO'
+    - F6
+    - F5
+    - F4
+    - F12
+    - QK LLCK
+    - MPRV
+    - MPLY
+    - MNXT
+    - {t: FUN, type: held}
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {type: held}
+  MOD:
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  - - COS LCTL
+    - COS LALT
+    - COS LGUI
+    - COS LSFT
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - COS RSFT
+    - COS RGUI
+    - COS RALT
+    - COS RCTL
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  - - {t: ▽, type: trans}
+    - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}

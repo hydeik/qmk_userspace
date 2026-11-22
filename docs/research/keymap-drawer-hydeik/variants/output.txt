@@ -1,0 +1,58 @@
+== 1. physical layouts that need no keyboard name
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+cols+thumbs '33333+2 2+33333' == ortho_layout: same bytes
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+stagger rc=0
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+half stagger rc=0
+qmk-info-json rc=0
+== 2. physical layouts fetched over the network (cached afterwards)
+generic/split_3x5_2 rc=0
+ferris/sweep rc=0
+== 3. dark_mode: true (dark colours unconditionally), via the environment
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+dark rc=0
+env var changed the output
+== 4. mark_alternate_layer_activators: true
+56c56
+<     - NAV
+---
+>     - {t: NAV, type: held alternate}
+110a111
+>     - {type: held alternate}
+112d112
+<     - {t: ▽, type: trans}
+== 5. qmk_keycode_map in a config file: merged with the defaults, or replacing them?
+layers:
+  BASE:
+  - [Q, W, E, R, T, Y, U, I, O, P]
+  - [A, S, D, F, G, H, J, K, L, SCLN]
+  - [Z, X, C, V, B, N, M, COMM, DOT, SLSH]
+  - - {t: TAB, h: SYM}
+    - {t: Shift, h: MOD}
+    - {t: SPC, h: MOD}
+    - {t: ENT, h: NUM}
+  SYM:
+  - ['NO', BSLS, PERC, DLR, 'NO', 'NO', CIRC, LCBR, RCBR, 'NO']
+  - [ASTR, LPRN, RPRN, COLN, DEL, BSPC, DQUO, LBRC, RBRC, SCLN]
+== 6. layer names left as enum names (no #define of the layer numbers)
+symbolic rc=0
+7:  - - LT( SYM,TAB)
+11:  SYM:
+14:  - [MOU, '`', '@', '&', QK LLCK, '', '#', <, '>', MO( NAV)]
+27:  NAV:
+30:  - [MOU, '', '', '', '', QK LLCK, '', '', '', MO( NAV)]
+47:    - MO( NAV)
+== 7. wrong number of layer names
+AssertionError: Length of provided layer name list (2) does not match the number of parsed layers (7)
+== 8. same bytes under another Python? (the pinned dependencies stay the same)
+Downloading pydantic-core (2.0MiB)
+ Downloaded pydantic-core
+Installed 14 packages in 9ms
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+Python 3.12: same bytes
+Downloading pydantic-core (2.0MiB)
+ Downloaded pydantic-core
+Installed 14 packages in 6ms
+keymap_drawer.physical_layout: [WARNING] "layout_name" cannot be used with "ortho_layout" or "cols_thumbs_notation", will be ignored
+Python 3.14: same bytes

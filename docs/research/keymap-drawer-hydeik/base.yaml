@@ -1,0 +1,19 @@
+# Base keymap for `keymap parse -b`: a field given here is kept for every key
+# on which the parse leaves that same field empty. A base layer must list all
+# 34 keys.
+layers:
+  # Works: the parse sets no `type` on the holding keys (index 30 and 33), so
+  # the class `holding` of the base survives and config.yaml can style it.
+  BASE:
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - [{type: holding}, "", "", {type: holding}]
+  # Does not work: on MOD, SMT_MOD (index 31) is a transparent key, which the
+  # parse writes as {t: "▽", type: trans}; the parsed `type` wins and the
+  # `held` below is dropped. The parser itself marks only index 32 as held.
+  MOD:
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - ["", "", "", "", "", "", "", "", "", ""]
+    - ["", {type: held}, "", ""]

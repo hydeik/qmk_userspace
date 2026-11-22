@@ -1,0 +1,112 @@
+layout: {qmk_keyboard: mothwing, layout_name: LAYOUT_HYDEIK_34}
+layers:
+  BASE:
+  - [Q, W, E, R, T, Y, U, I, O, P]
+  - [A, S, D, F, G, H, J, K, L, ;]
+  - [Z, X, C, V, B, N, M, ',', ., /]
+  - - {t: TAB, h: SYM}
+    - {t: KP 0, h: MOD}
+    - {t: SPC, h: MOD}
+    - {t: ENT, h: NUM}
+  SYM:
+  - ['', \, '%', $, '', '', ^, '{', '}', '']
+  - ['*', (, ), ':', DEL, BSPC, '"', '[', ']', ;]
+  - [MOU, '`', '@', '&', QK LLCK, '', '#', <, '>', NAV]
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - ESC
+  NUM:
+  - ['', '4', '5', '6', '', '', '|', '-', /, '']
+  - ['0', '1', '2', '3', DEL, BSPC, '''', _, '=', '*']
+  - ['~', '7', '8', '9', ., QK LLCK, +, '?', '!', FUN]
+  - - ESC
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {type: held}
+  NAV:
+  - [ESC, '', '', '', '', HOME, PGDN, PGUP, END, DEL]
+  - [COS LCTL, COS LALT, COS LGUI, COS LSFT, '', LEFT, DOWN, UP, RGHT, BSPC]
+  - - MOU
+    - ''
+    - ''
+    - ''
+    - ''
+    - QK LLCK
+    - ''
+    - ''
+    - ''
+    - {t: NAV, type: held}
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  MOU:
+  - ['', '', '', '', '', MS WHLL, MS WHLD, MS WHLU, MS WHLR, '']
+  - [COS LCTL, COS LALT, COS LGUI, COS LSFT, '', MS LEFT, MS DOWN, MS UP, MS RGHT, MS BTN3]
+  - - {t: MOU, type: held}
+    - ''
+    - ''
+    - ''
+    - ''
+    - QK LLCK
+    - ''
+    - ''
+    - ''
+    - NAV
+  - - {type: held}
+    - {t: ▽, type: trans}
+    - MS BTN1
+    - MS BTN2
+  FUN:
+  - [QK BOOT, F9, F8, F7, F10, MUTE, VOLD, VOLU, BRID, BRIU]
+  - ['', F3, F2, F1, F11, '', COS RSFT, COS RGUI, COS RALT, COS RCTL]
+  - - ''
+    - F6
+    - F5
+    - F4
+    - F12
+    - QK LLCK
+    - MPRV
+    - MPLY
+    - MNXT
+    - {t: FUN, type: held}
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {type: held}
+  MOD:
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  - - COS LCTL
+    - COS LALT
+    - COS LGUI
+    - COS LSFT
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - COS RSFT
+    - COS RGUI
+    - COS RALT
+    - COS RCTL
+  - - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}
+  - - {t: ▽, type: trans}
+    - {type: held}
+    - {t: ▽, type: trans}
+    - {t: ▽, type: trans}

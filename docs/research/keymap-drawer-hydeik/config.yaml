@@ -1,0 +1,46 @@
+# keymap-drawer configuration of the experiment. It shows which knobs exist;
+# the legends and colours are placeholders, not a proposal.
+
+parse_config:
+  # Keys are the keycode strings exactly as `qmk c2json` writes them
+  # (including the space after the comma in LT()). A match skips all other
+  # parsing of that key, including the detection of held keys.
+  raw_binding_map:
+    # One-shot mod keys: custom keycodes, unknown to keymap-drawer. `type`
+    # becomes a CSS class of the key, styled in svg_extra_style below.
+    COS_LCTL: {t: Ctrl, type: osm}
+    COS_LSFT: {t: Shift, type: osm}
+    COS_LALT: {t: Alt, type: osm}
+    COS_LGUI: {t: Gui, type: osm}
+    COS_RCTL: {t: Ctrl, type: osm}
+    COS_RSFT: {t: Shift, type: osm}
+    COS_RALT: {t: Alt, type: osm}
+    COS_RGUI: {t: Gui, type: osm}
+    # SMT_MOD: its tap keycode KC_KP_0 is never sent, so the parsed legend
+    # "KP 0" would be wrong.
+    "LT(6, KC_KP_0)": {t: Shift, h: MOD, type: osm}
+    QK_LLCK: Layer Lock
+    QK_BOOT: Boot
+    MS_WHLL: Wheel ←
+    MS_WHLD: Wheel ↓
+    MS_WHLU: Wheel ↑
+    MS_WHLR: Wheel →
+    MS_LEFT: Mouse ←
+    MS_DOWN: Mouse ↓
+    MS_UP: Mouse ↑
+    MS_RGHT: Mouse →
+    MS_BTN1: Button 1
+    MS_BTN2: Button 2
+    MS_BTN3: Button 3
+
+draw_config:
+  dark_mode: auto
+  n_columns: 2
+  append_colon_to_layer_header: false
+  svg_extra_style: |
+    rect.osm { fill: #dff3e4; }
+    rect.holding { fill: #dde7fb; }
+    @media (prefers-color-scheme: dark) {
+      rect.osm { fill: #2f5a3c; }
+      rect.holding { fill: #2c3f66; }
+    }

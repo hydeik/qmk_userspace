@@ -1,0 +1,3 @@
+parse_config:
+  qmk_keycode_map:
+    KP_0: Shift
