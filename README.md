@@ -29,7 +29,9 @@ Both keymaps have the same layers, key for key, and the same one-shot mods, smar
 | Tap-hold settings | Fixed at build time in `users/hydeik/config.h`: a tapping term of 200 ms and Hold On Other Key Press. | Vial settings, changed in the Vial GUI. After a settings reset they are the same as without Vial: `firmware_default` switches Hold On Other Key Press on. The `HOLD_ON_OTHER_KEY_PRESS` of `config.h` is ignored. |
 | Combos and tap dances | Off. | On, for use from the Vial GUI. The firmware defines none. |
 
-Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an encoder map, and the keymaps `hydeik` have neither.
+Apart from Vial, the keymap `hydeik_vial` of the crkbd has an encoder map, and the keymaps `hydeik` have none.
+
+Both keymaps of the crkbd have RGB lighting, and with it the indicators: lights on the keys that show the state of the one-shot mods and of the layer switching. Both start with a black background, on which only the indicators are lit. The lighting settings of `hydeik_vial` are changed in the Vial GUI; those of `hydeik` are fixed at build time. The `mothwing` has no LEDs and no indicators. See [Indicators](users/hydeik/README.md#indicators).
 
 ## Repository structure
 
@@ -42,7 +44,8 @@ Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an e
 | `users/hydeik/hydeik.c`, `hydeik.h` | The glue between QMK and the two state machines, with the QMK hooks. |
 | `users/hydeik/typing_rules.c` | The Caps Word and Repeat Key rules. |
 | `users/hydeik/vial_hooks.c` | The QMK hooks that exist only with Vial. |
-| `users/hydeik/features/` | `smart_mod`, the one-shot mods and the smart mod layer; `target_layer`, the layer switching; `key_typed`, what counts as a key typed; `firmware_default`, the firmware defaults of the Vial settings. |
+| `users/hydeik/rgb_matrix_hooks.c` | The QMK hooks that exist only with RGB Matrix: they draw the indicators. |
+| `users/hydeik/features/` | `smart_mod`, the one-shot mods and the smart mod layer; `target_layer`, the layer switching; `key_typed`, what counts as a key typed; `indicator`, the logic of the indicators; `firmware_default`, the firmware defaults of the Vial settings. |
 | `users/hydeik/keyboards/` | One layout adapter per keyboard, which places the 34 keys of a layer in the layout of that keyboard. |
 | `users/hydeik/tests/` | The [unit tests](#unit-tests). |
 | `users/hydeik/image/` | The [keymap image](#keymap-image), with the script that writes it. |
@@ -53,7 +56,7 @@ Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an e
 | `.github/workflows/build_binaries.yaml` | The [CI workflow](#building-with-github-actions), with its script `.github/scripts/firmware_sources.py`. |
 | `GLOSSARY.md`, `docs/adr/` | The terms and the recorded decisions. |
 
-What exists only with Vial is chosen in `users/hydeik/rules.mk`: it adds `vial_hooks.c` and `features/firmware_default.c`, and switches combos and tap dances on, only for a keymap with Vial. No C source branches on Vial.
+What exists only with Vial is chosen in `users/hydeik/rules.mk`: it adds `vial_hooks.c` and `features/firmware_default.c`, and switches combos and tap dances on, only for a keymap with Vial. No C source branches on Vial. The indicators are chosen there in the same way: it adds `rgb_matrix_hooks.c` and `features/indicator.c` only for a keymap that switches RGB Matrix on, and no C source branches on RGB Matrix.
 
 ## Build targets
 

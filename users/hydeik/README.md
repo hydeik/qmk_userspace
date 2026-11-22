@@ -82,6 +82,37 @@ A third smart mod layer key, `ENT_MOD` (Enter when tapped), is defined and place
 
 The rules in full are in [`features/smart_mod.h`](features/smart_mod.h).
 
+## Indicators
+
+On a keyboard with RGB lighting, which is the crkbd with either keymap, an indicator is a light on a key that shows a state of the one-shot mods or of the layer switching. It is drawn over the ordinary lighting effect, on both halves.
+
+| Indicator state | Colour | Motion | Brightness |
+| --- | --- | --- | --- |
+| Pending one-shot mod | Orange | Blinks | Full |
+| Latched one-shot mod | Magenta | Steady | Full |
+| Trigger key that works now | Blue | Steady | Dim |
+| Target layer that is on | Green | Steady | Full |
+| Pending target layer | Cyan | Blinks | Full |
+| Locked target layer | White | Steady | Full |
+
+- A one-shot mod is shown at its one-shot mod key, on whichever layer that key lies.
+- A trigger key that works is shown where a press now gives that trigger key, while its holding key is held.
+- A target layer that is on, pending or locked is shown at its trigger key and at its holding keys.
+- A key shows one indicator state at a time: a target layer wins over a one-shot mod, and that over a trigger key that works. The rules in full are in [`features/indicator.h`](features/indicator.h).
+- A blink is 400 ms lit and 400 ms dark, in step on both halves.
+- The brightness of the indicators is fixed and does not follow the brightness that is set for the ordinary effect. While any indicator is shown, the ordinary effect is dimmed to a quarter on the whole keyboard.
+
+The lighting itself:
+
+- **Both keymaps start with a black background**: RGB Matrix on, with a solid colour at brightness 0, so only the indicators are lit. These defaults are in [`config.h`](config.h). They are written when the EEPROM is initialised, not when a firmware is flashed, so a keyboard that already has stored settings keeps them until its EEPROM is reset.
+- **Off stays off.** While RGB Matrix is switched off, no indicator is shown. For indicators without a background, keep an effect on and set its brightness to 0.
+- **Nothing is shown on suspend.** While the host sleeps, every LED is off.
+- **With Vial**, the effect, its colour and its brightness are changed in the Vial GUI.
+- **Without Vial, the settings are fixed at build time.** No layer has a keycode that changes them. To change one, edit the default in `config.h`, flash, and reset the EEPROM with Bootmagic.
+- **Four effects are not built**: Raindrops, Jellybean Raindrops, Pixel Rain and Digital Rain. An indicator cannot be drawn right over them. With Vial they are missing from the list of effects.
+
+That the master half decides every indicator state and sends it to the other half is recorded in [ADR 0005](../../docs/adr/0005-the-master-half-decides-every-indicator-state.md).
+
 ## With and without Vial
 
 The keymap `hydeik` is the keymap family without Vial and `hydeik_vial` the keymap family with Vial. Both have the layers and the behaviour described above. The keymap with Vial has in addition:
@@ -100,16 +131,18 @@ What exists only with Vial is chosen in `rules.mk`, by whether the keymap enable
 
 | Path | Contents |
 | --- | --- |
-| [`rules.mk`](rules.mk) | The build settings, and the choice of what exists only with Vial. |
-| [`config.h`](config.h) | The settings, among them the tap-hold settings of a keymap without Vial. |
+| [`rules.mk`](rules.mk) | The build settings, and the choice of what exists only with Vial and of what exists only with RGB Matrix. |
+| [`config.h`](config.h) | The settings, among them the tap-hold settings of a keymap without Vial and the defaults of RGB Matrix. |
 | [`layout.h`](layout.h) | The layer numbers, the custom keycodes and the 34 keys of every layer, with the diagrams. |
 | [`hydeik.h`](hydeik.h) | The header that a `keymap.c` includes. |
 | [`hydeik.c`](hydeik.c) | The glue between QMK and the two state machines: which keys are one-shot mod keys and smart mod layer keys, the table of entries, and the QMK hooks. |
 | [`typing_rules.c`](typing_rules.c) | Which keys continue Caps Word and what the Repeat Key remembers. |
 | [`vial_hooks.c`](vial_hooks.c) | The QMK hooks that exist only with Vial. |
+| [`rgb_matrix_hooks.c`](rgb_matrix_hooks.c) | The QMK hooks that draw the indicators: how each indicator state looks, and the sending of the view to the other half. Built only with RGB Matrix. |
 | [`features/smart_mod.h`](features/smart_mod.h), `.c` | The state machine of the one-shot mods and the smart mod layer. |
 | [`features/target_layer.h`](features/target_layer.h), `.c` | The state machine of the layer switching. |
 | [`features/key_typed.h`](features/key_typed.h), `.c` | What counts as a key typed, for both state machines. |
+| [`features/indicator.h`](features/indicator.h), `.c` | The logic of the indicators: the indicator state of every key position. Built only with RGB Matrix. |
 | [`features/firmware_default.h`](features/firmware_default.h), `.c` | The firmware defaults of the Vial settings. Built only with Vial. |
 | [`keyboards/`](keyboards/) | One layout adapter per keyboard, which places the 34 keys of a layer in the layout of that keyboard: `crkbd_rev4_1_mini.h` and `mothwing.h`. The crkbd has two keys more on the inner top row, which enter the bootloader on every layer. |
 | [`image/`](image/) | The keymap image, `keymap.svg`, with the script that writes it, the configuration of the script and its unit tests. See [Keymap image](../../README.md#keymap-image). |
