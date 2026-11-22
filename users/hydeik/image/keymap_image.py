@@ -38,6 +38,12 @@ import yaml
 
 KEY_COUNT = 34
 
+HERE = pathlib.Path(__file__).resolve().parent
+LAYOUT_H = HERE.parent / "layout.h"
+CONFIG = HERE / "keymap_drawer.yaml"
+PHYSICAL_LAYOUT = HERE / "layout.json"
+IMAGE = HERE / "keymap.svg"
+
 
 class KeymapImageError(Exception):
     """The keymap image cannot be written; the message says why."""
@@ -70,6 +76,16 @@ def _layer_names(layout_h):
     return [entry[1:] for entry in entries]
 
 
+def _without_whitespace(text):
+    """A keycode in the form that keymap-drawer matches: `LT(1,KC_TAB)`."""
+    return "".join(text.split())
+
+
+def _layer_numbers(names):
+    """The C macros that give each name of `enum layer_t` its layer number."""
+    return "".join(f"#define _{name} {number}\n" for number, name in enumerate(names))
+
+
 def _split_keys(text):
     """The comma-separated keycodes of a layer, each without whitespace."""
     keys, depth, current = [], 0, ""
@@ -81,7 +97,7 @@ def _split_keys(text):
         depth += {"(": 1, ")": -1}.get(character, 0)
         current += character
     keys.append(current)
-    return ["".join(key.split()) for key in keys]
+    return [_without_whitespace(key) for key in keys]
 
 
 def read_layers(layout_h):
@@ -94,14 +110,11 @@ def read_layers(layout_h):
     keymap-drawer reads from a QMK keymap JSON.
     """
     names = _layer_names(layout_h)
-    numbers = "".join(
-        f"#define _{name} {number}\n" for number, name in enumerate(names)
-    )
     aliases = "#define _______ KC_TRNS\n#define XXXXXXX KC_NO\n"
     # One line per layer after the header: a string literal that names the
     # layer, followed by its macro for the preprocessor to expand.
     requests = "".join(f'"layer {name}" {name}_LAYER\n' for name in names)
-    output = _preprocess(numbers + aliases + layout_h + "\n" + requests)
+    output = _preprocess(_layer_numbers(names) + aliases + layout_h + "\n" + requests)
 
     layers = {}
     for name in names:
@@ -167,15 +180,36 @@ def derive_marks(layers):
     derived.
     """
     names = list(layers)
+    marks, holding_keys, smart_mod_layer_keys, trigger_keys = _classify(layers)
+    for name in names[1:]:
+        held, reason = _held_keys(
+            name, names, holding_keys, smart_mod_layer_keys, trigger_keys
+        )
+        for position in held:
+            keycode = layers[name][position]
+            if keycode != TRANSPARENT:
+                raise KeymapImageError(
+                    f"Cannot derive the marks: position {position} of layer {name} is held "
+                    f"({reason}), but layer {name} holds `{keycode}` there instead of a transparent key."
+                )
+            marks[name][position] = HELD
+    return marks
+
+
+def _classify(layers):
+    """What each keycode is by itself, before the held keys are derived.
+
+    Returns the marks of the one-shot mod keys, trigger keys and holding keys,
+    and what the held keys are derived from: the positions of the holding keys
+    of each holding layer, the positions of the smart mod layer keys, and the
+    layers that hold the trigger key of each target layer.
+    """
+    names = list(layers)
     base = names[0]
     marks = {name: {} for name in names}
-    holding_keys = {
-        name: [] for name in names
-    }  # holding layer -> positions on the base layer
+    holding_keys = {name: [] for name in names}
     smart_mod_layer_keys = []
-    trigger_keys = {
-        name: set() for name in names
-    }  # target layer -> layers that hold its trigger key
+    trigger_keys = {name: set() for name in names}
 
     for name, keycodes in layers.items():
         for position, keycode in enumerate(keycodes):
@@ -196,39 +230,33 @@ def derive_marks(layers):
                 else:
                     holding_keys[layer].append(position)
                     marks[name][position] = HOLDING
+    return marks, holding_keys, smart_mod_layer_keys, trigger_keys
 
-    for name in names[1:]:
-        if holding_keys[name]:
-            held, reason = holding_keys[name], "its holding key"
-        elif name == SMART_MOD_LAYER:
-            held, reason = smart_mod_layer_keys, "a smart mod layer key"
-            if not held:
-                raise KeymapImageError(
-                    f"Cannot derive the held keys of layer {name}: "
-                    f"layer {base} holds no smart mod layer key `LT({names.index(name)}, ...)`."
-                )
-        else:
-            held = sorted(
-                position
-                for holding_layer in trigger_keys[name]
-                for position in holding_keys[holding_layer]
+
+def _held_keys(name, names, holding_keys, smart_mod_layer_keys, trigger_keys):
+    """The positions of the held keys of the layer `name`, and why they are held."""
+    base, number = names[0], names.index(name)
+    if holding_keys[name]:
+        return holding_keys[name], "its holding key"
+    if name == SMART_MOD_LAYER:
+        if not smart_mod_layer_keys:
+            raise KeymapImageError(
+                f"Cannot derive the held keys of layer {name}: "
+                f"layer {base} holds no smart mod layer key `LT({number}, ...)`."
             )
-            reason = "the holding key of its holding layer"
-            if not held:
-                raise KeymapImageError(
-                    f"Cannot derive the held key of layer {name}: no holding layer holds "
-                    f"its trigger key `MO({names.index(name)})`, and layer {base} holds "
-                    f"no holding key `LT({names.index(name)}, ...)`."
-                )
-        for position in held:
-            keycode = layers[name][position]
-            if keycode != TRANSPARENT:
-                raise KeymapImageError(
-                    f"Cannot derive the marks: position {position} of layer {name} is held "
-                    f"({reason}), but layer {name} holds `{keycode}` there instead of a transparent key."
-                )
-            marks[name][position] = HELD
-    return marks
+        return smart_mod_layer_keys, "a smart mod layer key"
+    held = sorted(
+        position
+        for holding_layer in trigger_keys[name]
+        for position in holding_keys[holding_layer]
+    )
+    if not held:
+        raise KeymapImageError(
+            f"Cannot derive the held key of layer {name}: no holding layer holds "
+            f"its trigger key `MO({number})`, and layer {base} holds "
+            f"no holding key `LT({number}, ...)`."
+        )
+    return held, "the holding key of its holding layer"
 
 
 def number_layers(config, names):
@@ -240,15 +268,10 @@ def number_layers(config, names):
     they get the form that `read_layers` returns: the layer number of
     `names`, and no whitespace.
     """
-    numbers = {f"_{name}": str(number) for number, name in enumerate(names)}
+    numbers = _layer_numbers(names)
 
     def numbered(keycode):
-        keycode = re.sub(
-            r"\b_[A-Z0-9]+\b",
-            lambda name: numbers.get(name.group(), name.group()),
-            keycode,
-        )
-        return "".join(keycode.split())
+        return _without_whitespace(_preprocess(numbers + keycode + "\n"))
 
     parse_config = dict(config.get("parse_config", {}))
     parse_config["raw_binding_map"] = {
@@ -365,13 +388,6 @@ def apply_marks(keymap, layers, marks, trans_legend):
                 key["type"] = mark
             marked_layers[name].append(key["t"] if list(key) == ["t"] else key)
     return {**keymap, "layers": marked_layers}
-
-
-HERE = pathlib.Path(__file__).resolve().parent
-LAYOUT_H = HERE.parent / "layout.h"
-CONFIG = HERE / "keymap_drawer.yaml"
-PHYSICAL_LAYOUT = HERE / "layout.json"
-IMAGE = HERE / "keymap.svg"
 
 
 def _keymap_drawer(*arguments):
