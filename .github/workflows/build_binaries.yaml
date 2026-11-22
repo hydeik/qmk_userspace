@@ -179,12 +179,17 @@ jobs:
       # The checkout belongs to another user than the one of the container, and
       # git refuses to compare in such a repository unless it is told to.
       - name: Let git read the checkout
+        if: ${{ !cancelled() }}
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # `git diff --exit-code` exits with 1 on a difference; any other failure
       # is one of git itself and is not reported as a stale image. Only the
-      # stat is printed, not the diff of the SVG.
+      # stat is printed, not the diff of the SVG. The step runs after failed unit
+      # tests too: one of them compares the committed image with what the
+      # script writes, so a stale image fails them first, and this step is the
+      # one that says what to do about it.
       - name: Check that the committed keymap image is current
+        if: ${{ !cancelled() }}
         env:
           KEYMAP_IMAGE: users/hydeik/image/keymap.svg
         run: |
