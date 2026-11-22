@@ -8,9 +8,14 @@
  * one indicator state that wins there, and it answers whether an indicator
  * is shown at all.
  *
- * It knows nothing of RGB Matrix, of colours or of time: how an indicator
- * state looks, and on which LED, is the matter of its caller (see
- * docs/adr/0005-the-master-half-decides-every-indicator-state.md).
+ * It knows nothing of RGB Matrix or of colours, and it reads no clock: how
+ * an indicator state looks, and on which LED, is the matter of its caller
+ * (see docs/adr/0005-the-master-half-decides-every-indicator-state.md).
+ *
+ * For a split keyboard it also builds the view, which the master half sends
+ * to the other half, packs it into the bytes of a split transaction, and
+ * decides when to send it and when it has expired; see "The view" below.
+ * Sending and receiving themselves are the matter of its caller too.
  *
  * The logic has three steps:
  *
@@ -109,3 +114,104 @@ enum indicator_state_t indicator_state_at(const indicator_snapshot_t *snapshot, 
  * whose key lies nowhere in the keymap in use does not count.
  */
 bool indicator_is_any_shown(const indicator_snapshot_t *snapshot);
+
+/*****************************************************************************
+ * The view
+ *
+ * The view is what the master half of a split keyboard decides and both
+ * halves draw: the indicator state of every key position of the matrix, of
+ * both halves, and the bit "an indicator is shown". The phase of the blink is
+ * not part of it.
+ *****************************************************************************/
+
+/*
+ * The view. A view that is all zero is the empty view: no indicator state,
+ * and the bit off. It is what a half draws from before the first view has
+ * arrived and after the view has expired.
+ */
+typedef struct {
+    /* An `enum indicator_state_t` per key position, by row and column. */
+    uint8_t states[MATRIX_ROWS][MATRIX_COLS];
+    /* Whether an indicator is shown: whether any position has a state. */
+    bool any_shown;
+} indicator_view_t;
+
+/*
+ * Fill `view` for the state of smart_mod and target_layer as it is now, the
+ * keymap in use and the layers that are on now. It decides every key
+ * position once, and takes the bit from what it has decided.
+ */
+void indicator_view_build(indicator_view_t *view);
+
+/* Return the indicator state that `view` holds for the key position `position`. */
+enum indicator_state_t indicator_view_state_at(const indicator_view_t *view, keypos_t position);
+
+/*
+ * The number of bytes of a packed view: one byte for the bit, and half a
+ * byte per key position of the matrix.
+ */
+#define INDICATOR_VIEW_PACKED_SIZE (1 + (MATRIX_ROWS * MATRIX_COLS + 1) / 2)
+
+/*
+ * The number of bytes that one split transaction carries from the master
+ * half to the other half: QMK's `RPC_M2S_BUFFER_SIZE`, which is 32 unless a
+ * `config.h` sets it. A build in which a packed view does not fit into it
+ * fails at compile time, in indicator.c.
+ */
+#ifndef INDICATOR_VIEW_TRANSACTION_SIZE
+#    ifdef RPC_M2S_BUFFER_SIZE
+#        define INDICATOR_VIEW_TRANSACTION_SIZE RPC_M2S_BUFFER_SIZE
+#    else
+#        define INDICATOR_VIEW_TRANSACTION_SIZE 32
+#    endif
+#endif
+
+/*
+ * Pack `view` into the `INDICATOR_VIEW_PACKED_SIZE` bytes at `packed`, to
+ * send them to the other half. Every bit of the bytes is set from the view
+ * alone, so two views are the same exactly when their packed bytes are, and
+ * the empty view packs to bytes that are all zero.
+ */
+void indicator_view_pack(const indicator_view_t *view, uint8_t *packed);
+
+/*
+ * Fill `view` from the `INDICATOR_VIEW_PACKED_SIZE` bytes at `packed`, as
+ * `indicator_view_pack()` wrote them. Bytes that are all zero give the empty
+ * view.
+ */
+void indicator_view_unpack(const uint8_t *packed, indicator_view_t *view);
+
+/*
+ * The time in milliseconds after which the master half sends the view again
+ * although it did not change, so that the other half catches up after it
+ * restarted or after a transaction was lost. A `config.h` can set it.
+ */
+#ifndef INDICATOR_VIEW_SEND_INTERVAL
+#    define INDICATOR_VIEW_SEND_INTERVAL 500
+#endif
+
+/*
+ * The time in milliseconds after which a view that was not renewed has
+ * expired. A `config.h` can set it.
+ */
+#ifndef INDICATOR_VIEW_TIMEOUT
+#    define INDICATOR_VIEW_TIMEOUT 2000
+#endif
+
+/*
+ * Return whether the master half sends the view now: when the view has
+ * `changed` since the last send that succeeded, when the last send failed
+ * (`last_send_failed`), and when `INDICATOR_VIEW_SEND_INTERVAL` has passed
+ * since the last send. `elapsed_since_last_send` is that time in
+ * milliseconds.
+ */
+bool indicator_view_should_send(bool changed, bool last_send_failed, uint32_t elapsed_since_last_send);
+
+/*
+ * Return whether the view that a half received has expired: before the first
+ * view has arrived (`has_arrived` is false), and when `INDICATOR_VIEW_TIMEOUT`
+ * has passed since the last view arrived. `elapsed_since_arrival` is that
+ * time in milliseconds. A half draws the empty view in place of one that has
+ * expired.
+ */
+bool indicator_view_has_expired(bool has_arrived, uint32_t elapsed_since_arrival);
