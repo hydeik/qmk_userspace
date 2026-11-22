@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE: reaching the MOU layer</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f6f4; --fg:#222; --key:#fff; --bd:#bbb; --dim:#999; --trg:#d9480f; --held:#1971c2; --mouse:#2b8a3e; --mod:#7048e8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1c1c1e; --fg:#e6e6e6; --key:#2a2a2d; --bd:#555; --dim:#777; --trg:#ff922b; --held:#4dabf7; --mouse:#69db7c; --mod:#b197fc; } }
+  body { font: 14px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 16px; max-width: 1100px; }
+  h1 { font-size: 18px; margin: 0 0 4px; } h2 { font-size: 14px; margin: 18px 0 6px; }
+  .warn { color: var(--trg); font-weight: 600; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+  .bar span.l { min-width: 70px; color: var(--dim); }
+  button { font: inherit; padding: 4px 10px; border: 1px solid var(--bd); background: var(--key); color: var(--fg); border-radius: 6px; cursor: pointer; }
+  button.on { border-color: var(--held); box-shadow: 0 0 0 2px var(--held) inset; }
+  .note { margin: 4px 0 10px; }
+  .board { display: grid; grid-template-columns: repeat(5, 62px) 28px repeat(5, 62px); gap: 4px; margin: 6px 0; }
+  .k { height: 40px; border: 1px solid var(--bd); background: var(--key); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; user-select: none; }
+  .k.none { color: var(--dim); background: transparent; border-style: dashed; }
+  .k.trans { color: var(--dim); }
+  .k.trg { border-color: var(--trg); color: var(--trg); font-weight: 700; }
+  .k.mouse { color: var(--mouse); font-weight: 600; }
+  .k.mod { color: var(--mod); }
+  .k.held { box-shadow: 0 0 0 3px var(--held) inset; }
+  .gap { visibility: hidden; }
+  #state { font-family: ui-monospace, monospace; white-space: pre; padding: 8px; border: 1px solid var(--bd); border-radius: 6px; }
+  #log { font-family: ui-monospace, monospace; font-size: 12px; max-height: 150px; overflow: auto; color: var(--dim); }
+  .all { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
+  .all .board { grid-template-columns: repeat(5, 30px) 10px repeat(5, 30px); gap: 2px; }
+  .all .k { height: 22px; font-size: 8px; cursor: default; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>PROTOTYPE: reaching the MOU layer <span class="warn">(throwaway, issue #55)</span></h1>
+<div class="note">Layer order is fixed: BASE 0, SYM 1, NUM 2, NAV 3, MOU 4, FUN 5, MOD 6. The smart mod layer is not simulated.
+Timing is not simulated either: releasing the holding key with no key typed since the trigger key counts as a quick release.</div>
+
+<div class="bar"><span class="l">Reach</span><span id="reach"></span></div>
+<div class="bar"><span class="l">MOU keys</span><span id="content"></span></div>
+<div class="note" id="desc"></div>
+
+<h2>Play: click a thumb key to hold or release it, click any other key to press it</h2>
+<div class="bar"><button id="reset">Reset</button><span id="layername"></span></div>
+<div class="board" id="live"></div>
+<div id="state"></div>
+<div id="log"></div>
+
+<h2>All layers of this variant</h2>
+<div class="all" id="all"></div>
+
+<script>
+const T = '▽', X = '';
+const HOLD = { 30: 'TAB_SYM', 33: 'ENT_NUM' };
+const HOLD_LAYER = { 30: 'SYM', 33: 'NUM' };
+
+const REACH = {
+  A: { name: 'A: both corners of SYM (the sketch)',
+       desc: 'Left thumb TAB_SYM holds SYM. Bottom-left corner switches to NAV, bottom-right corner to MOU. The trigger key of NAV moves from the bottom-right to the bottom-left corner. Both corners keep their meaning on SYM, NAV and MOU, so NAV and MOU can be swapped without letting go of the thumb. A quick release locks either.',
+       entries: { 30: { NAV: 'locked', MOU: 'locked' }, 33: { FUN: 'pending' } }, nav: 20, mou: 29, hand: 'right' },
+  B: { name: 'B: NAV stays, MOU on the other corner',
+       desc: 'As A, mirrored: the trigger key of NAV stays at the bottom-right corner, where it is today, and MOU takes the bottom-left corner. No existing key moves.',
+       entries: { 30: { NAV: 'locked', MOU: 'locked' }, 33: { FUN: 'pending' } }, nav: 29, mou: 20, hand: 'right' },
+  C: { name: 'C: MOU on the right thumb, mouse on the left hand',
+       desc: 'Right thumb ENT_NUM holds NUM. Bottom-right corner switches to FUN as today, the free top-right corner to MOU. The left thumb keeps NAV alone. So that the holding thumb does not get in the way, the mouse keys are mirrored to the left hand and the one-shot mods to the right.',
+       entries: { 30: { NAV: 'locked' }, 33: { FUN: 'pending', MOU: 'locked' } }, nav: 29, mou: 9, hand: 'left' },
+};
+
+const CONTENT = {
+  row: { name: '1: row (as the deleted family)',
+         desc: 'Pointer on the home row in Vim order (left, down, up, right), wheel above it in the same order, middle button on the pinky.',
+         keys: [X, X, X, X, X, 'WH←', 'WH↓', 'WH↑', 'WH→', X,
+                'CTL*', 'ALT*', 'GUI*', 'SFT*', X, 'MS←', 'MS↓', 'MS↑', 'MS→', 'BTN3',
+                X, X, X, X, X, 'LLCK', X, X, X, X,
+                T, T, 'BTN1', 'BTN2'] },
+  cross: { name: '2: inverted T (as NAV of this family)',
+           desc: 'Pointer where the arrows of NAV are (up above down), wheel up/down where Page Up/Down are, wheel left/right where Home/End are, speed keys below.',
+           keys: [X, X, X, X, X, X, 'WH←', 'MS↑', 'WH→', 'WH↑',
+                  'CTL*', 'ALT*', 'GUI*', 'SFT*', X, 'BTN3', 'MS←', 'MS↓', 'MS→', 'WH↓',
+                  X, X, X, X, X, 'LLCK', 'ACL0', 'ACL1', 'ACL2', X,
+                  T, T, 'BTN1', 'BTN2'] },
+};
+
+function mirror(keys) {
+  const out = keys.slice();
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 10; c++) out[r * 10 + c] = keys[r * 10 + 9 - c];
+  out[30] = keys[33]; out[31] = keys[32]; out[32] = keys[31]; out[33] = keys[30];
+  /* Keep left on the left: swap the arrows that the mirroring turned round. */
+  return out.map(k => k.replace(/[←→]/, a => (a === '←' ? '→' : '←')));
+}
+
+function layers(reachId, contentId) {
+  const r = REACH[reachId];
+  const L = {};
+  L.BASE = ['Q','W','E','R','T','Y','U','I','O','P', 'A','S','D','F','G','H','J','K','L',';', 'Z','X','C','V','B','N','M',',','.','/', 'TAB/SYM','SMT MOD','SPC/MOD','ENT/NUM'];
+  L.SYM = [X,'\\','%','$',X,X,'^','{','}',X, '*','(',')',':','DEL','BSPC','"','[',']',';', X,'`','@','&','LLCK',X,'#','<','>',X, T,T,T,'ESC'];
+  L.NUM = [X,'4','5','6',X,X,'|','-','/',X, '0','1','2','3','DEL','BSPC',"'",'_','=','*', '~','7','8','9','.','LLCK','+','?','!','>FUN<', 'ESC',T,T,T];
+  L.NAV = ['ESC',X,X,X,X,X,'HOME','UP','END','PGUP', 'CTL*','ALT*','GUI*','SFT*','DEL','BSPC','LEFT','DOWN','RGHT','PGDN', X,X,X,X,X,'LLCK',X,X,X,X, T,T,T,T];
+  L.FUN = ['BOOT','F9','F8','F7','F10','MUTE','VOL-','VOL+','BRI-','BRI+', X,'F3','F2','F1','F11',X,'SFT*','GUI*','ALT*','CTL*', X,'F6','F5','F4','F12','LLCK','MPRV','MPLY','MNXT','>FUN<', T,T,T,T];
+  L.MOU = r.hand === 'left' ? mirror(CONTENT[contentId].keys) : CONTENT[contentId].keys.slice();
+  const navHolder = 'SYM';
+  const mouHolder = r.entries[30].MOU ? 'SYM' : 'NUM';
+  L[navHolder][r.nav] = '>NAV<'; L.NAV[r.nav] = '>NAV<';
+  L[mouHolder][r.mou] = '>MOU<'; L.MOU[r.mou] = '>MOU<';
+  if (mouHolder === 'SYM') { L.NAV[r.mou] = '>MOU<'; L.MOU[r.nav] = '>NAV<'; }
+  return L;
+}
+
+let reach = 'A', content = 'row', S;
+function reset() { S = { held: new Set(), target: null, mode: null, typed: false, log: [] }; }
+function log(s) { S.log.unshift(s); }
+
+function activeLayer() {
+  if (S.target) return S.target;
+  if (S.held.has(33)) return 'NUM';
+  if (S.held.has(30)) return 'SYM';
+  return 'BASE';
+}
+function holdersHeldFor(t) { return [...S.held].filter(i => REACH[reach].entries[i][t]); }
+
+function press(i) {
+  const L = layers(reach, content), layer = activeLayer(), label = L[layer][i];
+  if (S.held.has(i)) { release(i); return; }
+  if (HOLD[i] && (label === T || layer === 'BASE' || L[layer][i] === L.BASE[i])) { S.held.add(i); log(`hold ${HOLD[i]}`); return; }
+  const m = /^>(\w+)<$/.exec(label);
+  if (m) {
+    const t = m[1];
+    if (S.target === t) { log(`trigger key of ${t}: ${t} off`); S.target = null; S.mode = null; return; }
+    if (holdersHeldFor(t).length) { log(`trigger key of ${t} with ${holdersHeldFor(t).map(h => HOLD[h]).join('+')} held: ${t} on`); S.target = t; S.mode = 'held'; S.typed = false; return; }
+    log(`trigger key of ${t} without its holding key: nothing`); return;
+  }
+  if (label === X) { log('no key here'); return; }
+  if (label === 'LLCK') {
+    if (S.target && S.mode !== 'locked') { S.mode = 'locked'; log(`Layer Lock: ${S.target} locked`); }
+    else if (S.mode === 'locked') { log(`Layer Lock: ${S.target} unlocked and off`); S.target = null; S.mode = null; }
+    else log('Layer Lock on a holding layer (not simulated)');
+    return;
+  }
+  if (label === T) { log(`falls through to ${L.BASE[i]}`); }
+  else if (/\*$/.test(label) && label.length > 1) { log(`one-shot mod key ${label} (not a typed key)`); return; }
+  else log(`typed ${label}`);
+  S.typed = true;
+  if (S.mode === 'pending') { log(`pending ${S.target} consumed: off`); S.target = null; S.mode = null; }
+}
+function release(i) {
+  S.held.delete(i); log(`release ${HOLD[i]}`);
+  if (S.target && S.mode === 'held' && REACH[reach].entries[i][S.target] && !holdersHeldFor(S.target).length) {
+    const q = REACH[reach].entries[i][S.target];
+    if (!S.typed) { S.mode = q; log(`quick release: ${S.target} ${q}`); }
+    else { log(`${S.target} off`); S.target = null; S.mode = null; }
+  }
+}
+
+function cls(label) {
+  if (label === X) return 'none'; if (label === T) return 'trans';
+  if (/^>\w+<$/.test(label)) return 'trg';
+  if (/^(MS|WH|BTN|ACL)/.test(label)) return 'mouse';
+  if (/^(CTL|ALT|GUI|SFT)\*$/.test(label)) return 'mod';
+  return '';
+}
+function board(el, keys, live) {
+  el.innerHTML = '';
+  const add = (i) => { const d = document.createElement('div'); d.className = 'k ' + cls(keys[i]) + (live && S.held.has(i) ? ' held' : ''); d.textContent = keys[i]; if (live) d.onclick = () => { press(i); render(); }; el.appendChild(d); };
+  const gap = () => { const d = document.createElement('div'); d.className = 'gap'; el.appendChild(d); };
+  for (let r = 0; r < 3; r++) { for (let c = 0; c < 5; c++) add(r * 10 + c); gap(); for (let c = 5; c < 10; c++) add(r * 10 + c); }
+  gap(); gap(); gap(); add(30); add(31); gap(); add(32); add(33); gap(); gap(); gap();
+}
+function render() {
+  const L = layers(reach, content), layer = activeLayer();
+  document.getElementById('desc').innerHTML = '<b>Reach.</b> ' + REACH[reach].desc + '<br><b>MOU keys.</b> ' + CONTENT[content].desc;
+  document.getElementById('layername').textContent = 'Active layer: ' + layer;
+  board(document.getElementById('live'), L[layer], true);
+  document.getElementById('state').textContent =
+    `held holding keys : ${[...S.held].map(i => HOLD[i]).join(', ') || '-'}\n` +
+    `holding layer     : ${S.held.has(33) ? 'NUM' : S.held.has(30) ? 'SYM' : '-'}\n` +
+    `target layer      : ${S.target || '-'}${S.mode ? ' (' + S.mode + ')' : ''}\n` +
+    `key typed since trigger key: ${S.typed}`;
+  document.getElementById('log').innerHTML = S.log.slice(0, 12).join('<br>');
+  const all = document.getElementById('all'); all.innerHTML = '';
+  for (const n of ['BASE', 'SYM', 'NUM', 'NAV', 'MOU', 'FUN']) { const w = document.createElement('div'); w.innerHTML = `<b>${n}</b>`; const b = document.createElement('div'); b.className = 'board'; board(b, L[n], false); w.appendChild(b); all.appendChild(w); }
+  for (const [id, set, cur] of [['reach', REACH, reach], ['content', CONTENT, content]]) {
+    const el = document.getElementById(id); el.innerHTML = '';
+    for (const k in set) { const b = document.createElement('button'); b.textContent = set[k].name; if (k === cur) b.className = 'on'; b.onclick = () => { if (id === 'reach') reach = k; else content = k; reset(); render(); }; el.appendChild(b); el.append(' '); }
+  }
+}
+document.getElementById('reset').onclick = () => { reset(); render(); };
+reset(); render();
+</script>
+</body>
+</html>
