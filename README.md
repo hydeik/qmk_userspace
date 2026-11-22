@@ -78,6 +78,8 @@ This is the official build route. Every push is built by `.github/workflows/buil
 
 The workflow runs one `Build` job per firmware source that has build targets, and one `Test` job per firmware source that unit tests run on: `Build (qmk)`, `Build (vial-qmk)`, `Test (qmk)` and `Test (vial-qmk)`. It fails if the keymap of any build target in `qmk.json` is listed by no firmware source in `firmware_sources.json`, or by more than one.
 
+A further job, `Keymap image`, runs the unit tests of the script that writes the keymap image and checks that the committed `users/hydeik/image/keymap.svg` is the one `make keymap-image` writes. If the image is stale, the job fails and says to run `make keymap-image` and commit the result; it does not regenerate the image. It does not gate the `latest` release: a stale keymap image turns the workflow red but never holds back a firmware release.
+
 ## Firmware sources and pins
 
 `firmware_sources.json` declares the firmware sources by name: `qmk` is upstream QMK and `vial-qmk` is vial-qmk. Each entry has four fields:
