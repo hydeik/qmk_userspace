@@ -180,3 +180,71 @@ bool indicator_is_any_shown(const indicator_snapshot_t *snapshot) {
     }
     return false;
 }
+
+/*****************************************************************************
+ * The view
+ *****************************************************************************/
+
+void indicator_view_build(indicator_view_t *view) {
+    const indicator_snapshot_t snapshot = indicator_snapshot();
+
+    view->any_shown = false;
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            const enum indicator_state_t state = indicator_state_at(&snapshot, (keypos_t){.col = col, .row = row});
+
+            view->states[row][col] = state;
+            if (state != INDICATOR_STATE_NONE) {
+                view->any_shown = true;
+            }
+        }
+    }
+}
+
+enum indicator_state_t indicator_view_state_at(const indicator_view_t *view, keypos_t position) {
+    return (enum indicator_state_t)view->states[position.row][position.col];
+}
+
+/*
+ * The packed view. Byte 0 holds the bit "an indicator is shown" in its
+ * lowest bit. The bytes after it hold the indicator states, four bits each,
+ * by row and then by column: an even position in the low half of its byte,
+ * the odd position after it in the high half. Every other bit is zero.
+ */
+_Static_assert(INDICATOR_VIEW_PACKED_SIZE <= INDICATOR_VIEW_TRANSACTION_SIZE, "The packed view of the indicators does not fit into one split transaction");
+_Static_assert(INDICATOR_STATE_TARGET_LAYER_LOCKED <= 0x0F, "An indicator state does not fit into four bits of the packed view");
+
+void indicator_view_pack(const indicator_view_t *view, uint8_t *packed) {
+    for (uint8_t i = 0; i < INDICATOR_VIEW_PACKED_SIZE; i++) {
+        packed[i] = 0;
+    }
+    packed[0] = view->any_shown ? 1 : 0;
+
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            const uint8_t index = row * MATRIX_COLS + col;
+
+            packed[1 + index / 2] |= (uint8_t)((view->states[row][col] & 0x0F) << (index % 2 * 4));
+        }
+    }
+}
+
+void indicator_view_unpack(const uint8_t *packed, indicator_view_t *view) {
+    view->any_shown = (packed[0] & 1) != 0;
+
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            const uint8_t index = row * MATRIX_COLS + col;
+
+            view->states[row][col] = (packed[1 + index / 2] >> (index % 2 * 4)) & 0x0F;
+        }
+    }
+}
+
+bool indicator_view_should_send(bool changed, bool last_send_failed, uint32_t elapsed_since_last_send) {
+    return changed || last_send_failed || elapsed_since_last_send >= INDICATOR_VIEW_SEND_INTERVAL;
+}
+
+bool indicator_view_has_expired(bool has_arrived, uint32_t elapsed_since_arrival) {
+    return !has_arrived || elapsed_since_arrival >= INDICATOR_VIEW_TIMEOUT;
+}

@@ -595,3 +595,79 @@ TEST_F(IndicatorWithoutReachableTriggerKey, TriggerKeyThatLiesOnlyOnALayerThatIs
 
     expect_shown({});
 }
+
+/****************************************************************************
+ * The view
+ ****************************************************************************/
+
+class IndicatorView : public Indicator {
+   public:
+    /*
+     * Expect that the view built now holds the indicator states `shown` at
+     * their positions and none at every other position of the matrix, and
+     * that its bit "an indicator is shown" is `any_shown`.
+     */
+    void expect_view(std::initializer_list<Shown> shown, bool any_shown) {
+        indicator_view_t view;
+        indicator_view_build(&view);
+
+        for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+            for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+                indicator_state_t expected = INDICATOR_STATE_NONE;
+                for (const Shown &one : shown) {
+                    if (one.position.row == row && one.position.col == col) {
+                        expected = one.state;
+                    }
+                }
+                keypos_t position;
+                position.row = row;
+                position.col = col;
+                EXPECT_EQ(indicator_view_state_at(&view, position), expected) << "at row " << +row << ", column " << +col;
+            }
+        }
+        EXPECT_EQ(view.any_shown, any_shown);
+    }
+};
+
+/* With no state the view is empty: no indicator state, and the bit is off. */
+TEST_F(IndicatorView, ViewOfNoStateIsEmpty) {
+    expect_view({}, false);
+}
+
+/*
+ * The view holds, for every position, the indicator state that the logic
+ * answers there, and its bit is on: here a target layer that is on, with the
+ * trigger key of another target layer that works.
+ */
+TEST_F(IndicatorView, ViewHoldsTheIndicatorStateOfEveryPosition) {
+    hold(TAB_SYM_KEY);
+    tap(KEY_X);
+
+    expect_view({{KEY_X, LAYER_ON}, {TAB_SYM_KEY, LAYER_ON}, {UNUSED_KEY, LAYER_ON}, {ENT_NUM_KEY, LAYER_ON}, {KEY_Z, TRIGGER_WORKS}}, true);
+}
+
+/* The view follows the state: it is empty again when the state has ended. */
+TEST_F(IndicatorView, ViewIsEmptyAgainWhenTheStateHasEnded) {
+    tap(ALT_KEY);
+    expect_view({{ALT_KEY, PENDING_MOD}, {KEY_A, PENDING_MOD}, {KEY_Z, PENDING_MOD}}, true);
+
+    tap(KEY_F);
+    expect_view({}, false);
+}
+
+/*
+ * A state whose key lies on no position leaves the view empty, with the bit
+ * off: the bit agrees with "an indicator is shown", not with "there is
+ * state".
+ */
+TEST_F(IndicatorWithoutLeftShiftKey, ViewOfAStateWhoseKeyLiesNowhereIsEmpty) {
+    tap(SMT_MOD_KEY);
+    ASSERT_EQ(smart_mod_pending_mods(), MOD_BIT_LSHIFT);
+
+    const indicator_snapshot_t snapshot = indicator_snapshot();
+    indicator_view_t           view;
+    indicator_view_build(&view);
+
+    EXPECT_FALSE(view.any_shown);
+    EXPECT_EQ(view.any_shown, indicator_is_any_shown(&snapshot));
+}
