@@ -146,6 +146,61 @@ jobs:
           FIRMWARE_SOURCE: ${{ matrix.firmware_source }}
         run: make test FIRMWARE_SOURCE="$FIRMWARE_SOURCE"
 
+  # Checks that the committed keymap image is the one `make keymap-image`
+  # writes from the sources, and fails if it is stale. It neither regenerates
+  # nor commits the image, and it runs the unit tests of the script that writes
+  # it first. It needs no firmware source. `publish` does not need this job: a
+  # stale keymap image turns the workflow red but never holds back a firmware
+  # release. The container is the environment in which keymap-drawer was shown
+  # to write byte for byte what it writes on macOS.
+  keymap-image:
+    name: Keymap image
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli:latest
+
+    steps:
+      - name: Checkout userspace
+        uses: actions/checkout@v6
+
+      # The container has no `uv`, so pip installs it into a virtual
+      # environment of its own, which leaves the environment of the QMK CLI
+      # alone. This job pins neither Python nor `uv`: the Makefile asks `uv`
+      # for its Python, and keymap-drawer and its dependencies are pinned in
+      # users/hydeik/image/requirements.txt.
+      - name: Install uv
+        run: |
+          python3 -m venv /tmp/uv
+          /tmp/uv/bin/pip install --quiet uv
+          echo /tmp/uv/bin >> "$GITHUB_PATH"
+
+      - name: Run unit tests
+        run: make keymap-image-test
+
+      # The checkout belongs to another user than the one of the container, and
+      # git refuses to compare in such a repository unless it is told to.
+      - name: Let git read the checkout
+        if: ${{ !cancelled() }}
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # `git diff --exit-code` exits with 1 on a difference; any other failure
+      # is one of git itself and is not reported as a stale image. Only the
+      # stat is printed, not the diff of the SVG. The step runs after failed unit
+      # tests too: one of them compares the committed image with what the
+      # script writes, so a stale image fails them first, and this step is the
+      # one that says what to do about it.
+      - name: Check that the committed keymap image is current
+        if: ${{ !cancelled() }}
+        env:
+          KEYMAP_IMAGE: users/hydeik/image/keymap.svg
+        run: |
+          make keymap-image
+          status=0
+          git diff --exit-code --stat -- "$KEYMAP_IMAGE" || status=$?
+          if [ "$status" -eq 1 ]; then
+              echo "::error file=$KEYMAP_IMAGE::The keymap image $KEYMAP_IMAGE is stale: it is not the one that make keymap-image writes from the sources. Run make keymap-image and commit the result."
+          fi
+          exit "$status"
+
   # Replaces the `latest` release, only from `main` and only when every build
   # target succeeded and the unit tests passed on every firmware source, so a
   # failed build or a failed test never removes previously published firmware.
