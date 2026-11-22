@@ -18,21 +18,11 @@ There are seven layers, defined in [`layout.h`](layout.h). The number is the lay
 | 5 | FUN | F1 to F12 on the left hand, volume, brightness and media keys on the right, one-shot mod keys on the right home row, the bootloader key, Layer Lock, and the trigger key of FUN. | The trigger key of FUN while `ENT_NUM` is held. |
 | 6 | MOD | The smart mod layer: one-shot mod keys on both home rows, every other key transparent. | Holding a smart mod layer key, `SMT_MOD` or `SPC_MOD`. |
 
-The diagrams below are those of the comments in `layout.h`, which is the source of the layers. An empty finger key does nothing, except on the smart mod layer, where it is transparent; an empty thumb key is transparent. `*` marks a one-shot mod key, and `>NAV<`, `>MOU<` and `>FUN<` are the trigger keys. There is no rendered image of the keymap.
+![Keymap image of the hydeik keymap family: the seven layers BASE, SYM, NUM, NAV, MOU, FUN and MOD, each with its 34 keys.](image/keymap.svg)
+
+The keymap image shows the firmware keymap. It is generated from `layout.h`, which is the source of the layers. Its footer explains the colours, which mark the one-shot mod keys, the holding keys, the trigger keys and the held keys, which are the keys that keep the layer on and carry no legend. `▽` is a transparent key, and every other key without a legend does nothing. The comments of `layout.h` still hold a diagram of every layer. How to regenerate the keymap image is in the section [Keymap image](../../README.md#keymap-image) of the README of the repository.
 
 ### BASE
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| Q       | W       | E       | R       | T       |   | Y       | U       | I       | O       | P       |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| A       | S       | D       | F       | G       |   | H       | J       | K       | L       | ;       |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| Z       | X       | C       | V       | B       |   | N       | M       | ,       | .       | /       |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              | -SYM-   | SMTMOD  |   | SPC/MOD | -NUM-   |
-                              +---------+---------+   +---------+---------+
-```
 
 The four thumb keys, from left to right:
 
@@ -45,95 +35,9 @@ The four thumb keys, from left to right:
 
 All four are layer-tap keys. With Hold On Other Key Press, each is held as soon as another key is pressed while it is down, without waiting for the tapping term of 200 ms.
 
-### SYM
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         | \       | %       | $       |         |   |         | ^       | {       | }       |         |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| *       | (       | )       | :       | DEL     |   | BSPC    | "       | [       | ]       | ;       |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| >MOU<   | `       | @       | &       | LLCK    |   |         | #       | <       | >       | >NAV<   |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              | _SYM_   |         |   | MOD     | ESC     |
-                              +---------+---------+   +---------+---------+
-```
-
-Here `*` on the home row is the asterisk. `_SYM_` is the held holding key, and `MOD` is `SPC_MOD` of BASE, which shows through.
-
-### NUM
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         | 4       | 5       | 6       |         |   |         | |       | -       | /       |         |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| 0       | 1       | 2       | 3       | DEL     |   | BSPC    | '       | _       | =       | *       |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| ~       | 7       | 8       | 9       | .       |   | LLCK    | +       | ?       | !       | >FUN<   |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              | ESC     |         |   |         | _NUM_   |
-                              +---------+---------+   +---------+---------+
-```
-
-### NAV
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| ESC     |         |         |         |         |   | HOME    | PGDN    | PGUP    | END     | DEL     |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| CTL*    | ALT*    | GUI*    | SFT*    |         |   | LEFT    | DOWN    | UP      | RGHT    | BSPC    |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| >MOU<   |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              |         |         |   |         |         |
-                              +---------+---------+   +---------+---------+
-```
-
 ### MOU
 
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         |         |         |         |         |   | WHLL    | WHLD    | WHLU    | WHLR    |         |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| CTL*    | ALT*    | GUI*    | SFT*    |         |   | LEFT    | DOWN    | UP      | RGHT    | BTN3    |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| >MOU<   |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              |         |         |   | BTN1    | BTN2    |
-                              +---------+---------+   +---------+---------+
-```
-
 The pointer is on the home row in Vim order (left, down, up, right) and the wheel above it in the same order. The left and the right button are on the right thumb keys and the middle button is on the pinky. Mouse Keys are switched on for every keymap of the family in [`rules.mk`](rules.mk).
-
-### FUN
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| BOOT    | F9      | F8      | F7      | F10     |   | MUTE    | VOLD    | VOLU    | BRID    | BRIU    |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         | F3      | F2      | F1      | F11     |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         | F6      | F5      | F4      | F12     |   | LLCK    | MPRV    | MPLY    | MNXT    | >FUN<   |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              |         |         |   |         |         |
-                              +---------+---------+   +---------+---------+
-```
-
-`BOOT` enters the bootloader.
-
-### MOD, the smart mod layer
-
-```
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         |         |         |         |         |   |         |         |         |         |         |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-| CTL*    | ALT*    | GUI*    | SFT*    |         |   |         | SFT*    | GUI*    | ALT*    | CTL*    |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-|         |         |         |         |         |   |         |         |         |         |         |
-+---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
-                              |         |         |   |         |         |
-                              +---------+---------+   +---------+---------+
-```
 
 ## Layer switching
 
@@ -208,6 +112,7 @@ What exists only with Vial is chosen in `rules.mk`, by whether the keymap enable
 | [`features/key_typed.h`](features/key_typed.h), `.c` | What counts as a key typed, for both state machines. |
 | [`features/firmware_default.h`](features/firmware_default.h), `.c` | The firmware defaults of the Vial settings. Built only with Vial. |
 | [`keyboards/`](keyboards/) | One layout adapter per keyboard, which places the 34 keys of a layer in the layout of that keyboard: `crkbd_rev4_1_mini.h` and `mothwing.h`. The crkbd has two keys more on the inner top row, which enter the bootloader on every layer. |
+| [`image/`](image/) | The keymap image, `keymap.svg`, with the script that writes it, the configuration of the script and its unit tests. See [Keymap image](../../README.md#keymap-image). |
 | [`tests/`](tests/) | The unit tests, one directory per test. See [Unit tests](../../README.md#unit-tests). |
 
 The keymaps themselves are in `keyboards/<keyboard>/keymaps/<keymap>/` at the top of the repository. Each `keymap.c` includes `hydeik.h` and the layout adapter of its keyboard, and places the seven layers.

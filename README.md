@@ -14,6 +14,8 @@ A keymap family is a complete typing design that can be applied to more than one
 
 The layers, their keys, how each layer is reached and how the one-shot mods and the smart mod layer behave are described in [`users/hydeik/README.md`](users/hydeik/README.md). MOU is a layer of mouse keys, so Mouse Keys are switched on for every keymap. That there is one keymap family in one directory, built with and without Vial, is decided in [ADR 0004](docs/adr/0004-one-keymap-family-built-with-and-without-vial.md).
 
+![Keymap image of the hydeik keymap family: the seven layers BASE, SYM, NUM, NAV, MOU, FUN and MOD, each with its 34 keys.](users/hydeik/image/keymap.svg)
+
 A keymap is the keymap family applied to one keyboard, either with or without Vial. The keymap with Vial is named `hydeik_vial` and is built against [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial`; it adds Vial's GUI for remapping and tap-hold settings. The keymap without Vial is named `hydeik` and is built against upstream [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master`.
 
 ### With and without Vial
@@ -43,10 +45,11 @@ Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an e
 | `users/hydeik/features/` | `smart_mod`, the one-shot mods and the smart mod layer; `target_layer`, the layer switching; `key_typed`, what counts as a key typed; `firmware_default`, the firmware defaults of the Vial settings. |
 | `users/hydeik/keyboards/` | One layout adapter per keyboard, which places the 34 keys of a layer in the layout of that keyboard. |
 | `users/hydeik/tests/` | The [unit tests](#unit-tests). |
+| `users/hydeik/image/` | The [keymap image](#keymap-image), with the script that writes it. |
 | `keyboards/<keyboard>/keymaps/<keymap>/` | One keymap: the keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
 | `firmware_sources.json` | The firmware sources, each pinned to a commit and listing the keymaps built against it. |
-| `Makefile` | The [local builds](#building-locally-with-make) and the [unit tests](#unit-tests). |
+| `Makefile` | The [local builds](#building-locally-with-make), the [unit tests](#unit-tests) and the [keymap image](#keymap-image). |
 | `.github/workflows/build_binaries.yaml` | The [CI workflow](#building-with-github-actions), with its script `.github/scripts/firmware_sources.py`. |
 | `GLOSSARY.md`, `docs/adr/` | The terms and the recorded decisions. |
 
@@ -104,7 +107,7 @@ To take a firmware source from a different repository or branch, edit `repo`, `b
 
 Local builds are a secondary route, for work that needs many flash-and-try rounds. They go through `make` only, which builds against the same pinned firmware sources as CI.
 
-The toolchain is not managed by this repository. Install the QMK CLI and compilers the [official QMK way](https://docs.qmk.fm/newbs_getting_started) for your OS; on macOS, `brew install qmk/qmk/qmk`. `make`, `git` and `python3` are also needed.
+The toolchain is not managed by this repository. Install the QMK CLI and compilers the [official QMK way](https://docs.qmk.fm/newbs_getting_started) for your OS; on macOS, `brew install qmk/qmk/qmk`. `make`, `git` and `python3` are also needed. The two targets of the [keymap image](#keymap-image), `make keymap-image` and `make keymap-image-test`, need only `make` and `uv`.
 
 1. Fetch the firmware sources:
 
@@ -157,6 +160,39 @@ TEST_FIRMWARE_SOURCES = qmk vial-qmk
 `make test` reads that line as text, so it must be a single assignment of literal names. The line is required: there is no default, and `make test` fails with a message that names the `test.mk` that lacks it.
 
 `make test FIRMWARE_SOURCE=qmk` or `make test FIRMWARE_SOURCE=vial-qmk` runs only the tests that run on that firmware source, and needs only that firmware checkout. CI runs the tests this way, once per firmware source, in the `Test` jobs of the workflow.
+
+## Keymap image
+
+The keymap image, `users/hydeik/image/keymap.svg`, is the picture of the firmware keymap of the keymap family `hydeik`: its seven layers, drawn from `users/hydeik/layout.h`. It is committed, it is one file for the light and the dark theme, and it is shown [above](#keymap-family) and in [`users/hydeik/README.md`](users/hydeik/README.md#layers). It is never edited by hand. After a change to `layout.h`, or to the configuration of the script, write it anew and commit it:
+
+```
+make keymap-image
+```
+
+This needs `uv` and nothing else: neither the QMK CLI nor a firmware checkout. `uv` provides Python 3.14, and [keymap-drawer](https://github.com/caksoylar/keymap-drawer) and its dependencies at the versions pinned in `requirements.txt`, so that the same sources give the same file on every machine.
+
+Everything the keymap image is made of is in `users/hydeik/image/`:
+
+| File | Contents |
+| --- | --- |
+| `keymap.svg` | The keymap image. |
+| `keymap_image.py` | The script that writes it: it reads the layers from `layout.h`, has keymap-drawer turn the keycodes into legends, marks the one-shot mod keys, the holding keys, the trigger keys and the held keys, and has keymap-drawer draw the image. |
+| `keymap_drawer.yaml` | The configuration of keymap-drawer: the legends of the keys that keymap-drawer does not know, the footer and the colours of the marks. |
+| `layout.json` | The positions of the 34 keys in the image. |
+| `requirements.txt` | keymap-drawer and its dependencies, pinned. |
+| `test_keymap_image.py` | The unit tests of the script. |
+
+The script has its own unit tests, which are not part of `make test`. They also need only `uv`:
+
+```
+make keymap-image-test
+```
+
+One of them compares the committed keymap image with what the script writes, so they fail when the image is stale.
+
+In CI, the job `keymap-image` of the workflow, shown as `Keymap image`, runs these unit tests and then checks that the committed keymap image is the one `make keymap-image` writes; see [Building with GitHub Actions](#building-with-github-actions). Its check step runs even when the unit tests failed first, so a stale image is always reported as such: run `make keymap-image` and commit `users/hydeik/image/keymap.svg`. When the unit tests fail and the image is not stale, the fault is in the script, its tests or its configuration.
+
+The route from `layout.h` to the image is a script of this repository and not `qmk c2json`, because `qmk c2json` needs the QMK CLI, a firmware checkout and a keyboard name, and cannot read `layout.h` itself: it needs a separate C file that places the layers and repeats the layer numbers as digits. A script is needed in any case, because keymap-drawer alone marks a trigger key as a held key and only one of the two smart mod layer keys, so the marks have to be set between its two steps.
 
 ## License
 
