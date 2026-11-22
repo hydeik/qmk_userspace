@@ -23,6 +23,14 @@ _Avoid_: Firmware, backend, fork
 **Build target**:
 One keyboard paired with one keymap, producing one firmware binary.
 
+**Firmware keymap**:
+The keymap that is built into a firmware binary. It is what a keyboard types with when nothing else is stored, and what a reset goes back to.
+_Avoid_: Default keymap, compiled keymap
+
+**Stored keymap**:
+The keymap that Vial keeps on the keyboard and lets the owner edit while the keyboard runs. It starts as a copy of the firmware keymap and goes back to it on the first boot of every newly built firmware. Only build targets with Vial have one.
+_Avoid_: Dynamic keymap, EEPROM keymap, Vial keymap
+
 **One-shot mod**:
 A modifier key that acts as an ordinary modifier while held and, when tapped, applies to the next key press only. It means the same in both keymap families, although each provides it in its own way.
 _Avoid_: OSM, sticky key, COS key, one-shot modifier
