@@ -51,7 +51,9 @@ class KeymapImageError(Exception):
 
 def _preprocess(text):
     preprocessor = pcpp.Preprocessor()
-    preprocessor.line_directive = None
+    # None turns the line directives off. pcpp has no type stubs, so the type
+    # checker infers `str` from the default value.
+    preprocessor.line_directive = None  # ty: ignore[invalid-assignment]
     preprocessor.parse(text, "layout.h")
     output = io.StringIO()
     preprocessor.write(output)
