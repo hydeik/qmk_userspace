@@ -1,0 +1,23 @@
+draw_config:
+  dark_mode: auto
+  append_colon_to_layer_header: false
+  svg_extra_style: 'rect.osm { fill: #dff3e4; }
+
+    rect.holding { fill: #dde7fb; }
+
+    rect.trigger { fill: #fde9c8; }
+
+    @media (prefers-color-scheme: dark) {
+
+    rect.osm { fill: #2f5a3c; }
+
+    rect.holding { fill: #2c3f66; }
+
+    rect.trigger { fill: #6b4a12; }
+
+    }
+
+    '
+  n_columns: 2
+  footer_text: 'green: one-shot mod key · blue: holding key · amber: trigger key ·
+    red: held · ▽: transparent'

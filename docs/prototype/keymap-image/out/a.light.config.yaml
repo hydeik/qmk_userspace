@@ -1,0 +1,9 @@
+draw_config:
+  dark_mode: false
+  append_colon_to_layer_header: false
+  svg_extra_style: 'rect.osm { fill: #dff3e4; }
+
+    rect.holding { fill: #dde7fb; }
+
+    '
+  n_columns: 2

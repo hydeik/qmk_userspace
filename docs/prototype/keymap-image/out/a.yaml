@@ -1,0 +1,312 @@
+layers:
+  BASE:
+  - - Q
+    - W
+    - E
+    - R
+    - T
+    - Y
+    - U
+    - I
+    - O
+    - P
+  - - A
+    - S
+    - D
+    - F
+    - G
+    - H
+    - J
+    - K
+    - L
+    - ;
+  - - Z
+    - X
+    - C
+    - V
+    - B
+    - N
+    - M
+    - ','
+    - .
+    - /
+  - - t: TAB
+      h: SYM
+      type: holding
+    - t: Shift
+      h: MOD
+      type: osm
+    - t: SPC
+      h: MOD
+    - t: ENT
+      h: NUM
+      type: holding
+  SYM:
+  - - ''
+    - \
+    - '%'
+    - $
+    - ''
+    - ''
+    - ^
+    - '{'
+    - '}'
+    - ''
+  - - '*'
+    - (
+    - )
+    - ':'
+    - DEL
+    - BSPC
+    - '"'
+    - '['
+    - ']'
+    - ;
+  - - MOU
+    - '`'
+    - '@'
+    - '&'
+    - Layer Lock
+    - ''
+    - '#'
+    - <
+    - '>'
+    - NAV
+  - - type: held
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - ESC
+  NUM:
+  - - ''
+    - '4'
+    - '5'
+    - '6'
+    - ''
+    - ''
+    - '|'
+    - '-'
+    - /
+    - ''
+  - - '0'
+    - '1'
+    - '2'
+    - '3'
+    - DEL
+    - BSPC
+    - ''''
+    - _
+    - '='
+    - '*'
+  - - '~'
+    - '7'
+    - '8'
+    - '9'
+    - .
+    - Layer Lock
+    - +
+    - '?'
+    - '!'
+    - FUN
+  - - ESC
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - type: held
+  NAV:
+  - - ESC
+    - ''
+    - ''
+    - ''
+    - ''
+    - HOME
+    - PGDN
+    - PGUP
+    - END
+    - DEL
+  - - t: Ctrl
+      type: osm
+    - t: Alt
+      type: osm
+    - t: Gui
+      type: osm
+    - t: Shift
+      type: osm
+    - ''
+    - LEFT
+    - DOWN
+    - UP
+    - RGHT
+    - BSPC
+  - - MOU
+    - ''
+    - ''
+    - ''
+    - ''
+    - Layer Lock
+    - ''
+    - ''
+    - ''
+    - t: NAV
+      type: held
+  - - type: held
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+  MOU:
+  - - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - Wheel ←
+    - Wheel ↓
+    - Wheel ↑
+    - Wheel →
+    - ''
+  - - t: Ctrl
+      type: osm
+    - t: Alt
+      type: osm
+    - t: Gui
+      type: osm
+    - t: Shift
+      type: osm
+    - ''
+    - Mouse ←
+    - Mouse ↓
+    - Mouse ↑
+    - Mouse →
+    - Button 3
+  - - t: MOU
+      type: held
+    - ''
+    - ''
+    - ''
+    - ''
+    - Layer Lock
+    - ''
+    - ''
+    - ''
+    - NAV
+  - - type: held
+    - t: ▽
+      type: trans
+    - Button 1
+    - Button 2
+  FUN:
+  - - Boot
+    - F9
+    - F8
+    - F7
+    - F10
+    - MUTE
+    - VOLD
+    - VOLU
+    - BRID
+    - BRIU
+  - - ''
+    - F3
+    - F2
+    - F1
+    - F11
+    - ''
+    - t: Shift
+      type: osm
+    - t: Gui
+      type: osm
+    - t: Alt
+      type: osm
+    - t: Ctrl
+      type: osm
+  - - ''
+    - F6
+    - F5
+    - F4
+    - F12
+    - Layer Lock
+    - MPRV
+    - MPLY
+    - MNXT
+    - t: FUN
+      type: held
+  - - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - type: held
+  MOD:
+  - - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+  - - t: Ctrl
+      type: osm
+    - t: Alt
+      type: osm
+    - t: Gui
+      type: osm
+    - t: Shift
+      type: osm
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: Shift
+      type: osm
+    - t: Gui
+      type: osm
+    - t: Alt
+      type: osm
+    - t: Ctrl
+      type: osm
+  - - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+  - - t: ▽
+      type: trans
+    - t: ▽
+      type: trans
+    - type: held
+    - t: ▽
+      type: trans

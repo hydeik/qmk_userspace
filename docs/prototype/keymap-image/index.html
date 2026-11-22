@@ -1,0 +1,85 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PROTOTYPE: keymap image variants</title>
+<!--
+  PROTOTYPE, throwaway. Three looks of the keymap image of the hydeik keymap
+  family, shown at the width of a README on GitHub, switchable with
+  ?variant=a|b|c and ?theme=light|dark|auto from the bar at the bottom.
+-->
+<style>
+  body { margin: 0; font-family: -apple-system, "Segoe UI", sans-serif; }
+  body.light { background: #ffffff; color: #1f2328; }
+  body.dark { background: #0d1117; color: #e6edf3; }
+  /* The text column of a README on GitHub is at most about 838px wide. */
+  main { max-width: 838px; margin: 0 auto; padding: 24px 16px 120px; }
+  h1 { font-size: 20px; border-bottom: 1px solid #8884; padding-bottom: 8px; }
+  p { font-size: 14px; line-height: 1.5; }
+  img { max-width: 100%; }
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0; padding: 10px;
+    background: #222c; color: #fff; display: flex; gap: 16px;
+    justify-content: center; flex-wrap: wrap; font-size: 13px;
+  }
+  nav button { font: inherit; padding: 4px 10px; margin-left: 4px; cursor: pointer; }
+  nav button.on { background: #f5b800; }
+</style>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p id="about"></p>
+  <img id="image" alt="keymap image">
+  <p id="state"></p>
+</main>
+<nav>
+  <span>Variant<span id="variants"></span></span>
+  <span>Theme<span id="themes"></span></span>
+</nav>
+<script>
+  const VARIANTS = {
+    a: ["A: what the tool marks by itself",
+        "Ortho, two columns. keymap-drawer marks the held keys: a trigger key is drawn as held (red), and on MOD only one of the two smart mod layer keys is. Words as legends, ▽ for a transparent key."],
+    b: ["B: faithful marks, words, column stagger",
+        "Two columns on a column-staggered layout. Trigger keys have their own colour and are never 'held'; both smart mod layer keys are held on MOD. Words as legends, ▽ for a transparent key, and a footer that explains the colours."],
+    c: ["C: faithful marks, symbols, one column",
+        "One column, so the keys are drawn larger at README width. Symbols for the modifiers, the arrows and the editing keys; a transparent key is left blank; the same marks and footer as B."],
+  };
+  const THEMES = {
+    light: "fixed light colours on GitHub's light background",
+    dark: "fixed dark colours on GitHub's dark background",
+    auto: "the file that would be committed: it follows the browser's prefers-color-scheme, on the background chosen by your system",
+  };
+  const params = new URLSearchParams(location.search);
+  let variant = params.get("variant") in VARIANTS ? params.get("variant") : "a";
+  let theme = params.get("theme") in THEMES ? params.get("theme") : "light";
+
+  function render() {
+    const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
+    document.body.className = theme === "auto" ? (systemDark ? "dark" : "light") : theme;
+    document.getElementById("title").textContent = VARIANTS[variant][0];
+    document.getElementById("about").textContent = VARIANTS[variant][1];
+    const file = `out/${variant}.${theme}.svg`;
+    const image = document.getElementById("image");
+    image.src = file;
+    image.onload = () => {
+      document.getElementById("state").textContent =
+        `${file} · natural size ${image.naturalWidth}×${image.naturalHeight}px · shown at ${image.width}×${image.height}px · theme: ${THEMES[theme]}`;
+    };
+    history.replaceState(null, "", `?variant=${variant}&theme=${theme}`);
+    for (const [id, table, current, set] of [
+      ["variants", VARIANTS, variant, (v) => { variant = v; }],
+      ["themes", THEMES, theme, (v) => { theme = v; }],
+    ]) {
+      const box = document.getElementById(id);
+      box.replaceChildren();
+      for (const key of Object.keys(table)) {
+        const button = document.createElement("button");
+        button.textContent = key.toUpperCase();
+        button.className = key === current ? "on" : "";
+        button.onclick = () => { set(key); render(); };
+        box.append(button);
+      }
+    }
+  }
+  render();
+</script>
+</body>
