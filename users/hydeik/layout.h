@@ -19,6 +19,7 @@ enum layer_t {
     _SYM,
     _NUM,
     _NAV,
+    _MOU,
     _FUN,
     _MOD,
 };
@@ -29,8 +30,8 @@ enum layer_t {
 enum custom_keycode_t {
     /*
      * Reserved slot with no behaviour. It stays so that the one-shot mod keys
-     * keep the numbers QK_KB_0 + 1 .. QK_KB_0 + 8, which keymaps stored by
-     * Vial hold. Do not remove or reuse it.
+     * keep the numbers QK_KB_0 + 1 .. QK_KB_0 + 8, which layout files saved
+     * from the Vial GUI hold. Do not remove or reuse it.
      */
     COS_MOD = QK_KB_0,
     /*
@@ -67,24 +68,29 @@ enum custom_keycode_t {
 
 /*
  * Holding keys: held, they keep their holding layer on, SYM or NUM, and make
- * the trigger key of their target layer work. Tapped, they are Tab and Enter.
+ * the trigger keys of their target layers work. Tapped, they are Tab and
+ * Enter.
  */
 #define TAB_SYM  LT(_SYM, KC_TAB)
 #define ENT_NUM  LT(_NUM, KC_ENT)
 
 /*
  * Trigger keys: `MO()` of a target layer is no momentary layer key. Pressed
- * while its holding key is held, `TAB_SYM` for NAV and `ENT_NUM` for FUN, it
- * switches to its target layer; pressed again, or on a pending or locked
- * target layer, it switches that layer off. Alone it does nothing. A quick
- * release of the holding key locks NAV and leaves FUN pending. See
- * features/target_layer.h and the table of entries in hydeik.c.
+ * while its holding key is held, `TAB_SYM` for NAV and MOU and `ENT_NUM` for
+ * FUN, it switches to its target layer; pressed again, or on a pending or
+ * locked target layer, it switches that layer off. Alone it does nothing. A
+ * quick release of the holding key locks NAV or MOU and leaves FUN pending.
+ * See features/target_layer.h and the table of entries in hydeik.c.
  *
  * A target layer holds its own trigger key at the position of the trigger
- * key of its holding layer, so that the same key enters and leaves it. The
- * diagrams below show the trigger keys as `>NAV<` and `>FUN<`.
+ * key of its holding layer, so that the same key enters and leaves it. NAV
+ * and MOU hold the trigger key of each other too, at its position on SYM:
+ * while `TAB_SYM` is held, the bottom-left corner is MOU and the bottom-right
+ * corner is NAV on all three layers, and the one replaces the other. The
+ * diagrams below show the trigger keys as `>NAV<`, `>MOU<` and `>FUN<`.
  */
 #define TRG_NAV  MO(_NAV)
+#define TRG_MOU  MO(_MOU)
 #define TRG_FUN  MO(_FUN)
 
 /****************************************************************************
@@ -127,7 +133,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | *       | (       | )       | :       | DEL     |   | BSPC    | "       | [       | ]       | ;       |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         | `       | @       | &       | LLCK    |   |         | #       | <       | >       | >NAV<   |
+ * | >MOU<   | `       | @       | &       | LLCK    |   |         | #       | <       | >       | >NAV<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               | _SYM_   |         |   | MOD     | ESC     |
  *                               +---------+---------+   +---------+---------+
@@ -135,7 +141,7 @@ enum custom_keycode_t {
 #define SYM_LAYER \
     XXXXXXX,  KC_BSLS,  KC_PERC,  KC_DLR,   XXXXXXX,   XXXXXXX,  KC_CIRC,  KC_LCBR,  KC_RCBR,  XXXXXXX,  \
     KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_COLN,  KC_DEL,    KC_BSPC,  KC_DQUO,  KC_LBRC,  KC_RBRC,  KC_SCLN,  \
-    XXXXXXX,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    TRG_NAV,  \
+    TRG_MOU,  KC_GRV,   KC_AT,    KC_AMPR,  QK_LLCK,   XXXXXXX,  KC_HASH,  KC_LT,    KC_GT,    TRG_NAV,  \
                                   _______,  _______,   _______,  KC_ESC
 
 /*
@@ -166,7 +172,7 @@ enum custom_keycode_t {
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  * | CTL*    | ALT*    | GUI*    | SFT*    | DEL     |   | BSPC    | LEFT    | DOWN    | RGHT    | PGDN    |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
- * |         |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
+ * | >MOU<   |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
  * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
  *                               |         |         |   |         |         |
  *                               +---------+---------+   +---------+---------+
@@ -175,8 +181,30 @@ enum custom_keycode_t {
 #define NAV_LAYER \
     KC_ESC,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   XXXXXXX,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  \
     COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, KC_DEL,    KC_BSPC,  KC_LEFT,  KC_DOWN,  KC_RGHT,  KC_PGDN,  \
-    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV,  \
+    TRG_MOU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV,  \
                                   _______,  _______,   _______,  _______
+
+/*
+ * Mouse layer: the pointer on the home row in Vim order, the wheel above it
+ * in the same order, and the buttons on the right thumb keys and the pinky.
+ * The left thumb keys are transparent.
+ *
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * |         |         |         |         |         |   | WHLL    | WHLD    | WHLU    | WHLR    |         |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * | CTL*    | ALT*    | GUI*    | SFT*    |         |   | LEFT    | DOWN    | UP      | RGHT    | BTN3    |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ * | >MOU<   |         |         |         |         |   | LLCK    |         |         |         | >NAV<   |
+ * +---------+---------+---------+---------+---------+   +---------+---------+---------+---------+---------+
+ *                               |         |         |   | BTN1    | BTN2    |
+ *                               +---------+---------+   +---------+---------+
+ */
+
+#define MOU_LAYER \
+    XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   MS_WHLL,  MS_WHLD,  MS_WHLU,  MS_WHLR,  XXXXXXX,  \
+    COS_LCTL, COS_LALT, COS_LGUI, COS_LSFT, XXXXXXX,   MS_LEFT,  MS_DOWN,  MS_UP,    MS_RGHT,  MS_BTN3,  \
+    TRG_MOU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,   QK_LLCK,  XXXXXXX,  XXXXXXX,  XXXXXXX,  TRG_NAV,  \
+                                  _______,  _______,   MS_BTN1,  MS_BTN2
 
 /*
  * Function layer

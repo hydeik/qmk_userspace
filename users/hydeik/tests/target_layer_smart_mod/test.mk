@@ -30,4 +30,5 @@ SRC += hydeik.c typing_rules.c key_typed.c smart_mod.c target_layer.c test_glue.
 # Features of users/hydeik/rules.mk that the scenarios depend on.
 CAPS_WORD_ENABLE = yes
 LAYER_LOCK_ENABLE = yes
+MOUSEKEY_ENABLE = yes
 REPEAT_KEY_ENABLE = yes

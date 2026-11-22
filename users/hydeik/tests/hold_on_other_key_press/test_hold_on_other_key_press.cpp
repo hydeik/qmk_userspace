@@ -40,16 +40,17 @@ using testing::InSequence;
  * The keymap of the tests is that of users/hydeik/layout.h: three rows of ten
  * finger keys, and the four thumb keys in the columns 3 to 6 of a fourth row.
  * The keys that the tests press, by what they are on each layer (an empty
- * cell is a transparent key, `Sft*` a one-shot mod key):
+ * cell is a transparent key, `Sft*` a one-shot mod key, `Btn1` and `Btn2`
+ * mouse buttons, `MsDown` the pointer down):
  *
- * | Key           | BASE    | SYM     | NUM     | NAV     | FUN     | MOD  |
- * | ------------- | ------- | ------- | ------- | ------- | ------- | ---- |
- * | `tab_sym`     | TAB_SYM |         | Esc     |         |         |      |
- * | `spc_mod`     | SPC_MOD |         |         |         |         |      |
- * | `ent_num`     | ENT_NUM | Esc     |         |         |         |      |
- * | `corner`      | /       | MO(NAV) | MO(FUN) | MO(NAV) | MO(FUN) |      |
- * | `left_index`  | F       | :       | 3       | Sft*    | F1      | Sft* |
- * | `right_index` | J       | "       | '       | Left    | Sft*    | Sft* |
+ * | Key           | BASE    | SYM     | NUM     | NAV     | MOU     | FUN     | MOD  |
+ * | ------------- | ------- | ------- | ------- | ------- | ------- | ------- | ---- |
+ * | `tab_sym`     | TAB_SYM |         | Esc     |         |         |         |      |
+ * | `spc_mod`     | SPC_MOD |         |         |         | Btn1    |         |      |
+ * | `ent_num`     | ENT_NUM | Esc     |         |         | Btn2    |         |      |
+ * | `corner`      | /       | MO(NAV) | MO(FUN) | MO(NAV) | MO(NAV) | MO(FUN) |      |
+ * | `left_index`  | F       | :       | 3       | Sft*    | Sft*    | F1      | Sft* |
+ * | `right_index` | J       | "       | '       | Left    | MsDown  | Sft*    | Sft* |
  *
  * A scan loop handles the key events at the current time and then advances
  * the time by 1 ms. `press()` / `release()` take effect in the next scan

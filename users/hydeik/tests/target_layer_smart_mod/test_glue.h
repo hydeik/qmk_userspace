@@ -29,6 +29,7 @@ enum test_layer_t {
     TEST_LAYER_SYM,
     TEST_LAYER_NUM,
     TEST_LAYER_NAV,
+    TEST_LAYER_MOU,
     TEST_LAYER_FUN,
     TEST_LAYER_MOD,
     TEST_LAYER_COUNT,
