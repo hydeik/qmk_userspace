@@ -146,6 +146,48 @@ jobs:
           FIRMWARE_SOURCE: ${{ matrix.firmware_source }}
         run: make test FIRMWARE_SOURCE="$FIRMWARE_SOURCE"
 
+  # Checks that the committed keymap image is the one `make keymap-image`
+  # writes from the sources, and fails if it is stale. It neither regenerates
+  # nor commits the image, and it runs the unit tests of the script that writes
+  # it first. It needs no firmware source. `publish` does not need this job: a
+  # stale keymap image turns the workflow red but never holds back a firmware
+  # release. The container is the environment in which the image was shown to
+  # be byte for byte the one written on macOS; it has no `uv`, so pip installs
+  # it into a virtual environment of its own, which leaves the environment of
+  # the QMK CLI alone. Neither Python nor `uv` is pinned here; keymap-drawer
+  # and its dependencies are, in users/hydeik/image/requirements.txt.
+  keymap-image:
+    name: Keymap image
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli:latest
+
+    steps:
+      - name: Checkout userspace
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        run: |
+          python3 -m venv /tmp/uv
+          /tmp/uv/bin/pip install --quiet uv
+          echo /tmp/uv/bin >> "$GITHUB_PATH"
+
+      - name: Run the unit tests of the script
+        run: make keymap-image-test
+
+      # `git diff --exit-code` exits with 1 on a difference; any other failure
+      # is one of git itself and is not reported as a stale image. Only the
+      # stat is printed, not the diff of the SVG.
+      - name: Check that the committed keymap image is current
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make keymap-image
+          status=0
+          git diff --exit-code --stat -- users/hydeik/image/keymap.svg || status=$?
+          if [ "$status" -eq 1 ]; then
+              echo "::error file=users/hydeik/image/keymap.svg::The keymap image users/hydeik/image/keymap.svg is stale: it is not the one that make keymap-image writes from the sources. Run make keymap-image and commit the result."
+          fi
+          exit "$status"
+
   # Replaces the `latest` release, only from `main` and only when every build
   # target succeeded and the unit tests passed on every firmware source, so a
   # failed build or a failed test never removes previously published firmware.
