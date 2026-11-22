@@ -258,19 +258,65 @@ def number_layers(config, names):
     return {**config, "parse_config": parse_config}
 
 
+# The basic keycodes whose legend is their own name, without the prefix.
+#
+# keymap-drawer has no table of the keycodes that exist: it removes the prefix
+# (`qmk_remove_keycode_prefix`) and looks the rest up in `qmk_keycode_map`,
+# which holds the punctuation only (`SCLN` is `;`). Whatever is not there it
+# draws as it is written, so `KC_TAB` is `TAB` and a mistyped `KC_FOO` would be
+# `FOO`. The names that are meant to be drawn that way are therefore listed
+# here, and nothing else passes: a letter, a digit, a function key, and the
+# named keys below. A new one is added here, or given a legend in
+# keymap_drawer.yaml.
+_NAME_IS_LEGEND = re.compile(r"[A-Z]|[0-9]|F([1-9]|1[0-9]|2[0-4])")
+NAMED_KEYS = frozenset(
+    [
+        "TAB",
+        "ENT",
+        "ESC",
+        "SPC",
+        "BSPC",
+        "DEL",
+        "LEFT",
+        "DOWN",
+        "UP",
+        "RGHT",
+        "HOME",
+        "END",
+        "PGUP",
+        "PGDN",
+        "MUTE",
+        "VOLD",
+        "VOLU",
+        "MPRV",
+        "MPLY",
+        "MNXT",
+        "BRID",
+        "BRIU",
+    ]
+)
+
+
 def _has_legend(keycode, parse_config):
     if keycode in parse_config["raw_binding_map"]:
         return True
+    if keycode == TRANSPARENT:
+        return True  # Its legend is `trans_legend`.
     if _TRIGGER_KEY.fullmatch(keycode):
         return True  # Its legend is the name of its target layer.
     if match := _LAYER_TAP_KEY.fullmatch(keycode):
         return _has_legend(match.group(2), parse_config)
-    # A basic keycode: keymap-drawer removes the prefix and draws the rest, or
-    # the entry of its own table for it.
-    return keycode in parse_config["qmk_keycode_map"] or any(
-        keycode.startswith(prefix)
-        for prefix in parse_config["qmk_remove_keycode_prefix"]
-    )
+    if keycode in parse_config["qmk_keycode_map"]:
+        return True
+    for prefix in parse_config["qmk_remove_keycode_prefix"]:
+        if keycode.startswith(prefix):
+            name = keycode.removeprefix(prefix)
+            return (
+                name in parse_config["qmk_keycode_map"]
+                or _NAME_IS_LEGEND.fullmatch(name) is not None
+                or name in NAMED_KEYS
+            )
+    return False
 
 
 def check_legends(layers, parse_config):
@@ -278,9 +324,11 @@ def check_legends(layers, parse_config):
 
     `parse_config` is the `parse_config` that keymap-drawer works with, its
     defaults included (`keymap dump-config`). A keycode has a legend if the
-    configuration gives it one in `raw_binding_map`, or if keymap-drawer
-    knows it: a basic keycode (`KC_*`) or an entry of its own table. For any
-    other keycode keymap-drawer would draw the raw text, such as `COS FOO`.
+    configuration gives it one in `raw_binding_map`, if it is in the table of
+    keymap-drawer (`qmk_keycode_map`, keyed without the prefix `KC_`), or if
+    it is a basic keycode whose name is its legend (`NAMED_KEYS`). For any
+    other keycode keymap-drawer would draw the raw text, such as `COS FOO`
+    or `FOO`.
     """
     for name, keycodes in layers.items():
         for keycode in keycodes:
@@ -288,7 +336,8 @@ def check_legends(layers, parse_config):
                 raise KeymapImageError(
                     f"Layer {name} holds `{keycode}`, which has no legend: keymap-drawer does not "
                     "know it, and `parse_config.raw_binding_map` of keymap_drawer.yaml does not "
-                    "list it. Give it a legend there."
+                    "list it. Give it a legend there, or, if it is a basic keycode whose name is "
+                    "its legend, add the name to `NAMED_KEYS` of keymap_image.py."
                 )
 
 

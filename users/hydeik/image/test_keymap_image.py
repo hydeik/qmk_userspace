@@ -99,13 +99,20 @@ def family():
     thumbs = {30: "KC_TRNS", 31: "KC_TRNS", 32: "KC_TRNS", 33: "KC_TRNS"}
     return {
         "BASE": keycodes(
-            {30: "LT(1,KC_TAB)", 31: "LT(6,KC_KP_0)", 32: "LT(6,KC_SPC)", 33: "LT(2,KC_ENT)"},
+            {
+                30: "LT(1,KC_TAB)",
+                31: "LT(6,KC_KP_0)",
+                32: "LT(6,KC_SPC)",
+                33: "LT(2,KC_ENT)",
+            },
             fill="KC_A",
         ),
         "SYM": keycodes({20: "MO(4)", 29: "MO(3)", **thumbs, 33: "KC_ESC"}),
         "NUM": keycodes({29: "MO(5)", **thumbs, 30: "KC_ESC"}),
         "NAV": keycodes({10: "COS_LCTL", 20: "MO(4)", 29: "MO(3)", **thumbs}),
-        "MOU": keycodes({20: "MO(4)", 29: "MO(3)", **thumbs, 32: "MS_BTN1", 33: "MS_BTN2"}),
+        "MOU": keycodes(
+            {20: "MO(4)", 29: "MO(3)", **thumbs, 32: "MS_BTN1", 33: "MS_BTN2"}
+        ),
         "FUN": keycodes({19: "COS_RCTL", 29: "MO(5)", **thumbs}),
         "MOD": keycodes({10: "COS_LCTL", 19: "COS_RCTL"}, fill="KC_TRNS"),
     }
@@ -205,30 +212,68 @@ def test_a_layer_tap_key_off_the_base_layer_stops_the_script():
 
 
 def parse_config(raw_binding_map):
-    """The part of the keymap-drawer configuration that decides the legends."""
+    """The part of the keymap-drawer configuration that decides the legends.
+
+    In the shape of `keymap dump-config`: the table of keymap-drawer is keyed
+    by the keycode without its prefix.
+    """
     return {
         "raw_binding_map": raw_binding_map,
         "qmk_remove_keycode_prefix": ["KC_"],
-        "qmk_keycode_map": {"SCLN": ";"},
+        "qmk_keycode_map": {
+            "XXXXXXX": "",
+            "NO": "",
+            "SEMICOLON": ";",
+            "SCLN": ";",
+            "LT": "<",
+        },
     }
 
 
 def test_layer_names_in_the_configured_keycodes_become_layer_numbers():
-    config = {"parse_config": {"raw_binding_map": {"LT(_MOD, KC_KP_0)": "Shift", "QK_LLCK": "Lock"}}}
+    config = {
+        "parse_config": {
+            "raw_binding_map": {"LT(_MOD, KC_KP_0)": "Shift", "QK_LLCK": "Lock"}
+        }
+    }
 
     numbered = keymap_image.number_layers(config, ["BASE", "SYM", "MOD"])
 
-    assert numbered["parse_config"]["raw_binding_map"] == {"LT(2,KC_KP_0)": "Shift", "QK_LLCK": "Lock"}
+    assert numbered["parse_config"]["raw_binding_map"] == {
+        "LT(2,KC_KP_0)": "Shift",
+        "QK_LLCK": "Lock",
+    }
 
 
 def test_keycodes_of_keymap_drawer_and_of_the_configuration_have_a_legend():
     layers = {
-        "BASE": keycodes({0: "KC_SCLN", 1: "KC_TRNS", 2: "KC_NO", 3: "QK_LLCK", 30: "LT(1,KC_TAB)"}, fill="KC_A"),
+        "BASE": keycodes(
+            {0: "KC_SCLN", 1: "KC_TRNS", 2: "KC_NO", 3: "QK_LLCK", 30: "LT(1,KC_TAB)"},
+            fill="KC_A",
+        ),
         "SYM": keycodes({0: "MO(0)", 1: "LT(1,KC_KP_0)"}),
     }
     config = parse_config({"QK_LLCK": "Lock", "LT(1,KC_KP_0)": "Shift"})
 
     keymap_image.check_legends(layers, config)
+
+
+def test_a_basic_keycode_that_keymap_drawer_does_not_know_stops_the_script_and_is_named():
+    layers = {"BASE": keycodes({5: "KC_FOO"}, fill="KC_A")}
+
+    with pytest.raises(KeymapImageError, match="KC_FOO"):
+        keymap_image.check_legends(layers, parse_config({}))
+
+
+def test_a_basic_keycode_whose_name_is_its_legend_has_a_legend():
+    layers = {
+        "BASE": keycodes(
+            {0: "KC_Z", 1: "KC_0", 2: "KC_F12", 3: "KC_BSPC", 30: "LT(1,KC_ENT)"},
+            fill="KC_A",
+        )
+    }
+
+    keymap_image.check_legends(layers, parse_config({}))
 
 
 def test_a_keycode_without_a_legend_stops_the_script_and_is_named():
@@ -262,7 +307,10 @@ def marked(parsed, keycode, mark):
 
 
 def test_a_mark_becomes_the_type_of_the_key_and_keeps_its_legend():
-    assert marked("Ctrl", "COS_LCTL", "one-shot-mod") == {"t": "Ctrl", "type": "one-shot-mod"}
+    assert marked("Ctrl", "COS_LCTL", "one-shot-mod") == {
+        "t": "Ctrl",
+        "type": "one-shot-mod",
+    }
     assert marked({"t": "TAB", "h": "SYM"}, "LT(1,KC_TAB)", "holding") == {
         "t": "TAB",
         "h": "SYM",
@@ -271,7 +319,10 @@ def test_a_mark_becomes_the_type_of_the_key_and_keeps_its_legend():
 
 
 def test_a_trigger_key_that_keymap_drawer_marked_as_held_is_a_trigger_key():
-    assert marked({"t": "NAV", "type": "held"}, "MO(3)", "trigger") == {"t": "NAV", "type": "trigger"}
+    assert marked({"t": "NAV", "type": "held"}, "MO(3)", "trigger") == {
+        "t": "NAV",
+        "type": "trigger",
+    }
 
 
 def test_a_held_key_has_no_legend():
