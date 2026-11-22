@@ -14,7 +14,11 @@
  * the one-shot mods of hydeik_vial?"; the second part of such a name is the
  * section of that resolution, listed below. The tests named `Mou_...` are
  * the transitions and the keys of the MOU layer, by the resolution of issue
- * #55, "How is the MOU layer reached and what does it hold?".
+ * #55, "How is the MOU layer reached and what does it hold?". The tests named
+ * `Issue84_...` are what the two state machines answer about their state
+ * where both matter, by the resolution of issue #84, "What do smart_mod and
+ * target_layer answer about their state, and how is the indicator module
+ * cut?".
  *
  * - `TriggerKey`: a trigger key is a layer-switching key to `smart_mod`.
  * - `OneShotModKeys`: one-shot mod keys on a pending target layer.
@@ -1207,4 +1211,82 @@ TEST_F(TargetLayerSmartMod, Issue41_Rule15_PendingFunDoesNotEndBeforeAOneShotMod
     expect_layers_on({TEST_LAYER_FUN});
 
     expect_tap_consuming(driver, left_middle, KC_F5, KC_RCTL);
+}
+
+/****************************************************************************
+ * Issue #84: what the two state machines answer about their state
+ ****************************************************************************/
+
+/*
+ * A key that uses up a pending FUN and a pending one-shot mod at once takes
+ * both out of the answers.
+ */
+TEST_F(TargetLayerSmartMod, Issue84_KeyThatUsesUpAPendingFunAndAPendingOneShotModTakesBothOutOfTheAnswers) {
+    TestDriver driver;
+
+    leave_fun_pending(driver);
+    tap_one_shot_mod_key(driver, right_pinky, KC_RCTL);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_FUN), TARGET_LAYER_STATE_PENDING);
+    EXPECT_EQ(smart_mod_pending_mods(), MOD_BIT_RCTRL);
+
+    expect_tap_consuming(driver, left_middle, KC_F5, KC_RCTL);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_FUN), TARGET_LAYER_STATE_OFF);
+    EXPECT_EQ(smart_mod_pending_mods(), 0);
+}
+
+/*
+ * One-shot mods chosen on the smart mod layer above a locked NAV are latched
+ * while NAV stays locked; the smart mod layer is no target layer and is off
+ * to target_layer. A quick release of `SMT_MOD` makes them pending, and the
+ * trigger key that leaves NAV does not consume them.
+ */
+TEST_F(TargetLayerSmartMod, Issue84_OneShotModsChosenAboveALockedNavAreAnsweredBesideIt) {
+    TestDriver driver;
+
+    lock_nav(driver);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_NAV), TARGET_LAYER_STATE_LOCKED);
+
+    hold_silently(driver, smt_mod);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_MOD), TARGET_LAYER_STATE_OFF);
+
+    latch(driver, left_index, KC_LSFT);
+    EXPECT_EQ(smart_mod_latched_mods(), MOD_BIT_LSHIFT);
+    EXPECT_EQ(smart_mod_pending_mods(), 0);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_NAV), TARGET_LAYER_STATE_LOCKED);
+
+    let_go_leaving_no_modifier(driver, smt_mod);
+    EXPECT_EQ(smart_mod_latched_mods(), 0);
+    EXPECT_EQ(smart_mod_pending_mods(), MOD_BIT_LSHIFT);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_NAV), TARGET_LAYER_STATE_LOCKED);
+
+    tap_silently(driver, corner);
+    EXPECT_EQ(target_layer_state_of(TEST_LAYER_NAV), TARGET_LAYER_STATE_OFF);
+    EXPECT_EQ(smart_mod_pending_mods(), MOD_BIT_LSHIFT);
+}
+
+/*
+ * By the table of entries of the keymap family: `TAB_SYM` makes the trigger
+ * keys of NAV and MOU work and `ENT_NUM` that of FUN. A held smart mod layer
+ * key is no holding key and makes no trigger key work.
+ */
+TEST_F(TargetLayerSmartMod, Issue84_TriggerKeysWorkWhileTheirHoldingKeyIsHeldAndNotForASmartModLayerKey) {
+    TestDriver driver;
+
+    hold_silently(driver, tab_sym);
+    EXPECT_TRUE(target_layer_is_trigger_key_working(TEST_LAYER_NAV));
+    EXPECT_TRUE(target_layer_is_trigger_key_working(TEST_LAYER_MOU));
+    EXPECT_FALSE(target_layer_is_trigger_key_working(TEST_LAYER_FUN));
+    let_go_silently(driver, tab_sym);
+
+    hold_silently(driver, ent_num);
+    EXPECT_FALSE(target_layer_is_trigger_key_working(TEST_LAYER_NAV));
+    EXPECT_FALSE(target_layer_is_trigger_key_working(TEST_LAYER_MOU));
+    EXPECT_TRUE(target_layer_is_trigger_key_working(TEST_LAYER_FUN));
+    let_go_silently(driver, ent_num);
+
+    hold_silently(driver, spc_mod);
+    for (uint8_t layer = 0; layer < TEST_LAYER_COUNT; layer++) {
+        EXPECT_FALSE(target_layer_is_trigger_key_working(layer)) << "layer " << +layer;
+    }
+    let_go_silently(driver, spc_mod);
 }

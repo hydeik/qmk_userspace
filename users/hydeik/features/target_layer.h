@@ -186,3 +186,33 @@ void target_layer_housekeeping_task(void);
  * unit tests do, so that no state leaks from one test into the next.
  */
 void target_layer_reset(void);
+
+/* What a target layer is doing, as `target_layer_state_of()` answers it. */
+enum target_layer_state_t {
+    /*
+     * Not on through this module and not held by Layer Lock. A target layer
+     * that is on for any other reason, a `TO()` say, is off too, and so is
+     * every layer that is no target layer.
+     */
+    TARGET_LAYER_STATE_OFF,
+    /* This module switched it on, and a holding key keeps it on. */
+    TARGET_LAYER_STATE_ON,
+    /* A pending target layer. */
+    TARGET_LAYER_STATE_PENDING,
+    /*
+     * A locked target layer: locked by this module, or held by Layer Lock,
+     * whichever way the layer came on before it was locked.
+     */
+    TARGET_LAYER_STATE_LOCKED,
+};
+
+/* Return the state of the target layer `layer`. */
+enum target_layer_state_t target_layer_state_of(uint8_t layer);
+
+/*
+ * Return whether the trigger key of the target layer `layer` works now: a
+ * holding key of that target layer is held, not tapped. The state of the
+ * target layer does not matter. For a layer that is no target layer the
+ * answer is false.
+ */
+bool target_layer_is_trigger_key_working(uint8_t layer);

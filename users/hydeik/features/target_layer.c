@@ -151,6 +151,10 @@ static bool is_holding_key_held_of(uint8_t layer) {
     return false;
 }
 
+bool target_layer_is_trigger_key_working(uint8_t layer) {
+    return is_holding_key_held_of(layer);
+}
+
 /* Return the bit of `layer` in a set of layers. */
 static layer_state_t layer_bit(uint8_t layer) {
     return (layer_state_t)1 << layer;
@@ -192,6 +196,23 @@ static bool is_locked(uint8_t layer) {
     }
 #endif
     return (state.locked_target_layers & layer_bit(layer)) != 0;
+}
+
+enum target_layer_state_t target_layer_state_of(uint8_t layer) {
+    if (!is_target_layer(layer)) {
+        return TARGET_LAYER_STATE_OFF;
+    }
+    /*
+     * Layer Lock is asked first: the hooks find out only at the next key
+     * event or scan loop that it locked the target layer that is on.
+     */
+    if (is_locked(layer)) {
+        return TARGET_LAYER_STATE_LOCKED;
+    }
+    if (state.phase == PHASE_OFF || state.target_layer != layer) {
+        return TARGET_LAYER_STATE_OFF;
+    }
+    return state.phase == PHASE_PENDING ? TARGET_LAYER_STATE_PENDING : TARGET_LAYER_STATE_ON;
 }
 
 /* Unlock the locked target layer `layer` and switch it off. */

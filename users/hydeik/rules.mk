@@ -47,3 +47,20 @@ else
     COMBO_ENABLE = no
     TAP_DANCE_ENABLE = no
 endif
+
+# The indicators are drawn with RGB Matrix, and they are chosen here in the
+# same way: no C source branches on RGB Matrix. A keymap that switches
+# RGB Matrix on in its rules.mk gets the logic of the indicators and the QMK
+# hooks that draw them. A keymap that does not, on a keyboard without LEDs,
+# gets neither.
+#
+# SPLIT_TRANSACTION_IDS_USER names the split transaction that carries the view
+# of the indicators from the master half to the other half. It is a setting
+# that would sit in config.h, but there it would reach every keymap, and QMK
+# builds the code of the custom split transactions into any split keyboard
+# that defines it, with LEDs or without.
+ifeq ($(strip $(RGB_MATRIX_ENABLE)), yes)
+    SRC += rgb_matrix_hooks.c
+    SRC += features/indicator.c
+    OPT_DEFS += -DSPLIT_TRANSACTION_IDS_USER=INDICATOR_VIEW_TRANSACTION
+endif
