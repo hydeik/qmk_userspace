@@ -1,0 +1,99 @@
+# THROWAWAY probe for the issue "Does keymap-drawer install in the CI
+# container, and does it give the same bytes there?". Lives only on the branch
+# task/ci-keymap-drawer-probe and is never merged.
+name: Probe keymap-drawer in the CI container
+
+on:
+  push:
+    branches: ['task/ci-keymap-drawer-probe']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probe
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli:latest
+
+    env:
+      RESEARCH: docs/research/keymap-drawer-hydeik
+      PROTOTYPE: docs/prototype/keymap-image/out
+
+    steps:
+      - name: Checkout userspace
+        uses: actions/checkout@v6
+
+      - name: What the container has
+        run: |
+          cat /etc/os-release | head -2
+          python3 --version
+          for tool in python3 pip pip3 uv uvx pipx; do
+            printf '%s: ' "$tool"; command -v "$tool" || echo "not found"
+          done
+          python3 -m venv --help > /dev/null 2>&1 && echo "venv module: yes" || echo "venv module: no"
+
+      # A virtual environment of its own, so that the environment of the QMK
+      # CLI is left alone.
+      - name: Install with pip into a virtual environment
+        id: pip_venv
+        continue-on-error: true
+        run: |
+          start=$(date +%s)
+          python3 -m venv /tmp/kd
+          /tmp/kd/bin/pip install --quiet -c "$RESEARCH/constraints.txt" keymap-drawer==0.23.0
+          echo "pip install into a venv took $(( $(date +%s) - start )) s"
+          /tmp/kd/bin/keymap --version
+          /tmp/kd/bin/pip freeze
+
+      - name: Install uv with pip and run through uvx
+        id: uvx
+        continue-on-error: true
+        run: |
+          start=$(date +%s)
+          python3 -m venv /tmp/uv
+          /tmp/uv/bin/pip install --quiet uv
+          /tmp/uv/bin/uvx --from keymap-drawer==0.23.0 --constraints "$RESEARCH/constraints.txt" keymap --version
+          echo "installing uv and the first uvx run took $(( $(date +%s) - start )) s"
+
+      - name: Parse and draw as on macOS
+        run: |
+          mkdir -p /tmp/out
+          keymap=/tmp/kd/bin/keymap
+          # The research picture: parse from the QMK keymap JSON, then draw.
+          ( cd "$RESEARCH" && $keymap -c config.yaml parse -c 10 -q family_keymap.json \
+              --layer-names BASE SYM NUM NAV MOU FUN MOD -b base.yaml -o /tmp/out/hydeik.yaml )
+          ( cd "$RESEARCH" && $keymap -c config.yaml draw \
+              --ortho-layout '{split: true, rows: 3, columns: 5, thumbs: 2}' \
+              /tmp/out/hydeik.yaml -o /tmp/out/hydeik.svg )
+          # The picture chosen in the prototype: column stagger from a local
+          # layout file, with the automatic theme.
+          $keymap -c "$PROTOTYPE/b.auto.config.yaml" draw \
+              -j "$RESEARCH/layout-34.json" -l LAYOUT_hydeik_34 \
+              "$PROTOTYPE/b.yaml" -o /tmp/out/b.auto.svg
+
+      - name: Compare with the files written on macOS
+        run: |
+          status=0
+          compare() {
+            if cmp -s "$1" "$2"; then
+              echo "SAME BYTES: $2"
+            else
+              echo "DIFFERENT:  $2"
+              diff "$1" "$2" | head -40
+              status=1
+            fi
+            sha256sum "$1" "$2"
+          }
+          compare /tmp/out/hydeik.yaml "$RESEARCH/hydeik.yaml"
+          compare /tmp/out/hydeik.svg "$RESEARCH/hydeik.svg"
+          compare /tmp/out/b.auto.svg "$PROTOTYPE/b.auto.svg"
+          exit $status
+
+      - name: Upload what was drawn
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: keymap-drawer-probe
+          path: /tmp/out/
