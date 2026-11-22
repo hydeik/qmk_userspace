@@ -9,6 +9,12 @@
 #                                         firmware sources it names.
 #   make test FIRMWARE_SOURCE=<source>    Build and run only the unit tests that run on
 #                                         one firmware source, `qmk` or `vial-qmk`.
+#   make keymap-image                     Write the keymap image of the keymap family
+#                                         `hydeik`, users/hydeik/image/keymap.svg,
+#                                         from users/hydeik/layout.h. Needs `uv` and
+#                                         nothing else.
+#   make keymap-image-test                Run the unit tests of the script that writes
+#                                         the keymap image. Not part of `make test`.
 #
 # The keymap name of a build target selects its firmware source: the one that
 # lists the keymap under `keymaps` in firmware_sources.json. The build stops if
@@ -23,12 +29,12 @@ MAKEFLAGS += --no-print-directory
 QMK_USERSPACE := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 FIRMWARE_SOURCES := python3 .github/scripts/firmware_sources.py
 
-USAGE := Usage: make firmware | make test [FIRMWARE_SOURCE=qmk|vial-qmk] | make <keyboard>:<keymap>[:flash]
+USAGE := Usage: make firmware | make test [FIRMWARE_SOURCE=qmk|vial-qmk] | make keymap-image | make keymap-image-test | make <keyboard>:<keymap>[:flash]
 
 # The keymap name of the goal being built.
 keymap = $(word 2,$(subst :, ,$@))
 
-.PHONY: help firmware test FORCE
+.PHONY: help firmware test keymap-image keymap-image-test FORCE
 
 help:
 	echo "$(USAGE)"
@@ -96,6 +102,21 @@ test:
 		fi; \
 	done; \
 	[ -z "$$failed" ]
+
+# The keymap image is written by a Python script that calls keymap-drawer. `uv`
+# provides Python, keymap-drawer and its dependencies at the versions pinned in
+# requirements.txt, so the image is the same bytes on every machine. Nothing
+# here needs the QMK CLI or a firmware checkout.
+KEYMAP_IMAGE_DIR := users/hydeik/image
+KEYMAP_IMAGE_RUN := uv run --no-project --python 3.14 \
+	--with-requirements $(KEYMAP_IMAGE_DIR)/requirements.txt
+
+keymap-image:
+	cd "$(QMK_USERSPACE)" && $(KEYMAP_IMAGE_RUN) python $(KEYMAP_IMAGE_DIR)/keymap_image.py
+
+keymap-image-test:
+	cd "$(QMK_USERSPACE)" && $(KEYMAP_IMAGE_RUN) --with pytest==9.2.0 \
+		pytest -p no:cacheprovider $(KEYMAP_IMAGE_DIR)
 
 FORCE:
 

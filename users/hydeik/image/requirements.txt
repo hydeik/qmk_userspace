@@ -1,0 +1,16 @@
+# keymap-drawer and its 13 dependencies, pinned, for `make keymap-image`.
+# Made with `uv pip compile --universal` from `keymap-drawer==0.23.0`.
+annotated-types==0.8.0
+keymap-drawer==0.23.0
+pcpp==1.30
+platformdirs==4.14.8
+pydantic==2.14.4
+pydantic-core==2.50.5
+pydantic-settings==2.16.3
+pyparsing==3.3.3
+python-dotenv==1.2.4
+pyyaml==6.0.4
+tree-sitter==0.25.2
+tree-sitter-devicetree==0.14.1
+typing-extensions==4.16.0
+typing-inspection==0.4.5
