@@ -1,6 +1,6 @@
 # QMK Userspace (hydeik's personal keymaps)
 
-My keyboard firmware configuration, as a [QMK userspace](https://github.com/qmk/qmk_userspace): the keymaps, their shared behaviour, and the build setup for the keyboards I type on. Every keymap uses 34 keys.
+My keyboard firmware configuration, as a [QMK userspace](https://github.com/qmk/qmk_userspace): the keymaps, their shared behaviour, and the build setup for the keyboards I type on. Every keymap has the same 34 keys.
 
 The terms used here (keymap family, keymap, layout, firmware source, build target) are defined in [`GLOSSARY.md`](GLOSSARY.md). Why the repository is organised this way is recorded in [`docs/adr/`](docs/adr/).
 
@@ -10,7 +10,9 @@ A keymap family is a complete typing design that can be applied to more than one
 
 | Keymap family | Design | Layers |
 | --- | --- | --- |
-| `hydeik` | No home-row mods; custom one-shot mods on a smart mod layer, and layer switching with holding keys and trigger keys. | BASE, SYM, NUM, NAV, MOU, FUN, MOD |
+| `hydeik` | No home-row mods; custom one-shot mods and a smart mod layer, and layer switching with holding keys and trigger keys. | BASE, SYM, NUM, NAV, MOU, FUN, MOD |
+
+The layers, their keys, how each layer is reached and how the one-shot mods and the smart mod layer behave are described in [`users/hydeik/README.md`](users/hydeik/README.md). MOU is a layer of mouse keys, so Mouse Keys are switched on for every keymap. That there is one keymap family in one directory, built with and without Vial, is decided in [ADR 0004](docs/adr/0004-one-keymap-family-built-with-and-without-vial.md).
 
 A keymap is the keymap family applied to one keyboard, either with or without Vial. The keymap with Vial is named `hydeik_vial` and is built against [`vial-kb/vial-qmk`](https://github.com/vial-kb/vial-qmk), branch `vial`; it adds Vial's GUI for remapping and tap-hold settings. The keymap without Vial is named `hydeik` and is built against upstream [`qmk/qmk_firmware`](https://github.com/qmk/qmk_firmware), branch `master`.
 
@@ -21,7 +23,7 @@ Both keymaps have the same layers, key for key, and the same one-shot mods, smar
 | | `hydeik` (without Vial) | `hydeik_vial` (with Vial) |
 | --- | --- | --- |
 | Firmware source | `qmk` | `vial-qmk` |
-| Remapping | None. The keyboard types with the firmware keymap. | In the Vial GUI, which edits the stored keymap. |
+| Remapping | None. The keyboard types with the firmware keymap. | In the Vial GUI, which edits the stored keymap. On its first boot, every newly built firmware resets the stored keymap to the firmware keymap. |
 | Tap-hold settings | Fixed at build time in `users/hydeik/config.h`: a tapping term of 200 ms and Hold On Other Key Press. | Vial settings, changed in the Vial GUI. After a settings reset they are the same as without Vial: `firmware_default` switches Hold On Other Key Press on. The `HOLD_ON_OTHER_KEY_PRESS` of `config.h` is ignored. |
 | Combos and tap dances | Off. | On, for use from the Vial GUI. The firmware defines none. |
 
@@ -32,6 +34,7 @@ Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an e
 | Path | Contents |
 | --- | --- |
 | `users/hydeik/` | The `hydeik` keymap family, for every keymap of the family. |
+| `users/hydeik/README.md` | The description of the keymap family: its layers and its behaviour. |
 | `users/hydeik/rules.mk`, `config.h` | Its build settings and its settings. |
 | `users/hydeik/layout.h` | The layer numbers, the keycodes and the layers. |
 | `users/hydeik/hydeik.c`, `hydeik.h` | The glue between QMK and the two state machines, with the QMK hooks. |
@@ -43,6 +46,9 @@ Apart from Vial, the keymap `hydeik_vial` of the crkbd has RGB lighting and an e
 | `keyboards/<keyboard>/keymaps/<keymap>/` | One keymap: the keymap family applied to one keyboard. |
 | `qmk.json` | The build targets. |
 | `firmware_sources.json` | The firmware sources, each pinned to a commit and listing the keymaps built against it. |
+| `Makefile` | The [local builds](#building-locally-with-make) and the [unit tests](#unit-tests). |
+| `.github/workflows/build_binaries.yaml` | The [CI workflow](#building-with-github-actions), with its script `.github/scripts/firmware_sources.py`. |
+| `GLOSSARY.md`, `docs/adr/` | The terms and the recorded decisions. |
 
 What exists only with Vial is chosen in `users/hydeik/rules.mk`: it adds `vial_hooks.c` and `features/firmware_default.c`, and switches combos and tap dances on, only for a keymap with Vial. No C source branches on Vial.
 
