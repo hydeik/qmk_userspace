@@ -143,6 +143,26 @@ void smart_mod_housekeeping_task(void);
 bool smart_mod_is_layer_key_held(void);
 
 /*
+ * Return the pending one-shot mods, as a set of modifier bits (MOD_BIT) that
+ * tells left from right.
+ *
+ * A pending one-shot mod leaves the answer at the key press that consumes it,
+ * not when the report of that key has been sent, and when its timeout ends.
+ * A modifier that is merely held, by a one-shot mod key or by any other key,
+ * is not answered.
+ */
+uint8_t smart_mod_pending_mods(void);
+
+/*
+ * Return the latched one-shot mods, as a set of modifier bits (MOD_BIT) that
+ * tells left from right.
+ *
+ * A one-shot mod key that is down on the smart mod layer is not answered
+ * before its release latches it.
+ */
+uint8_t smart_mod_latched_mods(void);
+
+/*
  * Forget everything: the held keys and the pending and latched one-shot mods.
  * It sends no report and leaves the registered modifiers and the layers
  * alone.
