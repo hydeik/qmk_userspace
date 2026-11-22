@@ -85,3 +85,11 @@ _Avoid_: One-shot layer, QMK's built-in one-shot layers (a different mechanism)
 **Locked target layer**:
 A target layer that stays on after its holding key was released quickly, with no key typed, until it is left on purpose. Which target layers lock and which become pending is chosen per trigger key.
 _Avoid_: Sticky layer, toggled layer
+
+**Indicator**:
+A light on a key that shows a state of the one-shot mods or of the layer switching. It is drawn over the ordinary lighting effect of the keyboard.
+_Avoid_: LED indicator (QMK's word for the lock lights of the host, such as Caps Lock), status light, RGB indicator
+
+**Indicator state**:
+What the indicator at one key position shows: a pending one-shot mod, a latched one-shot mod, a trigger key that works now, a target layer that is on, a pending target layer, or a locked target layer. A key position shows at most one.
+_Avoid_: Indicator colour (the colour is how a state looks, not the state)
